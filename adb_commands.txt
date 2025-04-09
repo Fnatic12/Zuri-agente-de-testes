@@ -1,0 +1,40 @@
+
+
+
+    # ========================
+# COMANDOS ADB NECESSÁRIOS PARA O PROJETO ZURI TESTER
+# ========================
+
+# 1. Verificar se o dispositivo está conectado
+adb devices
+
+# 2. Entrar no shell do dispositivo
+adb shell
+
+# 3. Capturar a tela do dispositivo (screenshot)
+adb shell screencap -p /sdcard/screen.png
+adb pull /sdcard/screen.png dataset_adb/frames/frame_TIMESTAMP.png
+
+# 4. Capturar eventos de toque (input touchscreen)
+adb shell getevent -lt
+
+# Para filtrar apenas toques (X e Y):
+adb shell getevent -lt | findstr POSITION
+
+# 5. Realizar toque automatizado (x, y)
+adb shell input tap X Y
+
+# 6. Verificar resolução da tela
+adb shell wm size
+
+# 7. Ativar modo desenvolvedor (manualmente no rádio)
+# Configurações > Sobre > Toque múltiplas vezes no número da versão
+
+# 8. Ativar depuração USB no rádio (manualmente)
+# Configurações > Opções do desenvolvedor > Depuração USB
+
+# 9. Reiniciar ADB via TCP/IP (caso use Wi-Fi futuramente)
+adb tcpip 5555
+adb connect IP_DO_RADIO:5555
+
+# ========================
