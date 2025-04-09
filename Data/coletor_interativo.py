@@ -4,6 +4,7 @@ import json
 import subprocess
 from datetime import datetime
 import platform
+import shutil
 
 # === 1. CONFIGURAÇÃO INICIAL ===
 if platform.system() == "Windows":
@@ -30,8 +31,7 @@ actions = []
 
 print("\n📡 Coletor INICIADO. Toque na tela para registrar coordenadas e screenshot.")
 print("🧠 Pasta de destino: ", base_dir)
-print("📸 Pressione ENTER para capturar a tela final de validação (expected_frame.png)")
-print("🔚 Ou pressione CTRL+C para encerrar\n")
+print("🔚 Pressione CTRL+C para encerrar\n")
 
 # === 4. LOOP PRINCIPAL DE COLETA ===
 def monitor_eventos():
@@ -45,11 +45,7 @@ def monitor_eventos():
 
     current_x, current_y = None, None
 
-    while True:
-        line = proc.stdout.readline()
-        if not line:
-            continue
-
+    for line in proc.stdout:
         if "ABS_MT_POSITION_X" in line:
             current_x = int(line.split()[-1], 16)
 
@@ -92,27 +88,22 @@ def monitor_eventos():
 
             current_x, current_y = None, None
 
+# === 5. EXECUÇÃO ===
 try:
-    from threading import Thread
-    import sys
-
-    thread = Thread(target=monitor_eventos)
-    thread.daemon = True
-    thread.start()
-
-    while True:
-        input("📸 Pressione ENTER para capturar a tela final ou CTRL+C para sair...\n")
-        expected_path = os.path.join(base_dir, "expected_frame.png")
-        remote_path = "/sdcard/expected_tmp.png"
-
-        subprocess.run([ADB_PATH, "shell", "screencap", "-p", remote_path])
-        subprocess.run([ADB_PATH, "pull", remote_path, expected_path])
-        subprocess.run([ADB_PATH, "shell", "rm", remote_path])
-
-        print(f"🖼️ Tela final capturada com sucesso: {expected_path}\n")
-
+    monitor_eventos()
 except KeyboardInterrupt:
     print("\n🛑 Coleta finalizada manualmente.")
     with open(json_path, "w") as f:
         json.dump(actions, f, indent=4)
     print(f"💾 {len(actions)} ações salvas em: {json_path}")
+
+    # === 6. Pergunta se usuário deseja salvar expected_frame.png ===
+    expected_frame_path = os.path.join(base_dir, "expected_frame.png")
+    ultima_imagem = actions[-1]["imagem"] if actions else None
+
+    if ultima_imagem:
+        resposta = input("\n🖼️ Deseja salvar a última imagem como expected_frame.png para validação? (s/n): ").strip().lower()
+        if resposta == "s":
+            origem = os.path.join(frames_dir, ultima_imagem)
+            shutil.copy(origem, expected_frame_path)
+            print(f"✅ expected_frame.png salvo em: {expected_frame_path}")
