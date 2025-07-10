@@ -1,155 +1,121 @@
 import os
-import cv2
-import time
-import subprocess
-import pandas as pd
-import numpy as np
 import json
+import subprocess
+import platform
+import time
 from datetime import datetime
 
-# === CONFIGURAÇÕES GERAIS ===
-ADB_PATH = "adb"
-SCREENSHOT_REMOTE = "/sdcard/frame_tmp.png"
-SCREENSHOT_LOCAL = "frame_current.png"
-RESOLUCAO_RADIO = (1920, 1080)
-SIMILARIDADE_MINIMA = 0.70
-PAUSA_ENTRE_TENTATIVAS = 3
-MAX_TENTATIVAS = 10
+# === CONFIGURAÇÕES INICIAIS ===
+if platform.system() == "Windows":
+    ADB_PATH = r"C:\Users\Automation01\platform-tools\adb.exe"
+else:
+    ADB_PATH = "adb"
+
+RESOLUCAO_ESPERADA = (1920, 1080)
+PAUSA_ENTRE_ACOES = 1  # segundos
 
 # === FUNÇÕES AUXILIARES ===
-def take_screenshot(local_path):
-    subprocess.run([ADB_PATH, "shell", "screencap", "-p", SCREENSHOT_REMOTE])
-    subprocess.run([ADB_PATH, "pull", SCREENSHOT_REMOTE, local_path],
-                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    subprocess.run([ADB_PATH, "shell", "rm", SCREENSHOT_REMOTE])
 
-def compare_images(img1_path, img2_path, resize_dim=(300, 300)):
-    img1 = cv2.imread(img1_path)
-    img2 = cv2.imread(img2_path)
-    if img1 is None or img2 is None:
-        return 0.0
-    img1 = cv2.resize(img1, resize_dim)
-    img2 = cv2.resize(img2, resize_dim)
-    diff = cv2.absdiff(img1, img2)
-    score = 1 - np.mean(diff) / 255
-    return score
+def print_color(msg, color="white"):
+    cores = {
+        "green": "\033[92m",
+        "yellow": "\033[93m",
+        "red": "\033[91m",
+        "white": "\033[0m"
+    }
+    print(f"{cores.get(color, '')}{msg}{cores['white']}")
 
-def tap_on_screen(x, y):
-    subprocess.run([ADB_PATH, "shell", "input", "tap", str(x), str(y)])
+def get_resolucao_dispositivo():
+    cmd = [ADB_PATH, "shell", "wm", "size"]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    output = result.stdout.strip()
+    if "Physical size:" in output:
+        _, tamanho = output.split(": ")
+        largura, altura = map(int, tamanho.strip().split("x"))
+        return largura, altura
+    return None
 
-def swipe_screen(x0, y0, x1, y1):
-    subprocess.run([ADB_PATH, "shell", "input", "swipe",
-                    str(x0), str(y0), str(x1), str(y1), "300"])
+def capturar_screenshot(pasta, indice):
+    nome_img = f"screenshot_{indice:02d}.png"
+    caminho_local = os.path.join(pasta, nome_img)
+    caminho_tmp = "/sdcard/tmp_shot.png"
+    subprocess.run([ADB_PATH, "shell", "screencap", "-p", caminho_tmp])
+    subprocess.run([ADB_PATH, "pull", caminho_tmp, caminho_local], stdout=subprocess.DEVNULL)
+    subprocess.run([ADB_PATH, "shell", "rm", caminho_tmp])
+    return nome_img
 
-def call_validator(path):
-    if os.path.exists(path):
-        print(f"\n🧪 Executando validator: {path}")
-        os.system(f"python {path}")
+def executar_acao(acao):
+    tipo = acao.get("tipo")
+
+    if tipo == "tap":
+        x = acao["x"]
+        y = acao["y"]
+        comando = [ADB_PATH, "shell", "input", "tap", str(x), str(y)]
+        subprocess.run(comando)
+        print_color(f"👉 TAP em ({x},{y})", "green")
+
+    elif tipo == "swipe":
+        x1 = acao["x1"]
+        y1 = acao["y1"]
+        x2 = acao["x2"]
+        y2 = acao["y2"]
+        duracao = acao.get("duracao_ms", 300)
+        comando = [ADB_PATH, "shell", "input", "swipe", str(x1), str(y1), str(x2), str(y2), str(duracao)]
+        subprocess.run(comando)
+        print_color(f"👉 SWIPE de ({x1},{y1}) até ({x2},{y2})", "green")
+
     else:
-        print("⚠️  Nenhum validator.py encontrado.")
+        print_color(f"⚠️ Tipo de ação desconhecido: {tipo}", "yellow")
 
-def listar_testes(data_root="Data"):
-    testes = []
-    for categoria in os.listdir(data_root):
-        cat_path = os.path.join(data_root, categoria)
-        if os.path.isdir(cat_path):
-            for nome_teste in os.listdir(cat_path):
-                teste_path = os.path.join(cat_path, nome_teste)
-                if os.path.isdir(teste_path):
-                    testes.append((f"{categoria}/{nome_teste}", teste_path))
-    return testes
+# === ENTRADA DO USUÁRIO ===
+print("📁 Execução Automática de Testes no Rádio via ADB")
+categoria = input("📂 Categoria do teste: ").strip().lower().replace(" ", "_")
+nome_teste = input("📝 Nome do teste: ").strip().lower().replace(" ", "_")
 
-# === EXECUÇÃO DO TESTE ===
-def main():
-    print("\n📂 Testes disponíveis:")
-    testes = listar_testes()
+base_dir = os.path.join("Data", categoria, nome_teste)
+json_path = os.path.join(base_dir, "json", "acoes.json")
+log_path = os.path.join(base_dir, "execucao_log.json")
+screenshots_dir = os.path.join(base_dir, "screenshots")
+os.makedirs(screenshots_dir, exist_ok=True)
 
-    if not testes:
-        print("❌ Nenhum teste encontrado em 'Data/'.")
-        return
+if not os.path.exists(json_path):
+    print_color(f"❌ Arquivo de ações não encontrado: {json_path}", "red")
+    exit()
 
-    for i, (nome, _) in enumerate(testes):
-        print(f"{i + 1}. {nome}")
+# === VERIFICAÇÃO DE RESOLUÇÃO ===
+resolucao = get_resolucao_dispositivo()
+if resolucao and resolucao != RESOLUCAO_ESPERADA:
+    print_color(f"⚠️ Resolução do dispositivo é {resolucao}, esperada era {RESOLUCAO_ESPERADA}", "yellow")
+else:
+    print_color(f"✅ Resolução confirmada: {resolucao}", "green")
 
-    while True:
-        try:
-            opcao = int(input("\n🟢 Selecione o número do teste que deseja executar: "))
-            if 1 <= opcao <= len(testes):
-                break
-            else:
-                print("❌ Opção inválida.")
-        except ValueError:
-            print("❌ Digite um número válido.")
+with open(json_path, "r") as f:
+    acoes = json.load(f)
 
-    nome_teste, base_path = testes[opcao - 1]
-    json_path = os.path.join(base_path, "json", "acoes.json")
-    validator_path = os.path.join(base_path, "validator.py")
+print_color(f"\n🎬 Executando {len(acoes)} ações registradas...\n", "white")
+log = []
 
-    with open(json_path, "r") as f:
-        acoes = json.load(f)
+for i, item in enumerate(acoes, start=1):
+    acao = item["acao"]
+    imagem = item.get("imagem", "")
+    print_color(f"▶️ Ação {i}/{len(acoes)}:", "white")
 
-    print(f"\n🚦 Executando {len(acoes)} ações automatizadas do teste: {nome_teste}\n")
+    input("🕹️ Pressione ENTER para executar a ação...")
 
-    log_execucao = []
+    executar_acao(acao)
+    screenshot_nome = capturar_screenshot(screenshots_dir, i)
 
-    for idx, acao in enumerate(acoes):
-        img_ref_path = os.path.join(base_path, "frames", acao["imagem"])
-        tipo = acao["acao"]["tipo"]
-        erro = None
-        timestamp_inicio = datetime.now()
+    log.append({
+        "timestamp": datetime.now().isoformat(),
+        "acao": acao,
+        "imagem_usada": imagem,
+        "screenshot_resultado": screenshot_nome
+    })
 
-        for tentativa in range(MAX_TENTATIVAS):
-            take_screenshot(SCREENSHOT_LOCAL)
-            similarity = compare_images(SCREENSHOT_LOCAL, img_ref_path)
-            print(f"🔍 Similaridade: {similarity:.4f} (tentativa {tentativa+1})")
-            if similarity >= SIMILARIDADE_MINIMA:
-                break
-            time.sleep(PAUSA_ENTRE_TENTATIVAS)
-        else:
-            erro = f"Similaridade abaixo do mínimo ({SIMILARIDADE_MINIMA})"
-            print(f"❌ {erro}")
+    time.sleep(PAUSA_ENTRE_ACOES)
 
-        if not erro:
-            if tipo == "touch":
-                x = int(acao["acao"]["x"])
-                y = int(acao["acao"]["y"])
-                tap_on_screen(x, y)
-                print(f"✅ Clique executado: ({x}, {y})")
-                coordenadas = (x, y)
-            elif tipo == "drag":
-                start = acao["acao"]["start"]
-                end = acao["acao"]["end"]
-                swipe_screen(start["x"], start["y"], end["x"], end["y"])
-                print(f"✅ Arrasto executado: ({start['x']}, {start['y']}) → ({end['x']}, {end['y']})")
-                coordenadas = (start["x"], start["y"], end["x"], end["y"])
-            else:
-                coordenadas = None
-        else:
-            coordenadas = None
+# === SALVAR LOG ===
+with open(log_path, "w") as f:
+    json.dump(log, f, indent=4)
 
-        timestamp_fim = datetime.now()
-
-        log_execucao.append({
-            "indice": idx,
-            "tipo": tipo,
-            "coordenadas": coordenadas,
-            "imagem_referencia": img_ref_path,
-            "similaridade_final": similarity,
-            "timestamp_inicio": timestamp_inicio.isoformat(),
-            "timestamp_fim": timestamp_fim.isoformat(),
-            "erro": erro
-        })
-
-        time.sleep(3)
-
-    print("\n🌟 Teste finalizado. Iniciando validação...")
-    call_validator(validator_path)
-
-    # Salvar log de execução
-    log_path = os.path.join(base_path, "execucao_log.json")
-    with open(log_path, "w", encoding="utf-8") as f:
-        json.dump(log_execucao, f, indent=4, ensure_ascii=False, default=str)
-    print(f"📁 Log salvo em: {log_path}")
-
-if __name__ == "__main__":
-    main()
+print_color(f"\n✅ Execução finalizada. Log salvo em: {log_path}", "green")

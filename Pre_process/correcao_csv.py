@@ -1,24 +1,39 @@
-import pandas as pd
 import os
+import json
+import pandas as pd
 
-def corrigir_csv(csv_path):
-    df = pd.read_csv(csv_path)
+def processar_json(json_path, csv_output_path):
+    try:
+        with open(json_path, 'r') as f:
+            acoes = json.load(f)
 
-    # Remover entradas sem coordenadas válidas
-    df = df.dropna(subset=["x", "y"])
-    df = df[df["x"] >= 0]
-    df = df[df["y"] >= 0]
+        registros = []
+        for acao in acoes:
+            if "x" in acao and "y" in acao:
+                registros.append({
+                    "x": acao["x"],
+                    "y": acao["y"],
+                    "tipo": acao.get("tipo", ""),
+                    "timestamp": acao.get("timestamp", ""),
+                    "resolucao_largura": acao.get("resolucao_largura", 1920),
+                    "resolucao_altura": acao.get("resolucao_altura", 1080),
+                })
 
-    # Normalizar coordenadas entre 0 e 1
-    df["x_norm"] = df["x"] / df["resolucao_largura"]
-    df["y_norm"] = df["y"] / df["resolucao_altura"]
-
-    df.to_csv(csv_path, index=False)
-    print(f"[✅] CSV corrigido e normalizado salvo em: {csv_path}")
+        df = pd.DataFrame(registros)
+        df.to_csv(csv_output_path, index=False)
+        print(f"[✅] CSV gerado: {csv_output_path}")
+        return True
+    except Exception as e:
+        print(f"[ERRO] Falha ao processar {json_path}: {e}")
+        return False
 
 def main():
     data_root = "Data"
-    total_corrigidos = 0
+    total = 0
+
+    if not os.path.exists(data_root):
+        print("❌ Pasta 'Data' não encontrada. Execute o script a partir da raiz do projeto.")
+        return
 
     for categoria in os.listdir(data_root):
         cat_path = os.path.join(data_root, categoria)
@@ -27,19 +42,17 @@ def main():
 
         for nome_teste in os.listdir(cat_path):
             teste_path = os.path.join(cat_path, nome_teste)
-            csv_path = os.path.join(teste_path, "dataset.csv")
+            json_path = os.path.join(teste_path, "json", "acoes.json")
+            csv_output_path = os.path.join(teste_path, "dataset.csv")
 
-            if os.path.exists(csv_path):
-                try:
-                    corrigir_csv(csv_path)
-                    total_corrigidos += 1
-                except Exception as e:
-                    print(f"[ERRO] Falha ao corrigir {csv_path}: {e}")
+            if os.path.exists(json_path):
+                if processar_json(json_path, csv_output_path):
+                    total += 1
 
-    if total_corrigidos == 0:
+    if total == 0:
         print("⚠️ Nenhum CSV encontrado para correção.")
     else:
-        print(f"\n✨ {total_corrigidos} arquivos corrigidos com sucesso.")
+        print(f"\n✨ {total} CSV(s) gerados com sucesso.")
 
 if __name__ == "__main__":
     main()

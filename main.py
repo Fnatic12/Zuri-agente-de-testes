@@ -1,29 +1,46 @@
 import os
+import subprocess
+
+# Caminhos dos scripts
+SCRIPTS = {
+    "coleta": "Scripts/coletor_adb.py",
+    "pre_process": "Pre_process/pre_process.py",
+    "correcao": "Pre_process/correcao_csv.py",
+    "run": "Run/run_noia.py"
+}
+
+def executar_script(caminho, titulo):
+    if not os.path.isfile(caminho):
+        print(f"❌ Script não encontrado: {caminho}")
+        return
+    print(f"\n🚀 {titulo}...\n")
+    try:
+        subprocess.run(["py", caminho], check=True)
+    except subprocess.CalledProcessError:
+        print(f"❌ Erro durante a execução de {caminho}")
 
 def executar_coleta():
-    print("\n🔴 Iniciando coleta de dados...\n")
-    os.system("py Scripts/coletor_adb.py")  # Caminho atualizado
+    executar_script(SCRIPTS["coleta"], "Iniciando coleta de dados")
 
 def executar_pre_processamento():
-    print("\n🟡 Executando pré-processamento e correção...\n")
-    os.system("py Pre_process/pre_process.py")
-    os.system("py Pre_process/correcao_csv.py")
+    executar_script(SCRIPTS["pre_process"], "Executando pré-processamento")
+    executar_script(SCRIPTS["correcao"], "Aplicando correção no dataset")
 
 def executar_run():
-    print("\n🟢 Executando teste automatizado...\n")
-    os.system("py Run/run_noia.py")
+    executar_script(SCRIPTS["run"], "Executando teste automatizado")
 
 def menu():
     while True:
-        print("\n" + "="*30)
-        print(" ZURI TEST AUTOMATION - MAIN")
-        print("="*30)
+        print("\n" + "="*40)
+        print("🔧 ZURI TEST AUTOMATION - MENU PRINCIPAL")
+        print("="*40)
         print("1️⃣  Executar COLETA de dados")
         print("2️⃣  Executar PRÉ-PROCESSAMENTO e CORREÇÃO")
         print("3️⃣  Executar TESTE AUTOMATIZADO")
-        print("0️⃣  Sair\n")
+        print("0️⃣  Sair")
+        print("-" * 40)
 
-        opcao = input("Selecione uma opção: ").strip()
+        opcao = input("👉 Escolha uma opção: ").strip()
 
         if opcao == "1":
             executar_coleta()
@@ -32,7 +49,7 @@ def menu():
         elif opcao == "3":
             executar_run()
         elif opcao == "0":
-            print("\n👋 Encerrando.")
+            print("\n👋 Encerrando o sistema. Até mais!")
             break
         else:
             print("❌ Opção inválida. Tente novamente.")
