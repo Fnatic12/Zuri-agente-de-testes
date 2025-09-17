@@ -2,7 +2,7 @@ import os
 import json
 import pandas as pd
 
-def processar_json(json_path, csv_output_path):
+def gerar_e_normalizar(json_path, csv_output_path):
     try:
         with open(json_path, 'r', encoding="utf-8") as f:
             conteudo = json.load(f)
@@ -46,8 +46,15 @@ def processar_json(json_path, csv_output_path):
             return False
 
         df = pd.DataFrame(registros)
+
+        # Normalizar coordenadas
+        df = df.dropna(subset=["x", "y"])
+        df = df[(df["x"] >= 0) & (df["y"] >= 0)]
+        df["x_norm"] = df["x"] / df["resolucao_largura"]
+        df["y_norm"] = df["y"] / df["resolucao_altura"]
+
         df.to_csv(csv_output_path, index=False, encoding="utf-8")
-        print(f"[✅] CSV gerado: {csv_output_path}")
+        print(f"[✅] Dataset gerado e normalizado: {csv_output_path}")
         return True
 
     except Exception as e:
@@ -56,7 +63,6 @@ def processar_json(json_path, csv_output_path):
 
 
 def main():
-    # Caminho absoluto para a raiz do projeto
     PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     data_root = os.path.join(PROJECT_ROOT, "Data")
 
@@ -76,7 +82,7 @@ def main():
         print(f"❌ Arquivo JSON não encontrado em {json_path}")
         return
 
-    processar_json(json_path, csv_output_path)
+    gerar_e_normalizar(json_path, csv_output_path)
 
 
 if __name__ == "__main__":

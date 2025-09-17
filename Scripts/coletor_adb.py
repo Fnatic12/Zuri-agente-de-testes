@@ -1,167 +1,319 @@
 import os
-import cv2
-import time
-import subprocess
-import pandas as pd
-import numpy as np
+import re
 import json
+import math
+import time
+import sys
+import platform
+import pyfiglet
+import colorama
+from colorama import Fore, Style
+from termcolor import colored
+import subprocess
 from datetime import datetime
+colorama.init()
 
-# === CONFIGURAÇÕES GERAIS ===
-ADB_PATH = "adb"
-SCREENSHOT_REMOTE = "/sdcard/frame_tmp.png"
-SCREENSHOT_LOCAL = "frame_current.png"
-RESOLUCAO_ATUAL = (1920, 1080)  # resolução do rádio no momento do teste
-SIMILARIDADE_MINIMA = 0.70
-PAUSA_ENTRE_TENTATIVAS = 3
-MAX_TENTATIVAS = 10
+# =========================
+# CONFIG
+# =========================
+BUILD_TAG = "ZURI Coletor v2 (event2)"
+if platform.system() == "Windows":
+    ADB_PATH = r"C:\Users\Automation01\platform-tools\adb.exe"
+else:
+    ADB_PATH = "adb"
 
-# === FUNÇÕES AUXILIARES ===
+REMOTE_TMP = "/sdcard/tmp_shot.png"
+MOV_THRESH_PX = 25            # distância p/ classificar SWIPE (senão é TAP)
+DEFAULT_RES = (1920, 1080)    # fallback
+DEFAULT_DEV = "/dev/input/event2"
+
+# Caminho absoluto para a raiz do projeto (um nível acima da pasta Scripts/)
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+def printc(msg, color="white"):
+    colors = {
+        "green": Fore.GREEN,
+        "yellow": Fore.YELLOW,
+        "red": Fore.RED,
+        "white": Style.RESET_ALL,
+        "cyan": Fore.CYAN,
+        "blue": Fore.BLUE
+    }
+    print(f"{colors.get(color,'')}{msg}{Style.RESET_ALL}", flush=True)
+
+def run_out(cmd):
+    p = subprocess.run(cmd, capture_output=True, text=True)
+    return p.stdout.strip()
+
 def take_screenshot(local_path):
-    subprocess.run([ADB_PATH, "shell", "screencap", "-p", SCREENSHOT_REMOTE])
-    subprocess.run([ADB_PATH, "pull", SCREENSHOT_REMOTE, local_path],
-                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    subprocess.run([ADB_PATH, "shell", "rm", SCREENSHOT_REMOTE])
+    os.makedirs(os.path.dirname(local_path), exist_ok=True)
+    subprocess.run([ADB_PATH, "shell", "screencap", "-p", REMOTE_TMP])
+    subprocess.run([ADB_PATH, "pull", REMOTE_TMP, local_path])
+    subprocess.run([ADB_PATH, "shell", "rm", REMOTE_TMP])
+    return local_path
 
-def compare_images(img1_path, img2_path, resize_dim=(300, 300)):
-    img1 = cv2.imread(img1_path)
-    img2 = cv2.imread(img2_path)
-    if img1 is None or img2 is None:
-        return 0.0
-    img1 = cv2.resize(img1, resize_dim)
-    img2 = cv2.resize(img2, resize_dim)
-    diff = cv2.absdiff(img1, img2)
-    score = 1 - np.mean(diff) / 255
-    return score
+def get_resolution():
+    out = run_out([ADB_PATH, "shell", "wm", "size"])
+    m = re.search(r"Physical size:\s*(\d+)x(\d+)", out)
+    if m:
+        return int(m.group(1)), int(m.group(2))
+    return DEFAULT_RES
 
-def resolver_coordenadas(orig, resolucao_origem, resolucao_destino):
-    escala_x = resolucao_destino[0] / resolucao_origem[0]
-    escala_y = resolucao_destino[1] / resolucao_origem[1]
-    return int(orig[0] * escala_x), int(orig[1] * escala_y)
+def autodetect_touch_device():
+    """
+    Procura o device de touchscreen via `adb shell getevent -pl`.
+    Dá prioridade para 'touchscreen'. Se não achar, cai para qualquer 'touch'.
+    """
+    out = run_out([ADB_PATH, "shell", "getevent", "-pl"])
+    dev_touchscreen = None
+    dev_touch = None
+    current_block = []
 
-def tap_on_screen(x, y):
-    subprocess.run([ADB_PATH, "shell", "input", "tap", str(x), str(y)])
+    for line in out.splitlines():
+        if line.startswith("add device"):
+            current_block = [line]
+        else:
+            current_block.append(line)
 
-def swipe_screen(x0, y0, x1, y1):
-    subprocess.run([ADB_PATH, "shell", "input", "swipe",
-                    str(x0), str(y0), str(x1), str(y1), "300"])
+        if "name:" in line.lower():
+            name_line = line.lower()
+            # prioridade: touchscreen
+            if "touchscreen" in name_line:
+                m = re.search(r"add device \d+:\s+(/dev/input/event\d+)", current_block[0])
+                if m:
+                    dev_touchscreen = m.group(1)
+            # fallback: qualquer touch
+            elif "touch" in name_line:
+                m = re.search(r"add device \d+:\s+(/dev/input/event\d+)", current_block[0])
+                if m and dev_touch is None:
+                    dev_touch = m.group(1)
 
-def call_validator(path):
-    if os.path.exists(path):
-        print(f"\n🧪 Executando validator: {path}")
-        os.system(f"python {path}")
-    else:
-        print("⚠️  Nenhum validator.py encontrado.")
+    return dev_touchscreen or dev_touch or DEFAULT_DEV
 
-def listar_testes(data_root="Data"):
-    testes = []
-    for categoria in os.listdir(data_root):
-        cat_path = os.path.join(data_root, categoria)
-        if os.path.isdir(cat_path):
-            for nome_teste in os.listdir(cat_path):
-                teste_path = os.path.join(cat_path, nome_teste)
-                if os.path.isdir(teste_path):
-                    testes.append((f"{categoria}/{nome_teste}", teste_path))
-    return testes
+def get_abs_ranges_for_device(dev_path):
+    """
+    Lê os ranges de ABS_X/ABS_Y e ABS_MT_POSITION_X/Y do device para escalar a pixels.
+    Retorna dict com max/min.
+    """
+    out = run_out([ADB_PATH, "shell", "getevent", "-pl", dev_path])
+    ranges = {
+        "ABS_X": {"min": 0, "max": None},
+        "ABS_Y": {"min": 0, "max": None},
+        "ABS_MT_POSITION_X": {"min": 0, "max": None},
+        "ABS_MT_POSITION_Y": {"min": 0, "max": None},
+    }
+    for line in out.splitlines():
+        for key in list(ranges.keys()):
+            if key in line:
+                m = re.search(r"min\s+(\d+),\s*max\s+(\d+)", line)
+                if m:
+                    ranges[key]["min"] = int(m.group(1))
+                    ranges[key]["max"] = int(m.group(2))
+    return ranges
 
-# === EXECUÇÃO DO TESTE ===
-def main():
-    print("\n📂 Testes disponíveis:")
-    testes = listar_testes()
+def scale_to_px(val, min_v, max_v, px_max):
+    """Mapeia valor [min_v, max_v] -> [0, px_max-1]"""
+    if max_v is None or max_v == min_v:
+        return int(val)
+    val = max(min_v, min(max_v, val))
+    ratio = (val - min_v) / float(max_v - min_v)
+    return int(round(ratio * (px_max - 1)))
 
-    if not testes:
-        print("❌ Nenhum teste encontrado em 'Data/'.")
-        return
+# =========================
+# COLETA DE GESTOS
+# =========================
+HEX_VAL = re.compile(r"\s([0-9a-fA-F]{8})\s*$")
 
-    for i, (nome, _) in enumerate(testes):
-        print(f"{i + 1}. {nome}")
+def hex_last_int(line):
+    m = HEX_VAL.search(line)
+    return int(m.group(1), 16) if m else None
 
-    while True:
+def collect_gestures_loop(dev_path, frames_dir, screen_res, abs_ranges):
+    printc(f"\n▶️ Escutando touchscreen em {dev_path}", "cyan")
+    printc("Toque/arraste na tela do rádio. Para finalizar, pressione CTRL+C.\n", "yellow")
+
+    cmd = [ADB_PATH, "shell", "getevent", "-lt", dev_path]
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, universal_newlines=True)
+
+    actions = []
+    idx = 1
+
+    in_touch = False
+    sx_raw = sy_raw = None
+    lx_raw = ly_raw = None
+    t_start = None
+
+    try:
+        for line in proc.stdout:
+            line = line.rstrip()
+
+            # DOWN
+            if "EV_KEY" in line and "BTN_TOUCH" in line and "DOWN" in line:
+                in_touch = True
+                t_start = time.time()
+                sx_raw = sy_raw = None
+                lx_raw = ly_raw = None
+
+            # POSIÇÕES
+            if "EV_ABS" in line:
+                if "ABS_MT_POSITION_X" in line or "ABS_X" in line:
+                    val = hex_last_int(line)
+                    if val is not None:
+                        lx_raw = val
+                        if sx_raw is None:
+                            sx_raw = val
+                elif "ABS_MT_POSITION_Y" in line or "ABS_Y" in line:
+                    val = hex_last_int(line)
+                    if val is not None:
+                        ly_raw = val
+                        if sy_raw is None:
+                            sy_raw = val
+
+            # FIM DO TOQUE
+            end_touch = False
+            if "EV_KEY" in line and "BTN_TOUCH" in line and "UP" in line:
+                end_touch = True
+            if "EV_ABS" in line and "ABS_MT_TRACKING_ID" in line and "ffffffff" in line:
+                end_touch = True
+
+            if in_touch and end_touch:
+                in_touch = False
+                dur_ms = int((time.time() - t_start) * 1000)
+
+                if sx_raw is None or sy_raw is None or lx_raw is None or ly_raw is None:
+                    printc("⚠️  Gesto ignorado: sem coordenadas completas", "yellow")
+                    continue
+
+                sx_px = scale_to_px(
+                    sx_raw,
+                    abs_ranges["ABS_MT_POSITION_X"]["min"] if abs_ranges["ABS_MT_POSITION_X"]["max"] is not None else abs_ranges["ABS_X"]["min"],
+                    abs_ranges["ABS_MT_POSITION_X"]["max"] if abs_ranges["ABS_MT_POSITION_X"]["max"] is not None else abs_ranges["ABS_X"]["max"],
+                    screen_res[0]
+                )
+                sy_px = scale_to_px(
+                    sy_raw,
+                    abs_ranges["ABS_MT_POSITION_Y"]["min"] if abs_ranges["ABS_MT_POSITION_Y"]["max"] is not None else abs_ranges["ABS_Y"]["min"],
+                    abs_ranges["ABS_MT_POSITION_Y"]["max"] if abs_ranges["ABS_MT_POSITION_Y"]["max"] is not None else abs_ranges["ABS_Y"]["max"],
+                    screen_res[1]
+                )
+                lx_px = scale_to_px(
+                    lx_raw,
+                    abs_ranges["ABS_MT_POSITION_X"]["min"] if abs_ranges["ABS_MT_POSITION_X"]["max"] is not None else abs_ranges["ABS_X"]["min"],
+                    abs_ranges["ABS_MT_POSITION_X"]["max"] if abs_ranges["ABS_MT_POSITION_X"]["max"] is not None else abs_ranges["ABS_X"]["max"],
+                    screen_res[0]
+                )
+                ly_px = scale_to_px(
+                    ly_raw,
+                    abs_ranges["ABS_MT_POSITION_Y"]["min"] if abs_ranges["ABS_MT_POSITION_Y"]["max"] is not None else abs_ranges["ABS_Y"]["min"],
+                    abs_ranges["ABS_MT_POSITION_Y"]["max"] if abs_ranges["ABS_MT_POSITION_Y"]["max"] is not None else abs_ranges["ABS_Y"]["max"],
+                    screen_res[1]
+                )
+
+                dist = math.hypot(lx_px - sx_px, ly_px - sy_px)
+                if dist <= MOV_THRESH_PX:
+                    action = {
+                        "tipo": "tap",
+                        "x": int(sx_px),
+                        "y": int(sy_px),
+                        "resolucao": {"largura": screen_res[0], "altura": screen_res[1]}
+                    }
+                    label = f"TAP ({action['x']},{action['y']})"
+                else:
+                    action = {
+                        "tipo": "swipe",
+                        "x1": int(sx_px),
+                        "y1": int(sy_px),
+                        "x2": int(lx_px),
+                        "y2": int(ly_px),
+                        "duracao_ms": max(dur_ms, 1),
+                        "resolucao": {"largura": screen_res[0], "altura": screen_res[1]}
+                    }
+                    label = f"SWIPE ({action['x1']},{action['y1']})→({action['x2']},{action['y2']}) {dur_ms}ms"
+
+                img_name = f"frame_{idx:02d}.png"
+                take_screenshot(os.path.join(frames_dir, img_name))
+
+                actions.append({
+                    "id": idx,
+                    "timestamp": datetime.now().isoformat(),
+                    "imagem": img_name,
+                    "acao": action
+                })
+
+                printc(f"✅ Ação {idx}: {label} | frame: {img_name}", "green")
+                idx += 1
+
+    except KeyboardInterrupt:
+        printc("\n⏹️ Coleta encerrada pelo usuário.", "yellow")
+    finally:
         try:
-            opcao = int(input("\n🟢 Selecione o número do teste que deseja executar: "))
-            if 1 <= opcao <= len(testes):
-                break
-            else:
-                print("❌ Opção inválida.")
-        except ValueError:
-            print("❌ Digite um número válido.")
+            proc.terminate()
+        except Exception:
+            pass
 
-    nome_teste, base_path = testes[opcao - 1]
-    json_path = os.path.join(base_path, "json", "acoes.json")
-    validator_path = os.path.join(base_path, "validator.py")
+    return actions
 
-    with open(json_path, "r") as f:
-        acoes = json.load(f)
+def print_banner():
+    banner = pyfiglet.figlet_format("ZURI Coletor")
+    print(colored(banner, "blue"))
 
-    print(f"\n🚦 Executando {len(acoes)} ações automatizadas do teste: {nome_teste}\n")
+    print(colored("v2 - Coleta Automática de Ações no Rádio via ADB", "blue"))
+    print(colored("="*55, "blue"))
+    print(colored("         VWAIT   -   BTEE   -   ZURI", "blue"))
+    print(colored("="*55, "blue"))
 
-    log_execucao = []
 
-    for idx, acao in enumerate(acoes):
-        img_ref_path = os.path.join(base_path, "frames", acao["imagem"])
-        tipo = acao["acao"]["tipo"]
-        resolucao_original = (
-            acao["acao"]["resolucao"]["largura"],
-            acao["acao"]["resolucao"]["altura"]
-        )
-        erro = None
-        timestamp_inicio = datetime.now()
+# =========================
+# MAIN
+# =========================
+def main():
+    print_banner()  # <<< aqui entra o banner logo no início
 
-        for tentativa in range(MAX_TENTATIVAS):
-            take_screenshot(SCREENSHOT_LOCAL)
-            similarity = compare_images(SCREENSHOT_LOCAL, img_ref_path)
-            print(f"🔍 Similaridade: {similarity:.4f} (tentativa {tentativa+1})")
-            if similarity >= SIMILARIDADE_MINIMA:
-                break
-            time.sleep(PAUSA_ENTRE_TENTATIVAS)
-        else:
-            erro = f"Similaridade abaixo do mínimo ({SIMILARIDADE_MINIMA})"
-            print(f"❌ {erro}")
+    printc(f"📦 {BUILD_TAG}", "cyan")
+    print("📁 Coleta Automática de Ações no Rádio via ADB")
 
-        if not erro:
-            if tipo == "touch":
-                orig_x = acao["acao"]["x"]
-                orig_y = acao["acao"]["y"]
-                x, y = resolver_coordenadas((orig_x, orig_y), resolucao_original, RESOLUCAO_ATUAL)
-                tap_on_screen(x, y)
-                print(f"✅ Clique executado: ({x}, {y})")
-                coordenadas = (x, y)
-            elif tipo == "drag":
-                start_orig = acao["acao"]["start"]
-                end_orig = acao["acao"]["end"]
-                x0, y0 = resolver_coordenadas((start_orig["x"], start_orig["y"]), resolucao_original, RESOLUCAO_ATUAL)
-                x1, y1 = resolver_coordenadas((end_orig["x"], end_orig["y"]), resolucao_original, RESOLUCAO_ATUAL)
-                swipe_screen(x0, y0, x1, y1)
-                print(f"✅ Arrasto executado: ({x0}, {y0}) → ({x1}, {y1})")
-                coordenadas = (x0, y0, x1, y1)
-            else:
-                coordenadas = None
-        else:
-            coordenadas = None
+    categoria = input("📂 Categoria do teste: ").strip().lower().replace(" ", "_")
+    nome_teste = input("📝 Nome do teste: ").strip().lower().replace(" ", "_")
 
-        timestamp_fim = datetime.now()
+    # Agora força salvar sempre na pasta Data da raiz
+    base_dir = os.path.join(PROJECT_ROOT, "Data", categoria, nome_teste)
+    json_dir = os.path.join(base_dir, "json")
+    frames_dir = os.path.join(base_dir, "frames")
+    os.makedirs(json_dir, exist_ok=True)
+    os.makedirs(frames_dir, exist_ok=True)
 
-        log_execucao.append({
-            "indice": idx,
-            "tipo": tipo,
-            "coordenadas": coordenadas,
-            "imagem_referencia": img_ref_path,
-            "similaridade_final": similarity,
-            "timestamp_inicio": timestamp_inicio.isoformat(),
-            "timestamp_fim": timestamp_fim.isoformat(),
-            "erro": erro
-        })
+    screen_res = get_resolution()
+    printc(f"🖥️ Resolução detectada: {screen_res[0]}x{screen_res[1]}", "cyan")
 
-        time.sleep(3)
+    dev = autodetect_touch_device()
+    printc(f"📟 Device de touch: {dev}", "cyan")
 
-    print("\n🌟 Teste finalizado. Iniciando validação...")
-    call_validator(validator_path)
+    abs_ranges = get_abs_ranges_for_device(dev)
+    printc(f"🔎 Ranges capturados (ABS): {abs_ranges}", "white")
 
-    # Salvar log de execução
-    log_path = os.path.join(base_path, "execucao_log.json")
-    with open(log_path, "w", encoding="utf-8") as f:
-        json.dump(log_execucao, f, indent=4, ensure_ascii=False, default=str)
-    print(f"📁 Log salvo em: {log_path}")
+    actions = collect_gestures_loop(dev, frames_dir, screen_res, abs_ranges)
+
+    printc("\n📸 Capturando screenshot final do teste...", "yellow")
+    final_img = take_screenshot(os.path.join(base_dir, "resultado_final.png"))
+
+    saida = {
+        "teste": nome_teste,
+        "categoria": categoria,
+        "acoes": actions,
+        "resultado_esperado": "resultado_final.png"
+    }
+    acoes_path = os.path.join(json_dir, "acoes.json")
+    with open(acoes_path, "w", encoding="utf-8") as f:
+        json.dump(saida, f, indent=4, ensure_ascii=False)
+
+    printc(f"\n✅ Coleta finalizada.", "green")
+    printc(f"📄 Ações salvas em: {acoes_path}", "green")
+    printc(f"🖼️ Screenshot final: {final_img}", "green")
+
 
 if __name__ == "__main__":
+    try:
+        sys.stdout.reconfigure(line_buffering=True)
+    except Exception:
+        pass
     main()

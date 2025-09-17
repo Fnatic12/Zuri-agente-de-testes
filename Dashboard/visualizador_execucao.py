@@ -1,101 +1,151 @@
-# dashboard/visualizador_execucao.py
-
-import streamlit as st
-import json
 import os
-import pandas as pd
+import json
+import streamlit as st
 from PIL import Image
-from io import BytesIO
-from datetime import datetime
+import matplotlib.pyplot as plt
 
-# === Configuração inicial ===
-ROOT_DIR = "Data"
-st.set_page_config(page_title="Dashboard de Execução", layout="wide")
-st.title("📊 Dashboard de Execução Automatizada")
+# === CONFIGURAÇÕES ===
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_ROOT = os.path.join(BASE_DIR, "Data")
 
-# === Funções auxiliares ===
-def encontrar_logs(root):
-    return [
-        os.path.join(dirpath, file)
-        for dirpath, _, filenames in os.walk(root)
-        for file in filenames if file == "execucao_log.json"
-    ]
+# === FUNÇÕES ===
+def carregar_logs(data_root=DATA_ROOT):
+    """Lista execuções disponíveis"""
+    logs = []
+    for categoria in os.listdir(data_root):
+        cat_path = os.path.join(data_root, categoria)
+        if os.path.isdir(cat_path):
+            for teste in os.listdir(cat_path):
+                teste_path = os.path.join(cat_path, teste)
+                if os.path.isdir(teste_path):
+                    arq = os.path.join(teste_path, "execucao_log.json")
+                    if os.path.exists(arq):
+                        logs.append((f"{categoria}/{teste}", arq))
+    return logs
 
-def tempo_total(df):
-    return (df['timestamp_fim'].max() - df['timestamp_inicio'].min()).total_seconds()
+def calcular_metricas(execucao):
+    total = len(execucao)
+    acertos = sum(1 for a in execucao if "✅" in a["status"])
+    falhas = total - acertos
+    precisao = round((acertos / total) * 100, 2) if total > 0 else 0
+    return {
+        "total_acoes": total,
+        "acertos": acertos,
+        "falhas": falhas,
+        "precisao_percentual": precisao,
+        "resultado_final": "APROVADO" if falhas == 0 else "REPROVADO"
+    }
 
-# === Seletor de log ===
-logs = encontrar_logs(ROOT_DIR)
+def exibir_metricas(metricas):
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Total de Ações", metricas["total_acoes"])
+    col2.metric("Acertos", metricas["acertos"])
+    col3.metric("Falhas", metricas["falhas"])
+    st.metric("Precisão (%)", metricas["precisao_percentual"])
+
+    # Corrigido para não retornar DeltaGenerator
+    if metricas["resultado_final"] == "APROVADO":
+        st.success("✅ APROVADO")
+    else:
+        st.error("❌ REPROVADO")
+
+    # === GRÁFICO DE PIZZA ===
+    fig, ax = plt.subplots()
+    labels = ["Acertos", "Falhas"]
+    sizes = [metricas["acertos"], metricas["falhas"]]
+    colors = ["#4CAF50", "#F44336"]
+    explode = (0.05, 0)  # destaca os acertos
+
+    ax.pie(
+        sizes,
+        explode=explode,
+        labels=labels,
+        colors=colors,
+        autopct="%1.1f%%",
+        shadow=True,
+        startangle=90
+    )
+    ax.axis("equal")
+    st.pyplot(fig)
+
+def exibir_acoes(execucao, base_dir):
+    st.subheader("📋 Detalhes das Ações")
+    for acao in execucao:
+        with st.expander(f"Ação {acao['id']} - {acao['acao'].upper()} | {acao['status']}"):
+            col1, col2 = st.columns(2)
+
+            frame_path = os.path.join(base_dir, acao["frame_esperado"])
+            resultado_path = os.path.join(base_dir, acao["screenshot"])
+
+            if os.path.exists(frame_path):
+                col1.image(Image.open(frame_path), caption=f"Frame Esperado ({acao['frame_esperado']})", use_container_width=True)
+            else:
+                col1.warning("Frame esperado não encontrado")
+
+            if os.path.exists(resultado_path):
+                col2.image(Image.open(resultado_path), caption=f"Screenshot Obtido ({acao['screenshot']})", use_container_width=True)
+            else:
+                col2.warning("Screenshot não encontrado")
+
+            st.write(f"🎯 Similaridade: **{acao['similaridade']:.2f}**")
+            st.json(acao["coordenadas"])
+
+def exibir_validacao_final(execucao, base_dir):
+    st.subheader("🖼️ Validação Final da Tela")
+
+    # Caminho do resultado final (gerado pelo run_noia.py)
+    resultado_final_path = os.path.join(base_dir, "resultado_final.png")
+
+    col1, col2 = st.columns(2)
+
+    # Frame esperado = última ação do log
+    if execucao:
+        ultima = execucao[-1]
+        frame_path = os.path.join(base_dir, ultima["frame_esperado"])
+
+        if os.path.exists(frame_path):
+            col1.image(Image.open(frame_path), caption="Esperada (Última Ação)", use_container_width=True)
+        else:
+            col1.error("Frame esperado não encontrado")
+
+        # Screenshot final: usa resultado_final.png se existir
+        if os.path.exists(resultado_final_path):
+            col2.image(Image.open(resultado_final_path), caption="Obtida (Resultado Final)", use_container_width=True)
+        else:
+            col2.error("resultado_final.png não encontrado")
+
+        # Similaridade final
+        st.write(f"🎯 Similaridade Final: **{ultima['similaridade']:.2f}**")
+        if "✅" in ultima["status"]:
+            st.success("✅ Tela final validada")
+        else:
+            st.error("❌ Tela final divergente")
+    else:
+        st.warning("Nenhuma ação registrada")
+
+# === INTERFACE ===
+st.title("📊 Dashboard de Execução de Testes - Rádio Android")
+
+logs = carregar_logs()
 if not logs:
-    st.warning("Nenhum log encontrado.")
+    st.error("Nenhum execucao_log.json encontrado em Data/*/*/")
     st.stop()
 
-log_path = st.selectbox("📁 Escolha um log para visualizar:", logs)
+opcao = st.selectbox("Selecione a execução", [r[0] for r in logs])
+log_path = dict(logs)[opcao]
+
 with open(log_path, "r", encoding="utf-8") as f:
-    registros = json.load(f)
+    execucao = json.load(f)
 
-df = pd.DataFrame(registros)
-df['timestamp_inicio'] = pd.to_datetime(df['timestamp_inicio'])
-df['timestamp_fim'] = pd.to_datetime(df['timestamp_fim'])
-df['tempo_execucao'] = (df['timestamp_fim'] - df['timestamp_inicio']).dt.total_seconds()
-df['resultado'] = df['erro'].apply(lambda x: "❌ Falha" if pd.notna(x) else "✅ Sucesso")
+base_dir = os.path.dirname(log_path)
 
-# === Filtros laterais ===
-st.sidebar.header("🔎 Filtros")
-filtro_resultado = st.sidebar.multiselect("Filtrar por resultado:", options=["✅ Sucesso", "❌ Falha"], default=["✅ Sucesso", "❌ Falha"])
-df_filtrado = df[df['resultado'].isin(filtro_resultado)]
+# === MÉTRICAS ===
+st.subheader("📈 Métricas Gerais")
+metricas = calcular_metricas(execucao)
+exibir_metricas(metricas)
 
-# === Exportação ===
-st.sidebar.header("📤 Exportar relatório")
-export_formato = st.sidebar.selectbox("Formato:", ["CSV", "Excel"])
-nome_arquivo = f"relatorio_execucao_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-if st.sidebar.button("📥 Baixar"):
-    if export_formato == "CSV":
-        csv_data = df_filtrado.to_csv(index=False).encode("utf-8")
-        st.sidebar.download_button("⬇️ Baixar CSV", csv_data, file_name=f"{nome_arquivo}.csv", mime="text/csv")
-    else:
-        excel_io = BytesIO()
-        with pd.ExcelWriter(excel_io, engine='xlsxwriter') as writer:
-            df_filtrado.to_excel(writer, index=False, sheet_name='Execucao')
-        st.sidebar.download_button("⬇️ Baixar Excel", excel_io.getvalue(), file_name=f"{nome_arquivo}.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+# === AÇÕES DETALHADAS ===
+exibir_acoes(execucao, base_dir)
 
-# === Métricas gerais ===
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("🔁 Total de Ações", len(df))
-col2.metric("✅ Sucessos", df['resultado'].value_counts().get("✅ Sucesso", 0))
-col3.metric("❌ Falhas", df['resultado'].value_counts().get("❌ Falha", 0))
-col4.metric("⏱️ Tempo Total (s)", f"{tempo_total(df):.1f}")
-
-# === Timeline de execução ===
-st.markdown("### 🕒 Timeline de Execução")
-df_timeline = df[['timestamp_inicio', 'tempo_execucao', 'resultado']].copy()
-df_timeline['horário'] = df_timeline['timestamp_inicio'].dt.strftime('%H:%M:%S')
-st.bar_chart(data=df_timeline, x='horário', y='tempo_execucao', color='resultado')
-
-st.markdown("---")
-st.subheader("📌 Detalhamento das Ações")
-
-# === Loop de ações ===
-for idx, r in df_filtrado.iterrows():
-    with st.expander(f"Ação {r['indice']+1} — {r['resultado']} — Tempo: {r['tempo_execucao']:.2f}s"):
-        col1, col2 = st.columns([1, 2])
-        img_path = r.get("imagem_referencia")
-
-        # Imagem de referência
-        if img_path and os.path.exists(img_path):
-            col1.image(Image.open(img_path), caption="Imagem Referência", use_column_width=True)
-        else:
-            col1.warning("Imagem não encontrada")
-
-        # Dados relevantes
-        dados = {
-            "Tipo": r.get("tipo"),
-            "Coordenadas": r.get("coordenadas"),
-            "Similaridade final": round(r.get("similaridade_final", 0), 4),
-            "Erro": r.get("erro", "Nenhum"),
-            "Início": r.get("timestamp_inicio"),
-            "Fim": r.get("timestamp_fim"),
-        }
-        col2.json(dados)
-
-st.caption("🧠 Desenvolvido para validar execuções da IA no infotainment com precisão.")
+# === VALIDAÇÃO FINAL ===
+exibir_validacao_final(execucao, base_dir)
