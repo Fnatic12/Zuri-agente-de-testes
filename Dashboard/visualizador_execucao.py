@@ -3,12 +3,15 @@ import json
 import streamlit as st
 from PIL import Image
 import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+import time
 
 # === CONFIGURAÇÕES ===
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_ROOT = os.path.join(BASE_DIR, "Data")
 
-# === FUNÇÕES ===
+# === FUNÇÕES AUXILIARES ===
 def carregar_logs(data_root=DATA_ROOT):
     """Lista execuções disponíveis"""
     logs = []
@@ -27,23 +30,37 @@ def calcular_metricas(execucao):
     total = len(execucao)
     acertos = sum(1 for a in execucao if "✅" in a["status"])
     falhas = total - acertos
+    flakes = sum(1 for a in execucao if "FLAKE" in a.get("status", ""))
+    tempo_total = sum(a.get("duracao", 1) for a in execucao)
+    cobertura = round((len({a.get("tela", f"id{a['id']}") for a in execucao}) / total) * 100, 1) if total > 0 else 0
     precisao = round((acertos / total) * 100, 2) if total > 0 else 0
+
     return {
         "total_acoes": total,
         "acertos": acertos,
         "falhas": falhas,
+        "flakes": flakes,
         "precisao_percentual": precisao,
+        "tempo_total": tempo_total,
+        "cobertura_telas": cobertura,
         "resultado_final": "APROVADO" if falhas == 0 else "REPROVADO"
     }
 
+# === DASHBOARD ===
 def exibir_metricas(metricas):
+    st.subheader("📈 Métricas Gerais")
     col1, col2, col3 = st.columns(3)
     col1.metric("Total de Ações", metricas["total_acoes"])
     col2.metric("Acertos", metricas["acertos"])
     col3.metric("Falhas", metricas["falhas"])
-    st.metric("Precisão (%)", metricas["precisao_percentual"])
 
-    # Corrigido para não retornar DeltaGenerator
+    col4, col5, col6 = st.columns(3)
+    col4.metric("Precisão (%)", metricas["precisao_percentual"])
+    col5.metric("Flakes", metricas["flakes"])
+    col6.metric("Cobertura de Telas (%)", metricas["cobertura_telas"])
+
+    st.metric("⏱️ Tempo Total (s)", metricas["tempo_total"])
+
     if metricas["resultado_final"] == "APROVADO":
         st.success("✅ APROVADO")
     else:
@@ -54,18 +71,23 @@ def exibir_metricas(metricas):
     labels = ["Acertos", "Falhas"]
     sizes = [metricas["acertos"], metricas["falhas"]]
     colors = ["#4CAF50", "#F44336"]
-    explode = (0.05, 0)  # destaca os acertos
-
-    ax.pie(
-        sizes,
-        explode=explode,
-        labels=labels,
-        colors=colors,
-        autopct="%1.1f%%",
-        shadow=True,
-        startangle=90
-    )
+    explode = (0.05, 0)
+    ax.pie(sizes, explode=explode, labels=labels, colors=colors,
+           autopct="%1.1f%%", shadow=True, startangle=90)
     ax.axis("equal")
+    st.pyplot(fig)
+
+def exibir_timeline(execucao):
+    st.subheader("⏳ Timeline da Execução")
+    tempos = [a.get("duracao", 1) for a in execucao]
+    ids = [a["id"] for a in execucao]
+    status = ["green" if "✅" in a["status"] else "red" for a in execucao]
+
+    fig, ax = plt.subplots()
+    ax.bar(ids, tempos, color=status)
+    ax.set_xlabel("Ação")
+    ax.set_ylabel("Duração (s)")
+    ax.set_title("Tempo por Ação")
     st.pyplot(fig)
 
 def exibir_acoes(execucao, base_dir):
@@ -78,27 +100,38 @@ def exibir_acoes(execucao, base_dir):
             resultado_path = os.path.join(base_dir, acao["screenshot"])
 
             if os.path.exists(frame_path):
-                col1.image(Image.open(frame_path), caption=f"Frame Esperado ({acao['frame_esperado']})", use_container_width=True)
+                col1.image(Image.open(frame_path), caption=f"Esperado: {acao['frame_esperado']}", use_container_width=True)
             else:
                 col1.warning("Frame esperado não encontrado")
 
             if os.path.exists(resultado_path):
-                col2.image(Image.open(resultado_path), caption=f"Screenshot Obtido ({acao['screenshot']})", use_container_width=True)
+                col2.image(Image.open(resultado_path), caption=f"Obtido: {acao['screenshot']}", use_container_width=True)
             else:
                 col2.warning("Screenshot não encontrado")
 
             st.write(f"🎯 Similaridade: **{acao['similaridade']:.2f}**")
-            st.json(acao["coordenadas"])
+            st.json(acao.get("coordenadas", {}))
+            if "log" in acao:
+                st.code(acao["log"], language="bash")
+
+def exibir_mapa_calor(execucao):
+    st.subheader("🔥 Mapa de Calor dos Toques")
+    xs = [a["coordenadas"]["x"] for a in execucao if "coordenadas" in a]
+    ys = [a["coordenadas"]["y"] for a in execucao if "coordenadas" in a]
+
+    if xs and ys:
+        fig, ax = plt.subplots()
+        sns.kdeplot(x=xs, y=ys, cmap="Reds", fill=True, ax=ax, thresh=0.05)
+        ax.invert_yaxis()
+        st.pyplot(fig)
+    else:
+        st.warning("Sem coordenadas para gerar mapa de calor.")
 
 def exibir_validacao_final(execucao, base_dir):
     st.subheader("🖼️ Validação Final da Tela")
-
-    # Caminho do resultado final (gerado pelo run_noia.py)
     resultado_final_path = os.path.join(base_dir, "resultado_final.png")
 
     col1, col2 = st.columns(2)
-
-    # Frame esperado = última ação do log
     if execucao:
         ultima = execucao[-1]
         frame_path = os.path.join(base_dir, ultima["frame_esperado"])
@@ -108,13 +141,11 @@ def exibir_validacao_final(execucao, base_dir):
         else:
             col1.error("Frame esperado não encontrado")
 
-        # Screenshot final: usa resultado_final.png se existir
         if os.path.exists(resultado_final_path):
             col2.image(Image.open(resultado_final_path), caption="Obtida (Resultado Final)", use_container_width=True)
         else:
             col2.error("resultado_final.png não encontrado")
 
-        # Similaridade final
         st.write(f"🎯 Similaridade Final: **{ultima['similaridade']:.2f}**")
         if "✅" in ultima["status"]:
             st.success("✅ Tela final validada")
@@ -122,6 +153,16 @@ def exibir_validacao_final(execucao, base_dir):
             st.error("❌ Tela final divergente")
     else:
         st.warning("Nenhuma ação registrada")
+
+def exibir_regressoes(execucao):
+    st.subheader("📉 Análise de Regressões")
+    falhas = [a for a in execucao if "❌" in a["status"]]
+    if falhas:
+        st.write("Top falhas nesta execução:")
+        for f in falhas:
+            st.write(f"- Ação {f['id']} ({f['acao']}): Similaridade {f['similaridade']:.2f}")
+    else:
+        st.success("Nenhuma falha registrada")
 
 # === INTERFACE ===
 st.title("📊 Dashboard de Execução de Testes - Rádio Android")
@@ -139,13 +180,15 @@ with open(log_path, "r", encoding="utf-8") as f:
 
 base_dir = os.path.dirname(log_path)
 
-# === MÉTRICAS ===
-st.subheader("📈 Métricas Gerais")
+# === SEÇÕES DO DASHBOARD ===
 metricas = calcular_metricas(execucao)
 exibir_metricas(metricas)
-
-# === AÇÕES DETALHADAS ===
+exibir_timeline(execucao)
 exibir_acoes(execucao, base_dir)
-
-# === VALIDAÇÃO FINAL ===
+exibir_mapa_calor(execucao)
 exibir_validacao_final(execucao, base_dir)
+exibir_regressoes(execucao)
+
+# === EXPORTAÇÃO ===
+if st.button("📤 Exportar Relatório JSON"):
+    st.download_button("Baixar JSON", data=json.dumps(execucao, indent=2), file_name="relatorio_execucao.json")
