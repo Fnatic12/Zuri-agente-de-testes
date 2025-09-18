@@ -59,7 +59,7 @@ def exibir_metricas(metricas):
     col5.metric("Flakes", metricas["flakes"])
     col6.metric("Cobertura de Telas (%)", metricas["cobertura_telas"])
 
-    st.metric("⏱️ Tempo Total (s)", metricas["tempo_total"])
+    st.metric("⏱️ Tempo Total Execução (s)", metricas["tempo_total"])
 
     if metricas["resultado_final"] == "APROVADO":
         st.success("✅ APROVADO")
@@ -110,6 +110,7 @@ def exibir_acoes(execucao, base_dir):
                 col2.warning("Screenshot não encontrado")
 
             st.write(f"🎯 Similaridade: **{acao['similaridade']:.2f}**")
+            st.write(f"⏱️ Duração: **{acao.get('duracao', 0)}s**")
             st.json(acao.get("coordenadas", {}))
             if "log" in acao:
                 st.code(acao["log"], language="bash")

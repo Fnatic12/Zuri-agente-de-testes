@@ -108,11 +108,13 @@ def main():
         tipo = str(row.get("tipo", "tap")).lower()
         print_color(f"▶️ Ação {i+1}/{len(df)} ({tipo})", "white")
 
+        # Início da medição de tempo
+        inicio = time.time()
+
         if tipo == "tap":
             executar_tap(int(row["x"]), int(row["y"]))
 
         elif tipo == "swipe_inicio":
-            # Usa a próxima linha como fim do swipe
             if i + 1 < len(df):
                 proxima = df.iloc[i + 1]
                 if str(proxima.get("tipo", "")).lower() == "swipe_fim":
@@ -121,7 +123,6 @@ def main():
                         int(proxima["x"]), int(proxima["y"]),
                         int(row.get("duracao_ms", 300))
                     )
-                    # Vamos também registrar um log adicional para o fim (opcional)
                 else:
                     print_color("⚠️ swipe_inicio sem swipe_fim logo após — ignorado.", "yellow")
             else:
@@ -131,14 +132,16 @@ def main():
         screenshot_nome = f"resultado_{i+1:02d}.png"
         screenshot_path = capturar_screenshot(resultados_dir, screenshot_nome)
 
-        # Frame esperado (segue convenção frame_XX.png)
         esperado_rel = os.path.join("frames", f"frame_{i+1:02d}.png")
         esperado_abs = os.path.join(teste_dir, esperado_rel)
 
         similaridade = comparar_imagens(screenshot_path, esperado_abs)
         status = "✅ OK" if similaridade >= 0.85 else "❌ Divergente"
 
-        print_color(f"🔎 Similaridade: {similaridade:.3f} → {status}", "cyan")
+        fim = time.time()
+        duracao = round(fim - inicio, 2)
+
+        print_color(f"🔎 Similaridade: {similaridade:.3f} → {status} | ⏱️ {duracao:.2f}s", "cyan")
 
         log.append({
             "id": i+1,
@@ -148,8 +151,10 @@ def main():
             "screenshot": os.path.join("resultados", screenshot_nome),
             "frame_esperado": esperado_rel,
             "similaridade": similaridade,
-            "status": status
+            "status": status,
+            "duracao": duracao
         })
+
 
         # Se era swipe_inicio e tratamos o swipe_fim, podemos pular o próximo índice na visualização
         if tipo == "swipe_inicio" and i + 1 < len(df) and str(df.iloc[i + 1].get("tipo", "")).lower() == "swipe_fim":
