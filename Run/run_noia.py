@@ -4,6 +4,7 @@ import platform
 import subprocess
 import pandas as pd
 import time
+import sys
 import json
 from datetime import datetime
 from skimage.metrics import structural_similarity as ssim
@@ -77,8 +78,14 @@ def comparar_imagens(img1_path, img2_path):
 def main():
     print("📁 Execução Automática de Testes no Rádio via ADB")
 
-    categoria = input("📂 Categoria do teste: ").strip().lower().replace(" ", "_")
-    nome_teste = input("📝 Nome do teste: ").strip().lower().replace(" ", "_")
+    # 🔹 Agora aceita argumentos OU modo interativo
+    if len(sys.argv) >= 3:
+        categoria = sys.argv[1].strip().lower().replace(" ", "_")
+        nome_teste = sys.argv[2].strip().lower().replace(" ", "_")
+    else:
+        print_color("⚠️ Nenhum argumento fornecido. Entrando em modo interativo...\n", "yellow")
+        categoria = input("📂 Categoria do teste: ").strip().lower().replace(" ", "_")
+        nome_teste = input("📝 Nome do teste: ").strip().lower().replace(" ", "_")
 
     teste_dir = os.path.join(DATA_ROOT, categoria, nome_teste)
     dataset_path = os.path.join(teste_dir, "dataset.csv")
@@ -92,7 +99,12 @@ def main():
     print_color(f"🗂️ Result.: {resultados_dir}\n", "cyan")
 
     if not os.path.exists(dataset_path):
-        print_color(f"❌ Arquivo dataset.csv não encontrado.\n   Esperado em: {dataset_path}\n   Dica: rode a opção 2 do menu (Processar dataset).", "red")
+        print_color(
+            f"❌ Arquivo dataset.csv não encontrado.\n"
+            f"   Esperado em: {dataset_path}\n"
+            f"   Dica: rode a opção 'Processar Dataset' no menu.",
+            "red"
+        )
         return
 
     os.makedirs(resultados_dir, exist_ok=True)
@@ -154,12 +166,6 @@ def main():
             "status": status,
             "duracao": duracao
         })
-
-
-        # Se era swipe_inicio e tratamos o swipe_fim, podemos pular o próximo índice na visualização
-        if tipo == "swipe_inicio" and i + 1 < len(df) and str(df.iloc[i + 1].get("tipo", "")).lower() == "swipe_fim":
-            # Ainda assim tiramos screenshot para a posição i+1? Aqui mantemos uma captura por linha do dataset.
-            pass
 
         i += 1
         time.sleep(PAUSA_ENTRE_ACOES)

@@ -6,6 +6,7 @@ import time
 import sys
 import platform
 import pyfiglet
+import signal
 import colorama
 from colorama import Fore, Style
 from termcolor import colored
@@ -26,6 +27,14 @@ REMOTE_TMP = "/sdcard/tmp_shot.png"
 MOV_THRESH_PX = 25            # distância p/ classificar SWIPE (senão é TAP)
 DEFAULT_RES = (1920, 1080)    # fallback
 DEFAULT_DEV = "/dev/input/event2"
+stop_requested = False
+
+def handle_sigterm(signum, frame):
+    global stop_requested
+    stop_requested = True
+    printc("\n🛑 Finalizando coleta (SIGTERM recebido)...", "yellow")
+
+signal.signal(signal.SIGTERM, handle_sigterm)
 
 # Caminho absoluto para a raiz do projeto (um nível acima da pasta Scripts/)
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -147,6 +156,11 @@ def collect_gestures_loop(dev_path, frames_dir, screen_res, abs_ranges):
         for line in proc.stdout:
             line = line.rstrip()
 
+            # dentro do collect_gestures_loop, logo no início do for
+            if os.path.exists(os.path.join(PROJECT_ROOT, "stop.flag")):
+                printc("\n🛑 Finalização solicitada via arquivo stop.flag", "yellow")
+                break
+            
             # DOWN
             if "EV_KEY" in line and "BTN_TOUCH" in line and "DOWN" in line:
                 in_touch = True
@@ -248,8 +262,10 @@ def collect_gestures_loop(dev_path, frames_dir, screen_res, abs_ranges):
     finally:
         try:
             proc.terminate()
+            proc.wait(timeout=1)
         except Exception:
             pass
+
 
     return actions
 
@@ -272,8 +288,12 @@ def main():
     printc(f"📦 {BUILD_TAG}", "cyan")
     print("📁 Coleta Automática de Ações no Rádio via ADB")
 
-    categoria = input("📂 Categoria do teste: ").strip().lower().replace(" ", "_")
-    nome_teste = input("📝 Nome do teste: ").strip().lower().replace(" ", "_")
+    if len(sys.argv) >= 3:
+        categoria = sys.argv[1].strip().lower().replace(" ", "_")
+        nome_teste = sys.argv[2].strip().lower().replace(" ", "_")
+    else:
+        printc("❌ Uso correto: python coletor_adb.py <categoria> <nome_teste>", "red")
+        sys.exit(1)
 
     # Agora força salvar sempre na pasta Data da raiz
     base_dir = os.path.join(PROJECT_ROOT, "Data", categoria, nome_teste)

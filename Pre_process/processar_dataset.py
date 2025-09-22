@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import pandas as pd
 
@@ -70,9 +71,14 @@ def main():
         print(f"❌ Pasta 'Data' não encontrada em {data_root}.")
         return
 
-    # Perguntar categoria e teste
-    categoria = input("📂 Categoria do teste: ").strip().lower().replace(" ", "_")
-    nome_teste = input("📝 Nome do teste: ").strip().lower().replace(" ", "_")
+    # Se argumentos forem passados, usa eles (modo Streamlit)
+    if len(sys.argv) >= 3:
+        categoria = sys.argv[1].strip().lower().replace(" ", "_")
+        nome_teste = sys.argv[2].strip().lower().replace(" ", "_")
+    else:
+        # fallback interativo (modo terminal)
+        categoria = input("📂 Categoria do teste: ").strip().lower().replace(" ", "_")
+        nome_teste = input("📝 Nome do teste: ").strip().lower().replace(" ", "_")
 
     teste_path = os.path.join(data_root, categoria, nome_teste)
     json_path = os.path.join(teste_path, "json", "acoes.json")
