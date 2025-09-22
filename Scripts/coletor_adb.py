@@ -160,7 +160,7 @@ def collect_gestures_loop(dev_path, frames_dir, screen_res, abs_ranges):
             if os.path.exists(os.path.join(PROJECT_ROOT, "stop.flag")):
                 printc("\n🛑 Finalização solicitada via arquivo stop.flag", "yellow")
                 break
-            
+
             # DOWN
             if "EV_KEY" in line and "BTN_TOUCH" in line and "DOWN" in line:
                 in_touch = True
@@ -266,7 +266,7 @@ def collect_gestures_loop(dev_path, frames_dir, screen_res, abs_ranges):
         except Exception:
             pass
 
-
+    # sai do loop mas retorna lista de ações
     return actions
 
 def print_banner():

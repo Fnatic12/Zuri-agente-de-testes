@@ -1,8 +1,8 @@
 import streamlit as st
 import subprocess
 import os
-import signal
 import platform
+import shutil
 
 # === CONFIG ===
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -21,10 +21,9 @@ if "proc_coleta" not in st.session_state:
     st.session_state.proc_coleta = None
 
 st.set_page_config(page_title="ZURI - Automação VW", page_icon="🚗", layout="centered")
-st.image("https://upload.wikimedia.org/wikipedia/commons/6/6d/VW_logo_2019.png", width=120)
-st.title("ZURI - Plataforma de Automação de Testes")
-st.markdown("**Sistema de testes automatizados para Infotainment - Volkswagen**")
-st.divider()
+st.title("Plataforma de Automação de Testes")
+st.markdown("**Sistema de testes automatizados para GEI - BTEE4**")
+st.divider() 
 
 # === COLETA ===
 st.subheader("🎥 Coletar Gestos")
@@ -59,37 +58,47 @@ with col1:
         proc = st.session_state.proc_coleta
         if proc:
             try:
-                if platform.system() == "Windows":
-                    # 2) Windows: cria stop.flag para o coletor encerrar limpo
-                    with open(STOP_FLAG_PATH, "w") as f:
-                        f.write("stop")
-                    st.info("📄 stop.flag criado. Aguardando a coleta finalizar...")
+                # Cria stop.flag para sinalizar ao coletor
+                with open(STOP_FLAG_PATH, "w") as f:
+                    f.write("stop")
 
-                    # Aguarda saída graciosa
-                    proc.wait(timeout=10)
-                else:
-                    # 3) Linux/Mac: manda SIGINT (CTRL+C)
-                    proc.send_signal(signal.SIGINT)
-                    proc.wait(timeout=10)
+                st.info("📄 Finalização solicitada... aguardando o coletor salvar o print final.")
 
-                st.success("🛑 Coleta finalizada e print final salvo.")
+                proc.wait(timeout=15)  # espera o coletor encerrar sozinho
+                st.success("🛑 Coleta finalizada com sucesso. Print final e ações salvos.")
             except subprocess.TimeoutExpired:
                 proc.kill()
-                st.warning("⚠️ Processo não respondeu, foi finalizado à força.")
+                st.warning("⚠️ Coletor não respondeu, processo finalizado à força (sem print final).")
             finally:
-                # 4) Limpa flag (se existir) e reseta estado
                 if os.path.exists(STOP_FLAG_PATH):
-                    try:
-                        os.remove(STOP_FLAG_PATH)
-                    except Exception:
-                        pass
+                    os.remove(STOP_FLAG_PATH)
                 st.session_state.proc_coleta = None
         else:
             st.info("Nenhuma coleta em andamento.")
 
-# === PROCESSAR DATASET ===
+# === DELETAR TESTE ===
 st.divider()
-st.subheader("⚙️ Processar Dataset")
+st.subheader("🗑️ Deletar Teste")
+cat_del = st.text_input("Categoria do Teste a deletar", key="cat_del")
+nome_del = st.text_input("Nome do Teste a deletar", key="nome_del")
+
+if st.button("❌ Deletar Teste"):
+    if cat_del and nome_del:
+        teste_path = os.path.join(BASE_DIR, "Data", cat_del, nome_del)
+        if os.path.exists(teste_path):
+            try:
+                shutil.rmtree(teste_path)
+                st.success(f"🗑️ Teste {cat_del}/{nome_del} deletado com sucesso.")
+            except Exception as e:
+                st.error(f"❌ Erro ao deletar: {e}")
+        else:
+            st.warning(f"⚠️ Teste {cat_del}/{nome_del} não encontrado.")
+    else:
+        st.error("⚠️ Informe categoria e nome do teste para deletar.")
+
+# === PROCESSAR DATASET (manual, opcional) ===
+st.divider()
+st.subheader("⚙️ Processar Dataset (opcional)")
 categoria_ds = st.text_input("Categoria do Dataset", key="cat_dataset")
 nome_teste_ds = st.text_input("Nome do Teste", key="nome_dataset")
 
@@ -111,6 +120,23 @@ nome_teste_exec = st.text_input("Nome do Teste", key="nome_exec")
 
 if st.button("▶️ Executar Teste"):
     if categoria_exec and nome_teste_exec:
+        teste_path = os.path.join(BASE_DIR, "Data", categoria_exec, nome_teste_exec)
+        dataset_path = os.path.join(teste_path, "dataset.csv")
+
+        # Se não existir dataset, processa antes de executar
+        if not os.path.exists(dataset_path):
+            st.warning("⚠️ Dataset não encontrado. Gerando automaticamente...")
+            proc = subprocess.run(
+                ["python", SCRIPTS["Processar Dataset"], categoria_exec, nome_teste_exec],
+                cwd=BASE_DIR
+            )
+            if proc.returncode == 0:
+                st.success("✅ Dataset processado com sucesso.")
+            else:
+                st.error("❌ Falha ao processar dataset. Verifique o JSON de ações.")
+                st.stop()
+
+        # Agora executa o teste
         subprocess.Popen(
             ["python", SCRIPTS["Executar Teste"], categoria_exec, nome_teste_exec],
             cwd=BASE_DIR
