@@ -62,7 +62,7 @@ with col1:
                 with open(STOP_FLAG_PATH, "w") as f:
                     f.write("stop")
 
-                st.info("📄 Finalização solicitada... aguardando o coletor salvar o print final.")
+                st.warning("👉 Toque uma vez na tela do rádio para capturar o print final...")
 
                 proc.wait(timeout=15)  # espera o coletor encerrar sozinho
                 st.success("🛑 Coleta finalizada com sucesso. Print final e ações salvos.")
