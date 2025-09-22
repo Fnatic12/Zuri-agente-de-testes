@@ -22,7 +22,7 @@ if "proc_coleta" not in st.session_state:
 
 st.set_page_config(page_title="ZURI - Automação VW", page_icon="🚗", layout="centered")
 st.title("Plataforma de Automação de Testes")
-st.markdown("**Sistema de testes automatizados para GEI - BTEE4**")
+st.markdown("**Sistema de testes automatizados - GEI - BTEE4**")
 st.divider() 
 
 # === COLETA ===
