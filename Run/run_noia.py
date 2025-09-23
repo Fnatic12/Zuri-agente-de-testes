@@ -27,6 +27,12 @@ DATA_ROOT = os.path.join(BASE_DIR, "Data")
 # =========================
 # FUNÇÕES AUXILIARES
 # =========================
+def adb_cmd(serial=None):
+    """Retorna o comando adb com ou sem -s <serial>"""
+    if serial:
+        return [ADB_PATH, "-s", serial]
+    return [ADB_PATH]
+
 def print_color(msg, color="white"):
     cores = {
         "green": "\033[92m",
@@ -37,23 +43,26 @@ def print_color(msg, color="white"):
     }
     print(f"{cores.get(color,'')}{msg}{cores['white']}", flush=True)
 
-def executar_tap(x, y):
-    comando = [ADB_PATH, "shell", "input", "tap", str(x), str(y)]
+def executar_tap(x, y, serial=None):
+    comando = adb_cmd(serial) + ["shell", "input", "tap", str(x), str(y)]
     subprocess.run(comando)
     print_color(f"👉 TAP em ({x},{y})", "green")
 
-def executar_swipe(x1, y1, x2, y2, duracao=300):
-    comando = [ADB_PATH, "shell", "input", "swipe", str(x1), str(y1), str(x2), str(y2), str(duracao)]
+def executar_swipe(x1, y1, x2, y2, duracao=300, serial=None):
+    comando = adb_cmd(serial) + [
+        "shell", "input", "swipe",
+        str(x1), str(y1), str(x2), str(y2), str(duracao)
+    ]
     subprocess.run(comando)
     print_color(f"👉 SWIPE ({x1},{y1}) → ({x2},{y2}) [{duracao}ms]", "green")
 
-def capturar_screenshot(pasta, nome):
+def capturar_screenshot(pasta, nome, serial=None):
     os.makedirs(pasta, exist_ok=True)
     caminho_local = os.path.join(pasta, nome)
     caminho_tmp = "/sdcard/tmp_shot.png"
-    subprocess.run([ADB_PATH, "shell", "screencap", "-p", caminho_tmp])
-    subprocess.run([ADB_PATH, "pull", caminho_tmp, caminho_local], stdout=subprocess.DEVNULL)
-    subprocess.run([ADB_PATH, "shell", "rm", caminho_tmp])
+    subprocess.run(adb_cmd(serial) + ["shell", "screencap", "-p", caminho_tmp])
+    subprocess.run(adb_cmd(serial) + ["pull", caminho_tmp, caminho_local], stdout=subprocess.DEVNULL)
+    subprocess.run(adb_cmd(serial) + ["shell", "rm", caminho_tmp])
     return caminho_local
 
 def comparar_imagens(img1_path, img2_path):
@@ -86,6 +95,13 @@ def main():
         print_color("⚠️ Nenhum argumento fornecido. Entrando em modo interativo...\n", "yellow")
         categoria = input("📂 Categoria do teste: ").strip().lower().replace(" ", "_")
         nome_teste = input("📝 Nome do teste: ").strip().lower().replace(" ", "_")
+
+    # 🔹 Verifica se foi passado --serial
+    serial = None
+    if "--serial" in sys.argv:
+        idx = sys.argv.index("--serial")
+        if idx + 1 < len(sys.argv):
+            serial = sys.argv[idx + 1]
 
     teste_dir = os.path.join(DATA_ROOT, categoria, nome_teste)
     dataset_path = os.path.join(teste_dir, "dataset.csv")
@@ -124,7 +140,7 @@ def main():
         inicio = time.time()
 
         if tipo == "tap":
-            executar_tap(int(row["x"]), int(row["y"]))
+            executar_tap(int(row["x"]), int(row["y"]), serial)
 
         elif tipo == "swipe_inicio":
             if i + 1 < len(df):
@@ -133,7 +149,8 @@ def main():
                     executar_swipe(
                         int(row["x"]), int(row["y"]),
                         int(proxima["x"]), int(proxima["y"]),
-                        int(row.get("duracao_ms", 300))
+                        int(row.get("duracao_ms", 300)),
+                        serial
                     )
                 else:
                     print_color("⚠️ swipe_inicio sem swipe_fim logo após — ignorado.", "yellow")
@@ -142,7 +159,7 @@ def main():
 
         # Captura screenshot do resultado
         screenshot_nome = f"resultado_{i+1:02d}.png"
-        screenshot_path = capturar_screenshot(resultados_dir, screenshot_nome)
+        screenshot_path = capturar_screenshot(resultados_dir, screenshot_nome, serial)
 
         esperado_rel = os.path.join("frames", f"frame_{i+1:02d}.png")
         esperado_abs = os.path.join(teste_dir, esperado_rel)

@@ -50,30 +50,35 @@ def printc(msg, color="white"):
     }
     print(f"{colors.get(color,'')}{msg}{Style.RESET_ALL}", flush=True)
 
+def adb_cmd(serial=None):
+    if serial:
+        return [ADB_PATH, "-s", serial]
+    return [ADB_PATH]
+
 def run_out(cmd):
     p = subprocess.run(cmd, capture_output=True, text=True)
     return p.stdout.strip()
 
-def take_screenshot(local_path):
+def take_screenshot(local_path, serial=None):
     os.makedirs(os.path.dirname(local_path), exist_ok=True)
-    subprocess.run([ADB_PATH, "shell", "screencap", "-p", REMOTE_TMP])
-    subprocess.run([ADB_PATH, "pull", REMOTE_TMP, local_path])
-    subprocess.run([ADB_PATH, "shell", "rm", REMOTE_TMP])
+    subprocess.run(adb_cmd(serial) + ["shell", "screencap", "-p", REMOTE_TMP])
+    subprocess.run(adb_cmd(serial) + ["pull", REMOTE_TMP, local_path])
+    subprocess.run(adb_cmd(serial) + ["shell", "rm", REMOTE_TMP])
     return local_path
 
-def get_resolution():
-    out = run_out([ADB_PATH, "shell", "wm", "size"])
+def get_resolution(serial=None):
+    out = run_out(adb_cmd(serial) + ["shell", "wm", "size"])
     m = re.search(r"Physical size:\s*(\d+)x(\d+)", out)
     if m:
         return int(m.group(1)), int(m.group(2))
     return DEFAULT_RES
 
-def autodetect_touch_device():
+def autodetect_touch_device(serial=None):
     """
     Procura o device de touchscreen via `adb shell getevent -pl`.
     Dá prioridade para 'touchscreen'. Se não achar, cai para qualquer 'touch'.
     """
-    out = run_out([ADB_PATH, "shell", "getevent", "-pl"])
+    out = run_out(adb_cmd(serial) + ["shell", "getevent", "-pl"])
     dev_touchscreen = None
     dev_touch = None
     current_block = []
@@ -99,12 +104,12 @@ def autodetect_touch_device():
 
     return dev_touchscreen or dev_touch or DEFAULT_DEV
 
-def get_abs_ranges_for_device(dev_path):
+def get_abs_ranges_for_device(dev_path, serial=None):
     """
     Lê os ranges de ABS_X/ABS_Y e ABS_MT_POSITION_X/Y do device para escalar a pixels.
     Retorna dict com max/min.
     """
-    out = run_out([ADB_PATH, "shell", "getevent", "-pl", dev_path])
+    out = run_out(adb_cmd(serial) + ["shell", "getevent", "-pl", dev_path])
     ranges = {
         "ABS_X": {"min": 0, "max": None},
         "ABS_Y": {"min": 0, "max": None},
@@ -137,11 +142,11 @@ def hex_last_int(line):
     m = HEX_VAL.search(line)
     return int(m.group(1), 16) if m else None
 
-def collect_gestures_loop(dev_path, frames_dir, screen_res, abs_ranges):
+def collect_gestures_loop(dev_path, frames_dir, screen_res, abs_ranges, serial=None):
     printc(f"\n▶️ Escutando touchscreen em {dev_path}", "cyan")
     printc("Toque/arraste na tela do rádio. Para finalizar, pressione CTRL+C.\n", "yellow")
 
-    cmd = [ADB_PATH, "shell", "getevent", "-lt", dev_path]
+    cmd = adb_cmd(serial) + ["shell", "getevent", "-lt", dev_path]
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, universal_newlines=True)
 
     actions = []
@@ -156,19 +161,16 @@ def collect_gestures_loop(dev_path, frames_dir, screen_res, abs_ranges):
         for line in proc.stdout:
             line = line.rstrip()
 
-            # dentro do collect_gestures_loop, logo no início do for
             if os.path.exists(os.path.join(PROJECT_ROOT, "stop.flag")):
                 printc("\n🛑 Finalização solicitada via arquivo stop.flag", "yellow")
                 break
 
-            # DOWN
             if "EV_KEY" in line and "BTN_TOUCH" in line and "DOWN" in line:
                 in_touch = True
                 t_start = time.time()
                 sx_raw = sy_raw = None
                 lx_raw = ly_raw = None
 
-            # POSIÇÕES
             if "EV_ABS" in line:
                 if "ABS_MT_POSITION_X" in line or "ABS_X" in line:
                     val = hex_last_int(line)
@@ -183,7 +185,6 @@ def collect_gestures_loop(dev_path, frames_dir, screen_res, abs_ranges):
                         if sy_raw is None:
                             sy_raw = val
 
-            # FIM DO TOQUE
             end_touch = False
             if "EV_KEY" in line and "BTN_TOUCH" in line and "UP" in line:
                 end_touch = True
@@ -245,7 +246,7 @@ def collect_gestures_loop(dev_path, frames_dir, screen_res, abs_ranges):
                     label = f"SWIPE ({action['x1']},{action['y1']})→({action['x2']},{action['y2']}) {dur_ms}ms"
 
                 img_name = f"frame_{idx:02d}.png"
-                take_screenshot(os.path.join(frames_dir, img_name))
+                take_screenshot(os.path.join(frames_dir, img_name), serial)
 
                 actions.append({
                     "id": idx,
@@ -266,55 +267,57 @@ def collect_gestures_loop(dev_path, frames_dir, screen_res, abs_ranges):
         except Exception:
             pass
 
-    # sai do loop mas retorna lista de ações
     return actions
 
 def print_banner():
     banner = pyfiglet.figlet_format("ZURI Coletor")
     print(colored(banner, "blue"))
-
     print(colored("v2 - Coleta Automática de Ações no Rádio via ADB", "blue"))
     print(colored("="*55, "blue"))
     print(colored("         VWAIT   -   BTEE   -   ZURI", "blue"))
     print(colored("="*55, "blue"))
 
-
 # =========================
 # MAIN
 # =========================
 def main():
-    print_banner()  # <<< aqui entra o banner logo no início
+    print_banner()
+
+    if len(sys.argv) < 3:
+        printc("❌ Uso correto: python coletor_adb.py <categoria> <nome_teste> [--serial <serial>]", "red")
+        sys.exit(1)
+
+    categoria = sys.argv[1].strip().lower().replace(" ", "_")
+    nome_teste = sys.argv[2].strip().lower().replace(" ", "_")
+
+    serial = None
+    if "--serial" in sys.argv:
+        idx = sys.argv.index("--serial")
+        if idx + 1 < len(sys.argv):
+            serial = sys.argv[idx + 1]
 
     printc(f"📦 {BUILD_TAG}", "cyan")
     print("📁 Coleta Automática de Ações no Rádio via ADB")
 
-    if len(sys.argv) >= 3:
-        categoria = sys.argv[1].strip().lower().replace(" ", "_")
-        nome_teste = sys.argv[2].strip().lower().replace(" ", "_")
-    else:
-        printc("❌ Uso correto: python coletor_adb.py <categoria> <nome_teste>", "red")
-        sys.exit(1)
-
-    # Agora força salvar sempre na pasta Data da raiz
     base_dir = os.path.join(PROJECT_ROOT, "Data", categoria, nome_teste)
     json_dir = os.path.join(base_dir, "json")
     frames_dir = os.path.join(base_dir, "frames")
     os.makedirs(json_dir, exist_ok=True)
     os.makedirs(frames_dir, exist_ok=True)
 
-    screen_res = get_resolution()
+    screen_res = get_resolution(serial)
     printc(f"🖥️ Resolução detectada: {screen_res[0]}x{screen_res[1]}", "cyan")
 
-    dev = autodetect_touch_device()
+    dev = autodetect_touch_device(serial)
     printc(f"📟 Device de touch: {dev}", "cyan")
 
-    abs_ranges = get_abs_ranges_for_device(dev)
+    abs_ranges = get_abs_ranges_for_device(dev, serial)
     printc(f"🔎 Ranges capturados (ABS): {abs_ranges}", "white")
 
-    actions = collect_gestures_loop(dev, frames_dir, screen_res, abs_ranges)
+    actions = collect_gestures_loop(dev, frames_dir, screen_res, abs_ranges, serial)
 
     printc("\n📸 Capturando screenshot final do teste...", "yellow")
-    final_img = take_screenshot(os.path.join(base_dir, "resultado_final.png"))
+    final_img = take_screenshot(os.path.join(base_dir, "resultado_final.png"), serial)
 
     saida = {
         "teste": nome_teste,
@@ -329,7 +332,6 @@ def main():
     printc(f"\n✅ Coleta finalizada.", "green")
     printc(f"📄 Ações salvas em: {acoes_path}", "green")
     printc(f"🖼️ Screenshot final: {final_img}", "green")
-
 
 if __name__ == "__main__":
     try:
