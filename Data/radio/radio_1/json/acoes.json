@@ -1,0 +1,105 @@
+{
+    "teste": "radio_1",
+    "categoria": "radio",
+    "acoes": [
+        {
+            "id": 1,
+            "timestamp": "2025-10-02T11:16:27.298400",
+            "imagem": "frame_01.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 954,
+                "y": 1047,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            }
+        },
+        {
+            "id": 2,
+            "timestamp": "2025-10-02T11:16:28.955611",
+            "imagem": "frame_02.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 1085,
+                "y": 1027,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            }
+        },
+        {
+            "id": 3,
+            "timestamp": "2025-10-02T11:16:29.903467",
+            "imagem": "frame_03.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 290,
+                "y": 611,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            }
+        },
+        {
+            "id": 4,
+            "timestamp": "2025-10-02T11:16:33.514877",
+            "imagem": "frame_04.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 1589,
+                "y": 158,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            }
+        },
+        {
+            "id": 5,
+            "timestamp": "2025-10-02T11:16:36.401360",
+            "imagem": "frame_05.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 550,
+                "y": 627,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            }
+        },
+        {
+            "id": 6,
+            "timestamp": "2025-10-02T11:16:40.228023",
+            "imagem": "frame_06.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 1737,
+                "y": 873,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            }
+        },
+        {
+            "id": 7,
+            "timestamp": "2025-10-02T11:16:43.364083",
+            "imagem": "frame_07.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 1825,
+                "y": 346,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            }
+        }
+    ],
+    "resultado_esperado": "resultado_final.png"
+}

@@ -114,36 +114,65 @@ if st.button("📂 Processar Dataset"):
 
 # === EXECUTAR TESTE ===
 st.divider()
-st.subheader("🚀 Executar Teste")
+st.subheader("🚀 Executar Testes")
+
 categoria_exec = st.text_input("Categoria do Teste", key="cat_exec")
-nome_teste_exec = st.text_input("Nome do Teste", key="nome_exec")
+nome_teste_exec = st.text_input("Nome do Teste (deixe vazio para rodar todos)", key="nome_exec")
 
-if st.button("▶️ Executar Teste"):
-    if categoria_exec and nome_teste_exec:
-        teste_path = os.path.join(BASE_DIR, "Data", categoria_exec, nome_teste_exec)
-        dataset_path = os.path.join(teste_path, "dataset.csv")
+col1, col2 = st.columns(2)
 
-        # Se não existir dataset, processa antes de executar
-        if not os.path.exists(dataset_path):
-            st.warning("⚠️ Dataset não encontrado. Gerando automaticamente...")
-            proc = subprocess.run(
-                ["python", SCRIPTS["Processar Dataset"], categoria_exec, nome_teste_exec],
+with col1:
+    if st.button("▶️ Executar Teste Único"):
+        if categoria_exec and nome_teste_exec:
+            teste_path = os.path.join(BASE_DIR, "Data", categoria_exec, nome_teste_exec)
+            dataset_path = os.path.join(teste_path, "dataset.csv")
+
+            # Se não existir dataset, processa antes
+            if not os.path.exists(dataset_path):
+                st.warning("⚠️ Dataset não encontrado. Gerando automaticamente...")
+                proc = subprocess.run(
+                    ["python", SCRIPTS["Processar Dataset"], categoria_exec, nome_teste_exec],
+                    cwd=BASE_DIR
+                )
+                if proc.returncode == 0:
+                    st.success("✅ Dataset processado com sucesso.")
+                else:
+                    st.error("❌ Falha ao processar dataset. Verifique o JSON de ações.")
+                    st.stop()
+
+            subprocess.Popen(
+                ["python", SCRIPTS["Executar Teste"], categoria_exec, nome_teste_exec],
                 cwd=BASE_DIR
             )
-            if proc.returncode == 0:
-                st.success("✅ Dataset processado com sucesso.")
-            else:
-                st.error("❌ Falha ao processar dataset. Verifique o JSON de ações.")
-                st.stop()
+            st.info(f"▶️ Execução iniciada para {categoria_exec}/{nome_teste_exec}")
+        else:
+            st.error("⚠️ Informe categoria e nome do teste.")
 
-        # Agora executa o teste
-        subprocess.Popen(
-            ["python", SCRIPTS["Executar Teste"], categoria_exec, nome_teste_exec],
-            cwd=BASE_DIR
-        )
-        st.info(f"▶️ Execução do teste iniciada para {categoria_exec}/{nome_teste_exec}...")
-    else:
-        st.error("⚠️ Informe categoria e nome do teste para executar o teste.")
+with col2:
+    if st.button("📂 Executar Todos da Categoria"):
+        if categoria_exec:
+            categoria_path = os.path.join(BASE_DIR, "Data", categoria_exec)
+            if not os.path.isdir(categoria_path):
+                st.error(f"❌ Categoria {categoria_exec} não encontrada em Data/")
+            else:
+                testes = [t for t in os.listdir(categoria_path) if os.path.isdir(os.path.join(categoria_path, t))]
+                if not testes:
+                    st.warning(f"⚠️ Nenhum teste encontrado em Data/{categoria_exec}/")
+                else:
+                    st.success(f"▶️ Executando {len(testes)} testes da categoria {categoria_exec}...")
+                    for t in testes:
+                        dataset_path = os.path.join(categoria_path, t, "dataset.csv")
+                        if not os.path.exists(dataset_path):
+                            subprocess.run(
+                                ["python", SCRIPTS["Processar Dataset"], categoria_exec, t],
+                                cwd=BASE_DIR
+                            )
+                        subprocess.Popen(
+                            ["python", SCRIPTS["Executar Teste"], categoria_exec, t],
+                            cwd=BASE_DIR
+                        )
+        else:
+            st.error("⚠️ Informe a categoria para rodar todos os testes.")
 
 # === DASHBOARD ===
 st.divider()

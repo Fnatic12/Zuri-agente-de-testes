@@ -431,24 +431,25 @@ def interpretar_comando(comando: str):
        or (_has_any(texto_norm, KW_LISTAR) and any(k in texto_norm for k in ["bancada", "bancadas", "devices", "dispositivos"])):
         return _formatar_bancadas_str(listar_bancadas())
 
-    # 3) EXECUTAR (precisa existir em Data/*/*)
+    # 3) EXECUTAR (rodar testes)
     if _has_any(texto_norm, KW_EXECUTAR):
-        token = _extrair_token_teste(texto)
-        if token:
-            cat, teste = _resolver_teste(token)
-            if cat and teste:
-                bancada = _extrair_bancada(texto)
-                return executar_teste(cat, teste, bancada)
-            return f"❌ Não encontrei o teste **{token}** em `Data/*/`."
-        # fallback: listar testes de uma categoria
-        if "categoria" in texto_norm or "categorias" in texto_norm:
+        # Caso especial: "todos os testes da categoria X"
+        if re.search(r"todos\s+os\s+testes\s+da\s+categoria", texto_norm):
             cat = _extrair_categoria(texto)
-            if cat:
-                testes = listar_testes(cat)
-                if testes:
-                    return f"📂 Testes disponíveis em **{cat}**:\n- " + "\n- ".join(testes)
+            if not cat:
+                return "⚠️ Especifique a categoria (ex: rodar todos os testes da categoria audio)."
+
+            testes = listar_testes(cat)
+            if not testes:
                 return f"📂 A categoria **{cat}** não possui testes."
-        return "⚠️ Especifique um teste (ex: `audio_1`) ou use `listar categorias`."
+
+            bancada = _extrair_bancada(texto)
+            respostas = [f"▶️ Rodando todos os testes da categoria **{cat}** na bancada {bancada or '(padrão)'}..."]
+
+            for t in testes:
+                respostas.append(executar_teste(cat, t, bancada))
+
+            return "\n".join(respostas)
 
     # 4) GRAVAR / COLETAR (NÃO depende de resolver)
     if _has_any(texto_norm, KW_GRAVAR):
