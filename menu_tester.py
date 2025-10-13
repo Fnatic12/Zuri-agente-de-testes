@@ -174,6 +174,43 @@ with col2:
         else:
             st.error("⚠️ Informe a categoria para rodar todos os testes.")
 
+# === RELATÓRIOS DE FALHAS ===
+st.divider()
+st.subheader("🧩 Gerar Relatórios de Falhas")
+
+if st.button("📄 Gerar Relatórios de Falhas (execução_log.json)"):
+    gerar_falha_path = os.path.join(BASE_DIR, "gerar_falha.py")
+    if not os.path.exists(gerar_falha_path):
+        st.error("❌ Arquivo gerar_falha.py não encontrado na raiz do projeto.")
+    else:
+        with st.spinner("🔍 Analisando execucao_log.json e gerando relatórios..."):
+            try:
+                result = subprocess.run(
+                    ["python", gerar_falha_path],
+                    cwd=BASE_DIR,
+                    capture_output=True,
+                    text=True
+                )
+                st.text_area("📜 Saída do Script", result.stdout, height=250)
+
+                # Listar relatórios recém-criados
+                rel_dir = os.path.join(BASE_DIR, "Relatorios_Falhas")
+                if os.path.isdir(rel_dir):
+                    relatorios = sorted(
+                        [f for f in os.listdir(rel_dir) if f.endswith((".md", ".csv"))],
+                        reverse=True
+                    )
+                    if relatorios:
+                        st.success(f"✅ {len(relatorios)} relatórios gerados!")
+                        for r in relatorios[:10]:  # mostra os 10 mais recentes
+                            st.markdown(f"- 📁 **{r}** — `{os.path.join(rel_dir, r)}`")
+                    else:
+                        st.info("Nenhum relatório foi encontrado em /Relatorios_Falhas.")
+                else:
+                    st.warning("A pasta Relatorios_Falhas ainda não existe.")
+            except Exception as e:
+                st.error(f"❌ Erro ao executar gerar_falha.py: {e}")
+
 # === DASHBOARD ===
 st.divider()
 if st.button("📊 Abrir Dashboard"):
