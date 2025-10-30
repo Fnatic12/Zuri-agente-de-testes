@@ -1,4 +1,3 @@
-# Run/run_noia.py
 import os
 import platform
 import subprocess
@@ -18,7 +17,8 @@ if platform.system() == "Windows":
 else:
     ADB_PATH = "adb"
 
-PAUSA_ENTRE_ACOES = 2  # segundos
+PAUSA_ENTRE_ACOES = 5  # segundos entre cada ação
+SIMILARIDADE_HOME_OK = 0.85  # limite mínimo para considerar que está na Home
 
 # Caminho absoluto da raiz do projeto (este arquivo está em /Run)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -34,6 +34,7 @@ def adb_cmd(serial=None):
     return [ADB_PATH]
 
 def print_color(msg, color="white"):
+    """Imprime mensagens coloridas no terminal"""
     cores = {
         "green": "\033[92m",
         "yellow": "\033[93m",
@@ -44,11 +45,22 @@ def print_color(msg, color="white"):
     print(f"{cores.get(color,'')}{msg}{cores['white']}", flush=True)
 
 def executar_tap(x, y, serial=None):
+    """Executa um toque na tela via ADB"""
     comando = adb_cmd(serial) + ["shell", "input", "tap", str(x), str(y)]
     subprocess.run(comando)
     print_color(f"👉 TAP em ({x},{y})", "green")
 
+def executar_long_press(x, y, duracao_ms=1000, serial=None):
+    """Simula um toque longo (pressionar e segurar)."""
+    comando = adb_cmd(serial) + [
+        "shell", "input", "swipe",
+        str(x), str(y), str(x), str(y), str(int(duracao_ms))
+    ]
+    subprocess.run(comando)
+    print_color(f"🖐️ LONG PRESS em ({x},{y}) por {duracao_ms/1000:.2f}s", "green")
+
 def executar_swipe(x1, y1, x2, y2, duracao=300, serial=None):
+    """Executa um swipe (arrastar) na tela via ADB"""
     comando = adb_cmd(serial) + [
         "shell", "input", "swipe",
         str(x1), str(y1), str(x2), str(y2), str(duracao)
@@ -57,6 +69,7 @@ def executar_swipe(x1, y1, x2, y2, duracao=300, serial=None):
     print_color(f"👉 SWIPE ({x1},{y1}) → ({x2},{y2}) [{duracao}ms]", "green")
 
 def capturar_screenshot(pasta, nome, serial=None):
+    """Captura uma screenshot do dispositivo"""
     os.makedirs(pasta, exist_ok=True)
     caminho_local = os.path.join(pasta, nome)
     caminho_tmp = "/sdcard/tmp_shot.png"
@@ -66,6 +79,7 @@ def capturar_screenshot(pasta, nome, serial=None):
     return caminho_local
 
 def comparar_imagens(img1_path, img2_path):
+    """Compara duas imagens e retorna o índice de similaridade (SSIM)"""
     try:
         img1 = cv2.imread(img1_path)
         img2 = cv2.imread(img2_path)
@@ -136,26 +150,38 @@ def main():
         tipo = str(row.get("tipo", "tap")).lower()
         print_color(f"▶️ Ação {i+1}/{len(df)} ({tipo})", "white")
 
-        # Início da medição de tempo
+        # 🔸 Verifica se deve pausar (a cada ação)
+        pause_path = os.path.join(BASE_DIR, "pause.flag")
+        while os.path.exists(pause_path):
+            print_color("⏸️ Execução pausada... aguardando retomada.", "yellow")
+            time.sleep(2)
+
         inicio = time.time()
 
+        # Executa ação
         if tipo == "tap":
             executar_tap(int(row["x"]), int(row["y"]), serial)
 
-        elif tipo == "swipe_inicio":
+        elif tipo in ["swipe", "swipe_inicio"]:
             if i + 1 < len(df):
                 proxima = df.iloc[i + 1]
-                if str(proxima.get("tipo", "")).lower() == "swipe_fim":
+                if str(proxima.get("tipo", "")).lower() in ["swipe_fim", "swipe"]:
                     executar_swipe(
                         int(row["x"]), int(row["y"]),
-                        int(proxima["x"]), int(proxima["y"]),
+                        int(proxima.get("x2", proxima.get("x", 0))),
+                        int(proxima.get("y2", proxima.get("y", 0))),
                         int(row.get("duracao_ms", 300)),
                         serial
                     )
                 else:
-                    print_color("⚠️ swipe_inicio sem swipe_fim logo após — ignorado.", "yellow")
+                    print_color("⚠️ swipe sem fim válido — ignorado.", "yellow")
             else:
-                print_color("⚠️ swipe_inicio é a última linha — ignorado.", "yellow")
+                print_color("⚠️ swipe é a última linha — ignorado.", "yellow")
+
+        elif tipo == "long_press":
+            duracao_press_ms = float(row.get("duracao_s", 1.0)) * 1000
+            executar_long_press(int(row["x"]), int(row["y"]), duracao_press_ms, serial)
+            print_color(f"🕒 Long press detectado por {duracao_press_ms/1000:.2f}s", "cyan")
 
         # Captura screenshot do resultado
         screenshot_nome = f"resultado_{i+1:02d}.png"
@@ -187,11 +213,13 @@ def main():
         i += 1
         time.sleep(PAUSA_ENTRE_ACOES)
 
+
     # === SALVAR LOG ===
     with open(log_path, "w", encoding="utf-8") as f:
         json.dump(log, f, indent=4, ensure_ascii=False)
 
     print_color(f"\n✅ Execução finalizada. Log salvo em: {log_path}", "green")
+
 
 if __name__ == "__main__":
     main()

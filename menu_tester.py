@@ -119,7 +119,7 @@ st.subheader("🚀 Executar Testes")
 categoria_exec = st.text_input("Categoria do Teste", key="cat_exec")
 nome_teste_exec = st.text_input("Nome do Teste (deixe vazio para rodar todos)", key="nome_exec")
 
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 
 with col1:
     if st.button("▶️ Executar Teste Único"):
@@ -144,11 +144,32 @@ with col1:
                 ["python", SCRIPTS["Executar Teste"], categoria_exec, nome_teste_exec],
                 cwd=BASE_DIR
             )
+            st.session_state["teste_em_execucao"] = True
+            st.session_state["teste_pausado"] = False
             st.info(f"▶️ Execução iniciada para {categoria_exec}/{nome_teste_exec}")
         else:
             st.error("⚠️ Informe categoria e nome do teste.")
 
 with col2:
+    # Botão de pausa/retomada
+    if "teste_em_execucao" in st.session_state and st.session_state["teste_em_execucao"]:
+        if not st.session_state.get("teste_pausado", False):
+            if st.button("⏸️ Pausar Teste"):
+                with open(os.path.join(BASE_DIR, "pause.flag"), "w") as f:
+                    f.write("pause")
+                st.session_state["teste_pausado"] = True
+                st.warning("⏸️ Execução pausada. Aguarde para retomar.")
+        else:
+            if st.button("▶️ Retomar Teste"):
+                pause_path = os.path.join(BASE_DIR, "pause.flag")
+                if os.path.exists(pause_path):
+                    os.remove(pause_path)
+                st.session_state["teste_pausado"] = False
+                st.success("✅ Execução retomada com sucesso.")
+    else:
+        st.info("⚙️ Nenhum teste em execução.")
+
+with col3:
     if st.button("📂 Executar Todos da Categoria"):
         if categoria_exec:
             categoria_path = os.path.join(BASE_DIR, "Data", categoria_exec)
@@ -169,7 +190,7 @@ with col2:
                             )
                         subprocess.Popen(
                             ["python", SCRIPTS["Executar Teste"], categoria_exec, t],
-                            cwd=BASE_DIR
+                            cwd=BASE_DIR    
                         )
         else:
             st.error("⚠️ Informe a categoria para rodar todos os testes.")

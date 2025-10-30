@@ -3,11 +3,33 @@ import re
 import json
 import shutil
 import subprocess
+import speech_recognition as sr
 import streamlit as st
 from unicodedata import normalize
 from PIL import Image
 import matplotlib.pyplot as plt
+import time
+from datetime import datetime
+from difflib import SequenceMatcher
 import seaborn as sns
+import colorama
+from colorama import Fore, Style
+colorama.init(autoreset=True)
+
+def printc(msg, color="white"):
+    """
+    Imprime mensagens coloridas no terminal e retorna string limpa para uso no Streamlit.
+    """
+    colors = {
+        "green": Fore.GREEN,
+        "yellow": Fore.YELLOW,
+        "red": Fore.RED,
+        "white": Style.RESET_ALL,
+        "cyan": Fore.CYAN,
+        "blue": Fore.BLUE
+    }
+    print(f"{colors.get(color, '')}{msg}{Style.RESET_ALL}", flush=True)
+    return msg  # opcional: retorna a string limpa, útil se quiser exibir no chat
 
 # === CONFIGURAÇÕES ===
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -15,6 +37,8 @@ DATA_ROOT = os.path.join(BASE_DIR, "Data")
 RUN_SCRIPT = os.path.join(BASE_DIR, "Run", "run_noia.py")
 COLETOR_SCRIPT = os.path.join(BASE_DIR, "Scripts", "coletor_adb.py")
 PROCESSAR_SCRIPT = os.path.join(BASE_DIR, "Pre_process", "processar_dataset.py")
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+PAUSE_FLAG_PATH = os.path.join(PROJECT_ROOT, "pause.flag")
 
 st.set_page_config(page_title="ZURI - Assistente Gerencial", page_icon="🤖", layout="wide")
 
@@ -56,29 +80,42 @@ def _formatar_bancadas_str(bancadas: dict) -> str:
         linhas.append(f"{k} → `{v}`")
     return "\n".join(linhas)
 
-# ===================================
-# === FUNÇÕES DE SUPORTE (AÇÕES)  ===
-# ===================================
 def _resolver_teste(nome_ou_token: str):
     """
-    Recebe algo como 'audio_1' e tenta localizar em Data/<categoria>/<teste>.
-    Retorna (categoria, teste) ou (None, None) se não achar.
+    Localiza (categoria, teste) em Data/<categoria>/<teste> aceitando variações:
+    'geral2' == 'geral_2' == 'geral-2' == 'geral 2' == 'geral um'.
     """
     if not nome_ou_token:
         return None, None
 
-    # Primeiro tenta encontrar exatamente um teste com esse nome em alguma categoria
-    for cat in listar_categorias():
-        if nome_ou_token in listar_testes(cat):
-            return cat, nome_ou_token
+    alvo_norm = _normalize_token(nome_ou_token)
 
-    # Fallback: se vier "categoria_nome", tenta deduzir
-    if "_" in nome_ou_token:
-        cat_cand = nome_ou_token.split("_", 1)[0]
-        if cat_cand in listar_categorias():
-            # Se existir um teste com esse nome dentro da categoria, retorna
-            if nome_ou_token in listar_testes(cat_cand):
-                return cat_cand, nome_ou_token
+    cats = listar_categorias()
+
+    # 1) Busca direta por equivalência normalizada em todas as categorias
+    for cat in cats:
+        for t in listar_testes(cat):
+            if _normalize_token(t) == alvo_norm:
+                return cat, t
+
+    # 2) Caso o token venha no formato "categoria_nome" (com qualquer separador)
+    parts = re.split(r"[_\-\s]+", _norm(nome_ou_token))
+    if parts:
+        cand_cat = parts[0]
+        if cand_cat in cats:
+            resto_norm = _normalize_token("".join(parts[1:]))  # só o nome do teste
+            for t in listar_testes(cand_cat):
+                if _normalize_token(t) in (alvo_norm, resto_norm):
+                    return cand_cat, t
+
+    # 3) Fallback: fuzzy match leve (>= 0,92) entre nomes normalizados
+    candidatos = []
+    for cat in cats:
+        for t in listar_testes(cat):
+            if SequenceMatcher(None, _normalize_token(t), alvo_norm).ratio() >= 0.92:
+                candidatos.append((cat, t))
+    if len(candidatos) == 1:
+        return candidatos[0]
 
     return None, None
 
@@ -117,23 +154,65 @@ def _popen_host_python(cmd):
 
 def executar_teste(categoria, nome_teste, bancada: str | None = None):
     """
-    Executa teste no host, encaminhando o serial da bancada como parâmetro para o script.
-    Obs.: espera que Run/run_noia.py aceite algo como '--serial <SERIAL>'.
+    Executa teste no host em background (não bloqueia o Streamlit).
+    - Se o dataset.csv não existir, roda automaticamente o pré-processamento antes.
+    - Gera logs em Data/<categoria>/<teste>/execucao_log.json.
     """
+    caminho_teste = os.path.join(DATA_ROOT, categoria, nome_teste)
+    dataset_path = os.path.join(caminho_teste, "dataset.csv")
+    log_path = os.path.join(caminho_teste, "execucao_log.json")
+
+    os.makedirs(caminho_teste, exist_ok=True)
+
+    # 1️⃣ Garante que o dataset existe antes da execução
+    if not os.path.exists(dataset_path):
+        printc(f"⚙️ Dataset não encontrado para {categoria}/{nome_teste}, gerando automaticamente...", "yellow")
+        processar_teste(categoria, nome_teste)
+
+    # 2️⃣ Mapeia bancadas ADB
     bancadas = listar_bancadas()
     seriais, erro = _selecionar_bancada(bancada, bancadas)
     if erro:
         return erro
 
     respostas = []
+
     for serial in seriais:
+        inicio = datetime.now().isoformat()
+        log_entry = {
+            "acao": "execucao_iniciada",
+            "categoria": categoria,
+            "teste": nome_teste,
+            "serial": serial,
+            "inicio": inicio
+        }
+        _registrar_log(log_path, log_entry)
+
+        # 🚀 Inicia o processo em background (sem travar a UI)
         cmd = ["python", RUN_SCRIPT, categoria, nome_teste, "--serial", serial]
-        ok, msg = _popen_host_python(cmd)
-        if ok:
+        try:
+            subprocess.Popen(cmd, cwd=BASE_DIR, start_new_session=True)
             respostas.append(f"▶️ Executando **{categoria}/{nome_teste}** na bancada `{serial}`...")
-        else:
-            respostas.append(f"❌ {msg}")
+        except Exception as e:
+            respostas.append(f"❌ Falha ao iniciar execução: {e}")
+
     return "\n".join(respostas)
+
+def _registrar_log(caminho_log, nova_entrada):
+    """Adiciona entrada ao execucao_log.json, criando se não existir."""
+    try:
+        if os.path.exists(caminho_log):
+            with open(caminho_log, "r", encoding="utf-8") as f:
+                dados = json.load(f)
+        else:
+            dados = []
+
+        dados.append(nova_entrada)
+
+        with open(caminho_log, "w", encoding="utf-8") as f:
+            json.dump(dados, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"⚠️ Falha ao registrar log: {e}")
 
 def gravar_teste(categoria, nome_teste, bancada: str | None = None):
     """
@@ -179,6 +258,42 @@ def listar_testes(categoria):
     if os.path.isdir(cat_path):
         return [t for t in os.listdir(cat_path) if os.path.isdir(os.path.join(cat_path, t))]
     return []
+
+def pausar_execucao():
+    """
+    Cria o arquivo pause.flag para pausar a execução em andamento.
+    """
+    try:
+        with open(PAUSE_FLAG_PATH, "w") as f:
+            f.write("PAUSED")
+        return "⏸️ Execução pausada. O runner será interrompido no próximo checkpoint."
+    except Exception as e:
+        return f"❌ Falha ao pausar execução: {e}"
+
+def retomar_execucao():
+    """
+    Remove o arquivo pause.flag, permitindo continuar a execução.
+    """
+    try:
+        if os.path.exists(PAUSE_FLAG_PATH):
+            os.remove(PAUSE_FLAG_PATH)
+            return "▶️ Execução retomada."
+        else:
+            return "⚠️ Nenhuma execução estava pausada."
+    except Exception as e:
+        return f"❌ Falha ao retomar execução: {e}"
+
+def parar_execucao():
+    """
+    Cria o arquivo stop.flag para parar completamente o runner.
+    """
+    stop_path = os.path.join(PROJECT_ROOT, "stop.flag")
+    try:
+        with open(stop_path, "w") as f:
+            f.write("STOP")
+        return "🛑 Execução interrompida completamente."
+    except Exception as e:
+        return f"❌ Falha ao interromper execução: {e}"
 
 # ======================================
 # === FUNÇÕES AUXILIARES DO DASHBOARD ===
@@ -345,31 +460,93 @@ def exibir_regressoes(execucao):
 # === PARSER DE COMANDOS  ===
 # ===========================
 # Palavras-chave com variações comuns (sem acento e lower)
-KW_EXECUTAR = ["executar", "execute", "rodar", "rode", "run"]
-KW_GRAVAR   = ["gravar", "grave", "coletar", "colete", "capturar", "record"]
-KW_PROCESS  = ["processar", "processa", "pre-processar", "preprocessar", "pré-processar", "pre"]
-KW_APAGAR   = ["apagar", "apague", "deletar", "delete", "remover", "remova", "excluir", "exclua"]
-KW_LISTAR   = ["listar", "liste", "mostrar", "mostre", "exibir", "exiba", "lista"]
-KW_BANCADAS = ["bancada", "bancadas", "devices", "dispositivos"]
-KW_AJUDA    = ["ajuda", "help", "comandos"]
+KW_EXECUTAR = [
+    "executar", "execute", "rodar", "rode", "run", "iniciar teste",
+    "inicia o teste", "começa o teste", "roda o teste", "faz o teste",
+    "testa", "teste agora", "starta o teste", "começar teste", "faça o teste",
+    "rodar tudo", "rodar todos", "rodar todos os testes", "executa tudo"
+]
+
+KW_GRAVAR = [
+    "gravar", "grave", "coletar", "colete", "capturar", "record",
+    "começar gravação", "iniciar gravação", "grava agora", "fazer gravação",
+    "fazer coleta", "começar coleta", "startar gravação", "inicia a coleta",
+    "começa a gravar", "grava o gesto", "grava o teste"
+]
+
+KW_PROCESS = [
+    "processar", "processa", "pré-processar", "preprocessar", "pre", "gerar dataset",
+    "processa o dataset", "gera o dataset", "montar dataset", "gerar base",
+    "monta o csv", "gerar csv", "converter dados", "processa os dados"
+]
+
+KW_APAGAR = [
+    "apagar", "apague", "deletar", "delete", "remover", "remova", "excluir", "exclua",
+    "apaga", "apaga o teste", "deleta o teste", "limpa", "limpar teste", "remove o teste",
+    "apagar teste", "excluir teste", "deleta tudo"
+]
+
+KW_LISTAR = [
+    "listar", "liste", "mostrar", "mostre", "exibir", "exiba", "lista", "me mostra",
+    "me exibe", "quais são", "ver", "ver lista", "ver testes", "mostra pra mim",
+    "quero ver", "ver categorias", "mostrar categorias", "mostrar testes"
+]
+
+KW_BANCADAS = [
+    "bancada", "bancadas", "devices", "dispositivos", "adb", "hardware conectado",
+    "listar bancadas", "mostrar bancadas", "listar dispositivos", "mostrar dispositivos",
+    "quais bancadas", "tem bancada", "quais estão conectadas", "ver bancadas",
+    "ver dispositivos", "me mostra as bancadas", "fala as bancadas", "lista as bancadas"
+]
+
+KW_AJUDA = [
+    "ajuda", "help", "comandos", "o que posso dizer", "fala os comandos",
+    "me ajuda", "quais comandos", "mostra os comandos", "explica comandos",
+    "fala os exemplos", "ensina", "socorro"
+]
+
+_NUM_PT = {
+    "zero":"0","um":"1","uma":"1","dois":"2","duas":"2","tres":"3","três":"3",
+    "quatro":"4","cinco":"5","seis":"6","sete":"7","oito":"8","nove":"9","dez":"10",
+    "onze":"11","doze":"12","treze":"13","catorze":"14","quatorze":"14","quinze":"15",
+    "dezesseis":"16","dezessete":"17","dezoito":"18","dezenove":"19","vinte":"20"
+}
+
+def _replace_number_words(s: str) -> str:
+    """Troca números por extenso (pt-BR) por dígitos no texto normalizado."""
+    for k, v in _NUM_PT.items():
+        s = re.sub(rf"\b{k}\b", v, s)
+    return s
+
+def _normalize_token(s: str) -> str:
+    """Normaliza nomes de teste para comparação: lower, sem acentos e sem separadores."""
+    s = _norm(s)
+    s = re.sub(r"[\s_-]+", "", s)  # remove espaço, _ e -
+    return s
 
 def _norm(s: str) -> str:
     """Lower + remove acentos para matching robusto."""
     s = s.strip().lower()
     return normalize("NFKD", s).encode("ASCII", "ignore").decode("ASCII")
 
+from difflib import SequenceMatcher
+
 def _has_any(texto_norm: str, termos: list[str]) -> bool:
     texto_norm = _norm(texto_norm)
     termos_norm = [_norm(t) for t in termos]
-    return any(t in texto_norm for t in termos_norm)
+    for termo in termos_norm:
+        ratio = SequenceMatcher(None, texto_norm, termo).ratio()
+        if termo in texto_norm or ratio > 0.8:
+            return True
+    return False
 
 def _extrair_bancada(texto: str) -> str | None:
     """
     Extrai a bancada do comando.
-    Suporta: "na bancada 2", "bancada=2", "bancada2", "todas as bancadas".
+    Suporta: "na bancada 2", "bancada=2", "bancada2", "todas as bancadas", "bancada um".
     Retorna "2", "todas" ou None.
     """
-    t = _norm(texto)
+    t = _replace_number_words(_norm(texto))
 
     # todas as bancadas
     if re.search(r"\btodas(\s+as\s+)?bancadas\b", t) or re.search(r"\ball\b", t):
@@ -387,12 +564,27 @@ def _extrair_bancada(texto: str) -> str | None:
 
 def _extrair_token_teste(texto: str) -> str | None:
     """
-    Busca algo no padrão 'palavra_numero' ou 'palavra-palavra' como token de teste.
-    Ex.: audio_1, bluetooth_3, tela-home_2 etc.
+    Extrai o nome do teste em diferentes formatos e devolve forma canônica 'base_numero':
+    - geral_2, geral-2, geral2, geral 2, geral um  -> sempre retorna 'geral_2'
     """
-    t = _norm(texto)
-    m = re.search(r"\b([a-z0-9]+[_-][a-z0-9]+)\b", t)
-    return m.group(1) if m else None
+    t = _replace_number_words(_norm(texto))
+
+    # 1) com _ ou -
+    m = re.search(r"\b([a-z0-9]+)[_\-]([0-9]+)\b", t)
+    if m:
+        return f"{m.group(1)}_{m.group(2)}"
+
+    # 2) colado: 'geral2'
+    m = re.search(r"\b([a-z]+)(\d+)\b", t)
+    if m:
+        return f"{m.group(1)}_{m.group(2)}"
+
+    # 3) com espaço: 'geral 2'
+    m = re.search(r"\b([a-z]+)\s+(\d+)\b", t)
+    if m:
+        return f"{m.group(1)}_{m.group(2)}"
+
+    return None
 
 def _extrair_categoria(texto: str) -> str | None:
     """
@@ -404,7 +596,7 @@ def _extrair_categoria(texto: str) -> str | None:
     if m and m.group(1) in listar_categorias():
         return m.group(1)
     # ou se o nome da categoria aparecer diretamente no texto
-    for cat in listar_categorias():
+    for cat in listar_categorias():  
         if _norm(cat) in t:
             return cat
     return None
@@ -428,7 +620,7 @@ def interpretar_comando(comando: str):
 
     # 2) LISTAR BANCADAS
     if _has_any(texto_norm, ["listar bancadas", "mostrar bancadas", "listar devices", "mostrar devices"]) \
-       or (_has_any(texto_norm, KW_LISTAR) and any(k in texto_norm for k in ["bancada", "bancadas", "devices", "dispositivos"])):
+       or (_has_any(texto_norm, KW_LISTAR) and any(k in texto_norm for k in ["bancada", "bancadas", "devices", "dispositivos"])):  
         return _formatar_bancadas_str(listar_bancadas())
 
     # 3) EXECUTAR (rodar testes)
@@ -451,7 +643,24 @@ def interpretar_comando(comando: str):
 
             return "\n".join(respostas)
 
-    # 4) GRAVAR / COLETAR (NÃO depende de resolver)
+        # ✅ Caso normal: executar um teste específico (ex: "executar teste geral_1" ou "executar geral 2")
+        token = _extrair_token_teste(texto)
+        if token:
+            cat, nome = _resolver_teste(token)
+            if cat and nome:
+                bancada = _extrair_bancada(texto)
+                return executar_teste(cat, nome, bancada)
+            else:
+                # tentativa extra: se o usuário disse apenas "geral 2" sem categoria explícita
+                # busca qualquer teste com nome igual em todas as categorias
+                for cat_try in listar_categorias():
+                    if token in listar_testes(cat_try):
+                        bancada = _extrair_bancada(texto)
+                        return executar_teste(cat_try, token, bancada)
+                return f"❌ Teste **{token}** não encontrado em `Data/*/`."
+        return "⚠️ Especifique o teste a executar (ex: `executar teste geral_1 na bancada 1`)."
+
+    # 4) GRAVAR / COLETAR
     if _has_any(texto_norm, KW_GRAVAR):
         token = _extrair_token_teste(texto)
         if token:
@@ -465,7 +674,7 @@ def interpretar_comando(comando: str):
 
         return "⚠️ Especifique o teste (ex: `gravar audio_1 na bancada 1`)."
 
-    # 5) PROCESSAR (gera dataset de algo que já foi gravado)
+    # 5) PROCESSAR (gera dataset)
     if _has_any(texto_norm, KW_PROCESS):
         token = _extrair_token_teste(texto)
         if token:
@@ -475,7 +684,7 @@ def interpretar_comando(comando: str):
             return "⚠️ Use o formato categoria_nome (ex: audio_3)."
         return "⚠️ Especifique o teste (ex: `processar audio_1`)."
 
-    # 6) APAGAR / DELETAR / REMOVER (precisa existir em Data/*/*)
+    # 6) APAGAR / DELETAR
     if _has_any(texto_norm, KW_APAGAR):
         token = _extrair_token_teste(texto)
         if token:
@@ -497,6 +706,16 @@ def interpretar_comando(comando: str):
         if cats:
             return "📂 Categorias disponíveis:\n- " + "\n- ".join(cats)
         return "📂 Nenhuma categoria encontrada em `Data/`."
+
+    # 8) CONTROLE DE EXECUÇÃO (pausar, retomar, parar)
+    if any(_norm(p) in texto_norm for p in ["pausar", "pause", "parar teste", "interromper", "stop"]):
+        return pausar_execucao()
+
+    if any(_norm(p) in texto_norm for p in ["retomar", "continuar", "resume", "seguir"]):
+        return retomar_execucao()
+
+    if any(_norm(p) in texto_norm for p in ["cancelar", "encerrar", "finalizar", "stop all", "terminar"]):
+        return parar_execucao()
 
     return "❌ Não entendi o comando. Digite **ajuda** para ver exemplos."
 
@@ -520,17 +739,106 @@ if pagina == "💬 Chat":
     st.markdown("Digite **ajuda** para ver exemplos de comandos.")
     st.markdown("---")
 
-    for msg in st.session_state.chat_history:
-        with st.chat_message(msg["role"], avatar="🧑" if msg["role"] == "user" else "🤖"):
-            st.markdown(msg["content"])
+    # === EXEMPLOS DE PROMPTS ESTILIZADOS ===
+    st.markdown(
+        """
+        <div style="
+            background-color: rgba(50, 50, 50, 0.6);
+            border: 1px solid rgba(100, 100, 100, 0.5);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        ">
+            <h3 style="color:#E0E0E0; margin-bottom:8px;">💡 Exemplos de comandos</h3>
+            <ul style="color:#CCCCCC; line-height:1.6; font-size:15px;">
+                <li><code>gravar audio_1 na bancada 1</code> — inicia gravação do teste de áudio na bancada 1</li>
+                <li><code>processar audio_1</code> — processa o dataset coletado</li>
+                <li><code>executar audio_1 na bancada 1</code> — roda o teste gravado</li>
+                <li><code>rodar todos os testes da categoria video</code> — executa todos os testes de uma categoria</li>
+                <li><code>listar bancadas</code> — mostra bancadas ADB conectadas</li>
+                <li><code>ajuda</code> — exibe a lista completa de comandos</li>
+            </ul>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
+import time
+
+# === Exibição do histórico ===
+for msg in st.session_state.chat_history:
+    with st.chat_message(msg["role"], avatar="🧑" if msg["role"] == "user" else "🤖"):
+        st.markdown(msg["content"])
+
+col_input, col_button = st.columns([4, 1])
+
+with col_input:
     user_input = st.chat_input("Digite seu comando...")
 
-    if user_input:
-        st.session_state.chat_history.append({"role": "user", "content": user_input})
-        resposta = interpretar_comando(user_input)
-        st.session_state.chat_history.append({"role": "assistant", "content": resposta})
-        st.rerun()
+with col_button:
+    # 🎙️ BOTÃO DE FALA
+    if st.button("🎙️ Falar comando"):
+        recognizer = sr.Recognizer()
+        mic = sr.Microphone()
+
+        with mic as source:
+            st.toast("🎧 Ouvindo... fale seu comando claramente.", icon="🎙️")
+            recognizer.adjust_for_ambient_noise(source)
+            audio = recognizer.listen(source, timeout=5)
+
+        try:
+            st.toast("🧠 Reconhecendo fala...", icon="🧠")
+            command_text = recognizer.recognize_google(audio, language="pt-BR")
+
+            # 🧑 Adiciona mensagem do usuário
+            st.session_state.chat_history.append({"role": "user", "content": command_text})
+
+            # 🤖 Mostra feedback de processamento
+            placeholder = st.empty()
+            with placeholder.container():
+                with st.chat_message("assistant", avatar="🤖"):
+                    st.markdown("💭 **Processando comando...**")
+            time.sleep(1.2)  # Delay suave para simular processamento
+
+            # 🧠 Interpreta o comando
+            resposta = interpretar_comando(command_text)
+
+            # Atualiza o chat com a resposta real
+            placeholder.empty()
+            st.session_state.chat_history.append({"role": "assistant", "content": resposta})
+            st.rerun()
+
+        except sr.UnknownValueError:
+            st.session_state.chat_history.append({
+                "role": "assistant",
+                "content": "❌ Não consegui entender o que você disse."
+            })
+            st.rerun()
+        except sr.RequestError:
+            st.session_state.chat_history.append({
+                "role": "assistant",
+                "content": "⚠️ Erro ao conectar ao serviço de reconhecimento de voz."
+            })
+            st.rerun()
+
+# 💬 ENTRADA MANUAL
+if user_input:
+    st.session_state.chat_history.append({"role": "user", "content": user_input})
+
+    # Exibe mensagem temporária de "pensando"
+    placeholder = st.empty()
+    with placeholder.container():
+        with st.chat_message("assistant", avatar="🤖"):
+            st.markdown("💭 **Processando comando...**")
+    time.sleep(1.2)
+
+    resposta = interpretar_comando(user_input)
+    placeholder.empty()
+
+    st.session_state.chat_history.append({"role": "assistant", "content": resposta})
+    st.rerun()
 
 # =================
 # === DASHBOARD ===
