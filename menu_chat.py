@@ -11,10 +11,12 @@ import matplotlib.pyplot as plt
 import time
 from datetime import datetime
 from difflib import SequenceMatcher
+import random
 import seaborn as sns
 import colorama
 from colorama import Fore, Style
 colorama.init(autoreset=True)
+import re
 
 def printc(msg, color="white"):
     """
@@ -40,6 +42,10 @@ PROCESSAR_SCRIPT = os.path.join(BASE_DIR, "Pre_process", "processar_dataset.py")
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 PAUSE_FLAG_PATH = os.path.join(PROJECT_ROOT, "pause.flag")
 
+# === MODO CONVERSACIONAL ===
+MODO_CONVERSA = True  # Altere para False se quiser desativar as respostas naturais
+
+
 st.set_page_config(page_title="ZURI - Assistente Gerencial", page_icon="🤖", layout="wide")
 
 # === SESSION STATE ===
@@ -62,6 +68,7 @@ def _parse_adb_devices(raw_lines):
         if m:
             seriais.append(m.group(1))
     return seriais
+
 
 def listar_bancadas():
     """Mapeia dispositivos adb em bancadas numeradas: {'1': serial1, '2': serial2, ...}"""
@@ -214,6 +221,7 @@ def _registrar_log(caminho_log, nova_entrada):
     except Exception as e:
         print(f"⚠️ Falha ao registrar log: {e}")
 
+
 def gravar_teste(categoria, nome_teste, bancada: str | None = None):
     """
     Grava teste no host, encaminhando o serial como parâmetro para o coletor.
@@ -364,15 +372,31 @@ def exibir_metricas(metricas):
 
 def exibir_timeline(execucao):
     st.subheader("⏳ Timeline da Execução")
-    tempos = [a.get("duracao", 1) for a in execucao]
-    ids = [a.get("id") for a in execucao]
+
+    # Extrai e normaliza dados
+    tempos = [float(a.get("duracao", 1)) for a in execucao]
+    ids = []
+    for idx, a in enumerate(execucao):
+        # Garante que o ID seja numérico
+        val = a.get("id", idx + 1)
+        try:
+            ids.append(int(val))
+        except (ValueError, TypeError):
+            ids.append(idx + 1)
+
+    # Cores por status
     status = ["green" if "✅" in a.get("status", "") else "red" for a in execucao]
 
+    # Cria o gráfico
     fig, ax = plt.subplots()
     ax.bar(ids, tempos, color=status)
     ax.set_xlabel("Ação")
     ax.set_ylabel("Duração (s)")
     ax.set_title("Tempo por Ação")
+
+    # Deixa o eixo X limpo (sem notação científica)
+    ax.xaxis.get_major_formatter().set_useOffset(False)
+
     st.pyplot(fig)
 
 def exibir_acoes(execucao, base_dir):
@@ -719,6 +743,107 @@ def interpretar_comando(comando: str):
 
     return "❌ Não entendi o comando. Digite **ajuda** para ver exemplos."
 
+def responder_conversacional(comando: str):
+    """
+    Interpreta comandos em linguagem natural e responde de forma humana,
+    mantendo integração com o interpretador técnico.
+    """
+
+    # Correções automáticas comuns de fala
+    substituicoes_voz = {
+        "star bancadas": "listar bancadas",
+        "esta bancadas": "listar bancadas",
+        "instalar bancadas": "listar bancadas",
+        "história bancadas": "listar bancadas",
+        "listar bancada": "listar bancadas",
+        "listra bancadas": "listar bancadas",
+        "ver bancadas": "listar bancadas",
+        "mostra bancadas": "listar bancadas"
+    }
+    for errado, certo in substituicoes_voz.items():
+        if errado in comando.lower():
+            comando = comando.lower().replace(errado, certo)
+
+
+    comando_norm = _norm(comando)
+
+    # Expressões auxiliares para respostas naturais
+    frases_iniciais = [
+        "Entendido 💫",
+        "Certo!",
+        "Perfeito 😎",
+        "Beleza ⚙️",
+        "Ok, já vou cuidar disso 👇"
+    ]
+
+    frases_execucao = [
+        "Iniciando o teste agora 🚀",
+        "Rodando o caso de teste no rádio...",
+        "Executando o cenário solicitado 💻",
+        "Começando a sequência de validações..."
+    ]
+
+    frases_coleta = [
+        "Iniciando gravação 🎥",
+        "Pode tocar na tela — estou coletando os gestos.",
+        "Gravando as interações agora 👇"
+    ]
+
+    frases_processamento = [
+        "Gerando o dataset, aguarde um instante ⚙️",
+        "Transformando os logs em dados úteis...",
+        "Processando o dataset pra você 💾"
+    ]
+
+    frases_bancadas = [
+        "Consultando bancadas ADB conectadas 📡",
+        "Um segundo... vou listar as bancadas disponíveis 🔍",
+        "Beleza, verificando conexões com as bancadas ⚙️"
+    ]
+
+    frases_ajuda = [
+        "Aqui está o que posso fazer 👇",
+        "Claro! Aqui estão alguns comandos que você pode usar 🧭",
+        "Lista de comandos à disposição 👇"
+    ]
+
+    # Permite frases como "Zuri, listar bancadas"
+    if comando_norm.startswith("zuri"):
+        comando_norm = comando_norm.replace("zuri", "", 1).strip()
+
+    # === ROTEAMENTO ===
+    if any(p in comando_norm for p in ["listar bancadas", "ver bancadas", "bancadas conectadas"]):
+        resposta_pre = random.choice(frases_bancadas)
+        st.session_state.chat_history.append({"role": "assistant", "content": resposta_pre})
+        return interpretar_comando("listar bancadas")
+
+    if any(p in comando_norm for p in ["executar", "rodar", "testar", "rodar o teste"]):
+        resposta_pre = f"{random.choice(frases_iniciais)} {random.choice(frases_execucao)}"
+        st.session_state.chat_history.append({"role": "assistant", "content": resposta_pre})
+        return interpretar_comando(comando)
+
+    if any(p in comando_norm for p in ["gravar", "coletar", "capturar"]):
+        resposta_pre = f"{random.choice(frases_iniciais)} {random.choice(frases_coleta)}"
+        st.session_state.chat_history.append({"role": "assistant", "content": resposta_pre})
+        return interpretar_comando(comando)
+
+    if any(p in comando_norm for p in ["processar", "gerar dataset", "montar csv"]):
+        resposta_pre = f"{random.choice(frases_iniciais)} {random.choice(frases_processamento)}"
+        st.session_state.chat_history.append({"role": "assistant", "content": resposta_pre})
+        return interpretar_comando(comando)
+
+    if any(p in comando_norm for p in ["ajuda", "comandos", "socorro", "me ajuda"]):
+        resposta_pre = random.choice(frases_ajuda)
+        st.session_state.chat_history.append({"role": "assistant", "content": resposta_pre})
+        return interpretar_comando("ajuda")
+
+    # Caso não tenha correspondência
+    st.session_state.chat_history.append({
+        "role": "assistant",
+        "content": "Hmm 🤔 não entendi muito bem o que você quis dizer... pode repetir?"
+    })
+    return ""
+
 # ==================
 # === UI LATERAL  ===
 # ==================
@@ -802,13 +927,21 @@ with col_button:
                     st.markdown("💭 **Processando comando...**")
             time.sleep(1.2)  # Delay suave para simular processamento
 
-            # 🧠 Interpreta o comando
-            resposta = interpretar_comando(command_text)
+            if MODO_CONVERSA:
+                resposta = responder_conversacional(command_text)
+            else:
+                resposta = interpretar_comando(command_text)
+
 
             # Atualiza o chat com a resposta real
             placeholder.empty()
             st.session_state.chat_history.append({"role": "assistant", "content": resposta})
+
+            # ✅ ZURI fala a resposta em voz alta
+
+
             st.rerun()
+
 
         except sr.UnknownValueError:
             st.session_state.chat_history.append({
@@ -834,9 +967,12 @@ if user_input:
             st.markdown("💭 **Processando comando...**")
     time.sleep(1.2)
 
-    resposta = interpretar_comando(user_input)
-    placeholder.empty()
+    if MODO_CONVERSA:
+        resposta = responder_conversacional(user_input)
+    else:
+        resposta = interpretar_comando(user_input)
 
+    placeholder.empty()
     st.session_state.chat_history.append({"role": "assistant", "content": resposta})
     st.rerun()
 

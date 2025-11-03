@@ -10,6 +10,8 @@ import time
 # === CONFIGURAÇÕES ===
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_ROOT = os.path.join(BASE_DIR, "Data")
+st.set_page_config(page_title="ZURI - Dashboard", page_icon="📊", layout="wide")
+
 
 # === FUNÇÕES AUXILIARES ===
 def carregar_logs(data_root=DATA_ROOT):
@@ -28,12 +30,30 @@ def carregar_logs(data_root=DATA_ROOT):
 
 def calcular_metricas(execucao):
     total = len(execucao)
-    acertos = sum(1 for a in execucao if "✅" in a["status"])
+    if total == 0:
+        return {
+            "total_acoes": 0,
+            "acertos": 0,
+            "falhas": 0,
+            "flakes": 0,
+            "precisao_percentual": 0,
+            "tempo_total": 0,
+            "cobertura_telas": 0,
+            "resultado_final": "SEM DADOS"
+        }
+
+    acertos = sum(1 for a in execucao if "✅" in a.get("status", ""))
     falhas = total - acertos
     flakes = sum(1 for a in execucao if "FLAKE" in a.get("status", ""))
     tempo_total = sum(a.get("duracao", 1) for a in execucao)
-    cobertura = round((len({a.get("tela", f"id{a['id']}") for a in execucao}) / total) * 100, 1) if total > 0 else 0
-    precisao = round((acertos / total) * 100, 2) if total > 0 else 0
+
+    # TOLERANTE a ausência de 'id' e/ou 'tela'
+    telas_unicas = {
+        (a.get("tela") or f"id{a.get('id', idx)}")
+        for idx, a in enumerate(execucao)
+    }
+    cobertura = round((len(telas_unicas) / total) * 100, 1)
+    precisao = round((acertos / total) * 100, 2)
 
     return {
         "total_acoes": total,
@@ -43,7 +63,7 @@ def calcular_metricas(execucao):
         "precisao_percentual": precisao,
         "tempo_total": tempo_total,
         "cobertura_telas": cobertura,
-        "resultado_final": "APROVADO" if falhas == 0 else "REPROVADO"
+        "resultado_final": "✅ APROVADO" if falhas == 0 else "❌ REPROVADO"
     }
 
 # === DASHBOARD ===
@@ -166,7 +186,7 @@ def exibir_regressoes(execucao):
         st.success("Nenhuma falha registrada")
 
 # === INTERFACE ===
-st.title("📊 Dashboard de Execução de Testes - Rádio Android")
+st.title("📊 Dashboard de Execução de Testes - GEI")
 
 logs = carregar_logs()
 if not logs:
