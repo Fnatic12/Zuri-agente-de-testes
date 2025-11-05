@@ -1,0 +1,176 @@
+{
+    "teste": "geral2",
+    "categoria": "geral",
+    "acoes": [
+        {
+            "id": 1,
+            "timestamp": "2025-11-05T16:58:46.986380",
+            "imagem": "frame_01.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 965,
+                "y": 1013,
+                "duracao_s": 0.09,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            }
+        },
+        {
+            "id": 2,
+            "timestamp": "2025-11-05T16:58:49.182725",
+            "imagem": "frame_02.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 961,
+                "y": 1021,
+                "duracao_s": 0.07,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            }
+        },
+        {
+            "id": 3,
+            "timestamp": "2025-11-05T16:58:50.256117",
+            "imagem": "frame_03.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 1071,
+                "y": 1025,
+                "duracao_s": 0.06,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            }
+        },
+        {
+            "id": 4,
+            "timestamp": "2025-11-05T16:58:52.031427",
+            "imagem": "frame_04.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 1047,
+                "y": 364,
+                "duracao_s": 0.05,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            }
+        },
+        {
+            "id": 5,
+            "timestamp": "2025-11-05T16:58:55.504788",
+            "imagem": "frame_05.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 618,
+                "y": 815,
+                "duracao_s": 0.06,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            }
+        },
+        {
+            "id": 6,
+            "timestamp": "2025-11-05T16:58:57.884417",
+            "imagem": "frame_06.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 318,
+                "y": 392,
+                "duracao_s": 0.06,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            }
+        },
+        {
+            "id": 7,
+            "timestamp": "2025-11-05T16:59:00.623742",
+            "imagem": "frame_07.png",
+            "acao": {
+                "tipo": "swipe",
+                "x1": 1429,
+                "y1": 579,
+                "x2": 1603,
+                "y2": 238,
+                "duracao_ms": 356,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            }
+        },
+        {
+            "id": 8,
+            "timestamp": "2025-11-05T16:59:03.065409",
+            "imagem": "frame_08.png",
+            "acao": {
+                "tipo": "swipe",
+                "x1": 1539,
+                "y1": 454,
+                "x2": 1299,
+                "y2": 851,
+                "duracao_ms": 581,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            }
+        },
+        {
+            "id": 9,
+            "timestamp": "2025-11-05T16:59:04.970937",
+            "imagem": "frame_09.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 796,
+                "y": 524,
+                "duracao_s": 0.07,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            }
+        },
+        {
+            "id": 10,
+            "timestamp": "2025-11-05T16:59:07.455502",
+            "imagem": "frame_10.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 252,
+                "y": 500,
+                "duracao_s": 0.05,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            }
+        },
+        {
+            "id": 11,
+            "timestamp": "2025-11-05T16:59:09.051752",
+            "imagem": "frame_11.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 1285,
+                "y": 400,
+                "duracao_s": 0.06,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            }
+        }
+    ],
+    "resultado_esperado": "resultado_final.png"
+}

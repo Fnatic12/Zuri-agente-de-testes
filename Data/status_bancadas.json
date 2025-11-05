@@ -1,0 +1,17 @@
+{
+  "2801780e52320038": {
+    "status": "finalizado",
+    "teste": null
+  },
+  "BANCADA_SEM_SERIAL": {
+    "teste": "geral3",
+    "status": "finalizado",
+    "acoes_totais": 6,
+    "acoes_executadas": 6,
+    "progresso": 100.0,
+    "ultima_acao": "tap",
+    "tempo_decorrido_s": 33.04103994369507,
+    "inicio": "2025-11-05T17:51:37.396334",
+    "fim": "2025-11-05T17:52:15.456830"
+  }
+}

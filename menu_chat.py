@@ -41,6 +41,7 @@ COLETOR_SCRIPT = os.path.join(BASE_DIR, "Scripts", "coletor_adb.py")
 PROCESSAR_SCRIPT = os.path.join(BASE_DIR, "Pre_process", "processar_dataset.py")
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 PAUSE_FLAG_PATH = os.path.join(PROJECT_ROOT, "pause.flag")
+STATUS_PATH = os.path.join(DATA_ROOT, "status_bancadas.json")
 
 # === MODO CONVERSACIONAL ===
 MODO_CONVERSA = True  # Altere para False se quiser desativar as respostas naturais
@@ -159,11 +160,24 @@ def _popen_host_python(cmd):
     except Exception as e:
         return False, f"Falha ao executar comando: {e}"
 
+def atualizar_status_bancada(serial, status, teste=None):
+    """Atualiza o status atual de cada bancada (executando, ociosa, etc.)."""
+    try:
+        data = {}
+        if os.path.exists(STATUS_PATH):
+            with open(STATUS_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        data[serial] = {"status": status, "teste": teste}
+        with open(STATUS_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"⚠️ Erro ao atualizar status: {e}")
+
+
 def executar_teste(categoria, nome_teste, bancada: str | None = None):
     """
-    Executa teste no host em background (não bloqueia o Streamlit).
-    - Se o dataset.csv não existir, roda automaticamente o pré-processamento antes.
-    - Gera logs em Data/<categoria>/<teste>/execucao_log.json.
+    Executa teste no host em background, permitindo paralelismo entre bancadas.
+    Cada processo é isolado e atualizado em status_bancadas.json.
     """
     caminho_teste = os.path.join(DATA_ROOT, categoria, nome_teste)
     dataset_path = os.path.join(caminho_teste, "dataset.csv")
@@ -176,6 +190,15 @@ def executar_teste(categoria, nome_teste, bancada: str | None = None):
         printc(f"⚙️ Dataset não encontrado para {categoria}/{nome_teste}, gerando automaticamente...", "yellow")
         processar_teste(categoria, nome_teste)
 
+        # 🕒 Aguarda dataset ser realmente criado (timeout 60s)
+        for _ in range(60):
+            if os.path.exists(dataset_path):
+                printc("✅ Dataset gerado com sucesso.", "green")
+                break
+            time.sleep(1)
+        else:
+            return f"❌ O dataset de {categoria}/{nome_teste} não foi gerado em tempo hábil."
+
     # 2️⃣ Mapeia bancadas ADB
     bancadas = listar_bancadas()
     seriais, erro = _selecionar_bancada(bancada, bancadas)
@@ -185,6 +208,18 @@ def executar_teste(categoria, nome_teste, bancada: str | None = None):
     respostas = []
 
     for serial in seriais:
+        # Evita executar 2 vezes na mesma bancada
+        status_atual = {}
+        if os.path.exists(STATUS_PATH):
+            with open(STATUS_PATH, "r", encoding="utf-8") as f:
+                status_atual = json.load(f)
+        if serial in status_atual and status_atual[serial]["status"] == "executando":
+            respostas.append(f"⚠️ A bancada `{serial}` já está executando outro teste.")
+            continue
+
+        atualizar_status_bancada(serial, "executando", f"{categoria}/{nome_teste}")
+
+        # Log inicial
         inicio = datetime.now().isoformat()
         log_entry = {
             "acao": "execucao_iniciada",
@@ -195,15 +230,41 @@ def executar_teste(categoria, nome_teste, bancada: str | None = None):
         }
         _registrar_log(log_path, log_entry)
 
-        # 🚀 Inicia o processo em background (sem travar a UI)
+        # 🚀 Executa em background isolado
         cmd = ["python", RUN_SCRIPT, categoria, nome_teste, "--serial", serial]
         try:
-            subprocess.Popen(cmd, cwd=BASE_DIR, start_new_session=True)
-            respostas.append(f"▶️ Executando **{categoria}/{nome_teste}** na bancada `{serial}`...")
+            proc = subprocess.Popen(
+                cmd,
+                cwd=BASE_DIR,
+                start_new_session=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+
+            # Monitor paralelo para liberar status ao final da execução
+            import threading
+            def _monitor_processo(p, serial):
+                stdout, stderr = p.communicate()
+                if p.returncode != 0:
+                    printc(f"❌ Erro na execução da bancada {serial}:", "red")
+                    print(stdout.decode(errors="ignore"))
+                    print(stderr.decode(errors="ignore"))
+                    atualizar_status_bancada(serial, "erro")
+                else:
+                    atualizar_status_bancada(serial, "finalizado")
+                    printc(f"✅ Teste finalizado na bancada {serial}.", "green")
+
+
+            threading.Thread(target=_monitor_processo, args=(proc, serial), daemon=True).start()
+
+            respostas.append(f"▶️ Executando **{categoria}/{nome_teste}** na bancada `{serial}` em background...")
+
         except Exception as e:
-            respostas.append(f"❌ Falha ao iniciar execução: {e}")
+            respostas.append(f"❌ Falha ao iniciar execução na bancada `{serial}`: {e}")
+            atualizar_status_bancada(serial, "erro")
 
     return "\n".join(respostas)
+
 
 def _registrar_log(caminho_log, nova_entrada):
     """Adiciona entrada ao execucao_log.json, criando se não existir."""
@@ -927,21 +988,18 @@ with col_button:
                     st.markdown("💭 **Processando comando...**")
             time.sleep(1.2)  # Delay suave para simular processamento
 
+            # 🔍 Interpreta comando conforme o modo
             if MODO_CONVERSA:
                 resposta = responder_conversacional(command_text)
             else:
                 resposta = interpretar_comando(command_text)
 
-
-            # Atualiza o chat com a resposta real
+            # 💬 Atualiza o chat com a resposta em texto
             placeholder.empty()
             st.session_state.chat_history.append({"role": "assistant", "content": resposta})
 
-            # ✅ ZURI fala a resposta em voz alta
-
-
+            # ✅ Apenas texto — voz desativada
             st.rerun()
-
 
         except sr.UnknownValueError:
             st.session_state.chat_history.append({
@@ -949,6 +1007,7 @@ with col_button:
                 "content": "❌ Não consegui entender o que você disse."
             })
             st.rerun()
+
         except sr.RequestError:
             st.session_state.chat_history.append({
                 "role": "assistant",

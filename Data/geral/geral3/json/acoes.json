@@ -4,12 +4,12 @@
     "acoes": [
         {
             "id": 1,
-            "timestamp": "2025-11-03T16:52:23.740615",
+            "timestamp": "2025-11-05T17:10:26.625377",
             "imagem": "frame_01.png",
             "acao": {
                 "tipo": "tap",
-                "x": 971,
-                "y": 991,
+                "x": 952,
+                "y": 989,
                 "duracao_s": 0.1,
                 "resolucao": {
                     "largura": 1920,
@@ -19,13 +19,13 @@
         },
         {
             "id": 2,
-            "timestamp": "2025-11-03T16:52:25.202543",
+            "timestamp": "2025-11-05T17:10:27.321767",
             "imagem": "frame_02.png",
             "acao": {
                 "tipo": "tap",
-                "x": 1061,
-                "y": 1021,
-                "duracao_s": 0.12,
+                "x": 950,
+                "y": 1013,
+                "duracao_s": 0.0,
                 "resolucao": {
                     "largura": 1920,
                     "altura": 1080
@@ -34,13 +34,13 @@
         },
         {
             "id": 3,
-            "timestamp": "2025-11-03T16:52:26.226988",
+            "timestamp": "2025-11-05T17:10:28.564485",
             "imagem": "frame_03.png",
             "acao": {
                 "tipo": "tap",
-                "x": 1251,
-                "y": 1003,
-                "duracao_s": 0.08,
+                "x": 1253,
+                "y": 1001,
+                "duracao_s": 0.09,
                 "resolucao": {
                     "largura": 1920,
                     "altura": 1080
@@ -49,13 +49,13 @@
         },
         {
             "id": 4,
-            "timestamp": "2025-11-03T16:52:28.655021",
+            "timestamp": "2025-11-05T17:10:30.693672",
             "imagem": "frame_04.png",
             "acao": {
                 "tipo": "tap",
-                "x": 952,
-                "y": 773,
-                "duracao_s": 0.13,
+                "x": 981,
+                "y": 993,
+                "duracao_s": 0.07,
                 "resolucao": {
                     "largura": 1920,
                     "altura": 1080
@@ -64,12 +64,12 @@
         },
         {
             "id": 5,
-            "timestamp": "2025-11-03T16:52:29.315807",
+            "timestamp": "2025-11-05T17:10:31.451295",
             "imagem": "frame_05.png",
             "acao": {
                 "tipo": "tap",
-                "x": 946,
-                "y": 721,
+                "x": 1081,
+                "y": 1037,
                 "duracao_s": 0.0,
                 "resolucao": {
                     "largura": 1920,
@@ -79,28 +79,13 @@
         },
         {
             "id": 6,
-            "timestamp": "2025-11-03T16:52:31.734392",
+            "timestamp": "2025-11-05T17:10:32.575521",
             "imagem": "frame_06.png",
             "acao": {
                 "tipo": "tap",
-                "x": 660,
-                "y": 264,
-                "duracao_s": 0.08,
-                "resolucao": {
-                    "largura": 1920,
-                    "altura": 1080
-                }
-            }
-        },
-        {
-            "id": 7,
-            "timestamp": "2025-11-03T16:52:34.758047",
-            "imagem": "frame_07.png",
-            "acao": {
-                "tipo": "tap",
-                "x": 634,
-                "y": 276,
-                "duracao_s": 0.1,
+                "x": 556,
+                "y": 587,
+                "duracao_s": 0.07,
                 "resolucao": {
                     "largura": 1920,
                     "altura": 1080
