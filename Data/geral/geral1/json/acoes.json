@@ -1,0 +1,112 @@
+{
+    "teste": "geral1",
+    "categoria": "geral",
+    "acoes": [
+        {
+            "id": 1,
+            "timestamp": "2025-11-03T16:50:21.969615",
+            "imagem": "frame_01.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 981,
+                "y": 1041,
+                "duracao_s": 0.2,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            }
+        },
+        {
+            "id": 2,
+            "timestamp": "2025-11-03T16:50:23.912852",
+            "imagem": "frame_02.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 1061,
+                "y": 987,
+                "duracao_s": 0.18,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            }
+        },
+        {
+            "id": 3,
+            "timestamp": "2025-11-03T16:50:25.167877",
+            "imagem": "frame_03.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 965,
+                "y": 955,
+                "duracao_s": 0.14,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            }
+        },
+        {
+            "id": 4,
+            "timestamp": "2025-11-03T16:50:25.937765",
+            "imagem": "frame_04.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 999,
+                "y": 1027,
+                "duracao_s": 0.01,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            }
+        },
+        {
+            "id": 5,
+            "timestamp": "2025-11-03T16:50:26.950592",
+            "imagem": "frame_05.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 1083,
+                "y": 1017,
+                "duracao_s": 0.13,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            }
+        },
+        {
+            "id": 6,
+            "timestamp": "2025-11-03T16:50:28.151146",
+            "imagem": "frame_06.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 977,
+                "y": 979,
+                "duracao_s": 0.14,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            }
+        },
+        {
+            "id": 7,
+            "timestamp": "2025-11-03T16:50:29.151876",
+            "imagem": "frame_07.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 1089,
+                "y": 993,
+                "duracao_s": 0.13,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            }
+        }
+    ],
+    "resultado_esperado": "resultado_final.png"
+}

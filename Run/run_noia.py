@@ -23,6 +23,10 @@ SIMILARIDADE_HOME_OK = 0.85  # limite mínimo para considerar que está na Home
 # Caminho absoluto da raiz do projeto (este arquivo está em /Run)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_ROOT = os.path.join(BASE_DIR, "Data")
+STATUS_FILE = os.path.join(DATA_ROOT, "status_bancadas.json")
+
+# Dicionário global de controle de tempo de execução
+INICIO_EXECUCAO = {}
 
 # =========================
 # FUNÇÕES AUXILIARES
@@ -96,12 +100,64 @@ def comparar_imagens(img1_path, img2_path):
         return 0.0
 
 # =========================
+# STATUS DAS BANCADAS
+# =========================
+def carregar_status():
+    if os.path.exists(STATUS_FILE):
+        with open(STATUS_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+def salvar_status(data):
+    os.makedirs(os.path.dirname(STATUS_FILE), exist_ok=True)
+    with open(STATUS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+
+def inicializar_status_bancada(bancada, teste_nome, total_acoes):
+    """Cria/atualiza status inicial da bancada"""
+    status = carregar_status()
+    INICIO_EXECUCAO[bancada] = time.time()
+    status[f"bancada_{bancada}"] = {
+        "teste": teste_nome,
+        "status": "Executando",
+        "acoes_totais": total_acoes,
+        "acoes_executadas": 0,
+        "progresso": 0,
+        "ultima_acao": "-",
+        "tempo_decorrido_s": 0
+    }
+    salvar_status(status)
+
+def atualizar_status_bancada(bancada, teste_nome, total_acoes, executadas, ultima_acao):
+    """Atualiza progresso durante execução"""
+    status = carregar_status()
+    tempo_decorrido = time.time() - INICIO_EXECUCAO.get(bancada, time.time())
+    progresso = round((executadas / total_acoes) * 100, 1)
+    status[f"bancada_{bancada}"] = {
+        "teste": teste_nome,
+        "status": "Executando",
+        "acoes_totais": total_acoes,
+        "acoes_executadas": executadas,
+        "progresso": progresso,
+        "ultima_acao": ultima_acao,
+        "tempo_decorrido_s": tempo_decorrido
+    }
+    salvar_status(status)
+
+def finalizar_status_bancada(bancada):
+    """Marca bancada como finalizada"""
+    status = carregar_status()
+    if f"bancada_{bancada}" in status:
+        status[f"bancada_{bancada}"]["status"] = "Finalizado"
+    salvar_status(status)
+
+# =========================
 # MAIN
 # =========================
 def main():
     print("📁 Execução Automática de Testes no Rádio via ADB")
 
-    # 🔹 Agora aceita argumentos OU modo interativo
+    # 🔹 Argumentos ou modo interativo
     if len(sys.argv) >= 3:
         categoria = sys.argv[1].strip().lower().replace(" ", "_")
         nome_teste = sys.argv[2].strip().lower().replace(" ", "_")
@@ -117,13 +173,15 @@ def main():
         if idx + 1 < len(sys.argv):
             serial = sys.argv[idx + 1]
 
+    # 🔹 Identifica bancada (ex: a partir do serial)
+    bancada = serial if serial else "1"
+
     teste_dir = os.path.join(DATA_ROOT, categoria, nome_teste)
     dataset_path = os.path.join(teste_dir, "dataset.csv")
     frames_dir = os.path.join(teste_dir, "frames")
     resultados_dir = os.path.join(teste_dir, "resultados")
     log_path = os.path.join(teste_dir, "execucao_log.json")
 
-    # Log de caminhos para diagnóstico
     print_color(f"\n🗂️ Dataset: {dataset_path}", "cyan")
     print_color(f"🗂️ Frames:  {frames_dir}", "cyan")
     print_color(f"🗂️ Result.: {resultados_dir}\n", "cyan")
@@ -138,19 +196,20 @@ def main():
         return
 
     os.makedirs(resultados_dir, exist_ok=True)
-
     df = pd.read_csv(dataset_path)
+    total_acoes = len(df)
 
-    print_color(f"\n🎬 Executando {len(df)} ações do dataset...\n", "cyan")
+    print_color(f"\n🎬 Executando {total_acoes} ações do dataset...\n", "cyan")
     log = []
 
-    i = 0
-    while i < len(df):
-        row = df.iloc[i]
-        tipo = str(row.get("tipo", "tap")).lower()
-        print_color(f"▶️ Ação {i+1}/{len(df)} ({tipo})", "white")
+    # 🔹 Inicializa status
+    inicializar_status_bancada(bancada, nome_teste, total_acoes)
 
-        # 🔸 Verifica se deve pausar (a cada ação)
+    for i, row in df.iterrows():
+        tipo = str(row.get("tipo", "tap")).lower()
+        print_color(f"▶️ Ação {i+1}/{total_acoes} ({tipo})", "white")
+
+        # Pausa se necessário
         pause_path = os.path.join(BASE_DIR, "pause.flag")
         while os.path.exists(pause_path):
             print_color("⏸️ Execução pausada... aguardando retomada.", "yellow")
@@ -161,7 +220,6 @@ def main():
         # Executa ação
         if tipo == "tap":
             executar_tap(int(row["x"]), int(row["y"]), serial)
-
         elif tipo in ["swipe", "swipe_inicio"]:
             if i + 1 < len(df):
                 proxima = df.iloc[i + 1]
@@ -177,13 +235,11 @@ def main():
                     print_color("⚠️ swipe sem fim válido — ignorado.", "yellow")
             else:
                 print_color("⚠️ swipe é a última linha — ignorado.", "yellow")
-
         elif tipo == "long_press":
             duracao_press_ms = float(row.get("duracao_s", 1.0)) * 1000
             executar_long_press(int(row["x"]), int(row["y"]), duracao_press_ms, serial)
-            print_color(f"🕒 Long press detectado por {duracao_press_ms/1000:.2f}s", "cyan")
 
-        # Captura screenshot do resultado
+        # Captura screenshot e avalia similaridade
         screenshot_nome = f"resultado_{i+1:02d}.png"
         screenshot_path = capturar_screenshot(resultados_dir, screenshot_nome, serial)
 
@@ -191,7 +247,7 @@ def main():
         esperado_abs = os.path.join(teste_dir, esperado_rel)
 
         similaridade = comparar_imagens(screenshot_path, esperado_abs)
-        status = "✅ OK" if similaridade >= 0.85 else "❌ Divergente"
+        status = "✅ OK" if similaridade >= SIMILARIDADE_HOME_OK else "❌ Divergente"
 
         fim = time.time()
         duracao = round(fim - inicio, 2)
@@ -199,7 +255,7 @@ def main():
         print_color(f"🔎 Similaridade: {similaridade:.3f} → {status} | ⏱️ {duracao:.2f}s", "cyan")
 
         log.append({
-            "id": i+1,
+            "id": i + 1,
             "timestamp": datetime.now().isoformat(),
             "acao": tipo,
             "coordenadas": row.to_dict(),
@@ -210,15 +266,20 @@ def main():
             "duracao": duracao
         })
 
-        i += 1
+        # 🔹 Atualiza status da bancada
+        atualizar_status_bancada(bancada, nome_teste, total_acoes, i + 1, tipo)
+
         time.sleep(PAUSA_ENTRE_ACOES)
 
+    # 🔹 Finaliza status
+    finalizar_status_bancada(bancada)
 
-    # === SALVAR LOG ===
+    # === SALVAR LOG FINAL ===
     with open(log_path, "w", encoding="utf-8") as f:
         json.dump(log, f, indent=4, ensure_ascii=False)
 
     print_color(f"\n✅ Execução finalizada. Log salvo em: {log_path}", "green")
+    print_color(f"📊 Status atualizado em: {STATUS_FILE}", "cyan")
 
 
 if __name__ == "__main__":

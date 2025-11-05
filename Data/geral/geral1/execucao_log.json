@@ -1,0 +1,142 @@
+[
+    {
+        "id": 1,
+        "timestamp": "2025-11-03T16:50:55.600222",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 981,
+            "y": 1041,
+            "tipo": "tap",
+            "timestamp": "2025-11-03T16:50:21.969615",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.5109375,
+            "y_norm": 0.9638888888888888
+        },
+        "screenshot": "resultados\\resultado_01.png",
+        "frame_esperado": "frames\\frame_01.png",
+        "similaridade": 0.9917482854603344,
+        "status": "✅ OK",
+        "duracao": 1.23
+    },
+    {
+        "id": 2,
+        "timestamp": "2025-11-03T16:51:02.148787",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 1061,
+            "y": 987,
+            "tipo": "tap",
+            "timestamp": "2025-11-03T16:50:23.912852",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.5526041666666667,
+            "y_norm": 0.9138888888888888
+        },
+        "screenshot": "resultados\\resultado_02.png",
+        "frame_esperado": "frames\\frame_02.png",
+        "similaridade": 0.9926357513982768,
+        "status": "✅ OK",
+        "duracao": 1.55
+    },
+    {
+        "id": 3,
+        "timestamp": "2025-11-03T16:51:08.793052",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 965,
+            "y": 955,
+            "tipo": "tap",
+            "timestamp": "2025-11-03T16:50:25.167877",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.5026041666666666,
+            "y_norm": 0.8842592592592593
+        },
+        "screenshot": "resultados\\resultado_03.png",
+        "frame_esperado": "frames\\frame_03.png",
+        "similaridade": 0.9984820561537981,
+        "status": "✅ OK",
+        "duracao": 1.61
+    },
+    {
+        "id": 4,
+        "timestamp": "2025-11-03T16:51:15.229854",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 999,
+            "y": 1027,
+            "tipo": "tap",
+            "timestamp": "2025-11-03T16:50:25.937765",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.5203125,
+            "y_norm": 0.950925925925926
+        },
+        "screenshot": "resultados\\resultado_04.png",
+        "frame_esperado": "frames\\frame_04.png",
+        "similaridade": 0.9915244143355878,
+        "status": "✅ OK",
+        "duracao": 1.44
+    },
+    {
+        "id": 5,
+        "timestamp": "2025-11-03T16:51:21.476183",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 1083,
+            "y": 1017,
+            "tipo": "tap",
+            "timestamp": "2025-11-03T16:50:26.950592",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.5640625,
+            "y_norm": 0.9416666666666668
+        },
+        "screenshot": "resultados\\resultado_05.png",
+        "frame_esperado": "frames\\frame_05.png",
+        "similaridade": 0.8701711627860929,
+        "status": "✅ OK",
+        "duracao": 1.24
+    },
+    {
+        "id": 6,
+        "timestamp": "2025-11-03T16:51:27.875950",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 977,
+            "y": 979,
+            "tipo": "tap",
+            "timestamp": "2025-11-03T16:50:28.151146",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.5088541666666667,
+            "y_norm": 0.9064814814814814
+        },
+        "screenshot": "resultados\\resultado_06.png",
+        "frame_esperado": "frames\\frame_06.png",
+        "similaridade": 0.990706895038269,
+        "status": "✅ OK",
+        "duracao": 1.4
+    },
+    {
+        "id": 7,
+        "timestamp": "2025-11-03T16:51:34.143729",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 1089,
+            "y": 993,
+            "tipo": "tap",
+            "timestamp": "2025-11-03T16:50:29.151876",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.5671875,
+            "y_norm": 0.9194444444444444
+        },
+        "screenshot": "resultados\\resultado_07.png",
+        "frame_esperado": "frames\\frame_07.png",
+        "similaridade": 0.9900397493698412,
+        "status": "✅ OK",
+        "duracao": 1.26
+    }
+]

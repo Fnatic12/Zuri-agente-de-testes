@@ -12,7 +12,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_ROOT = os.path.join(BASE_DIR, "Data")
 st.set_page_config(page_title="ZURI - Dashboard", page_icon="📊", layout="wide")
 
-
 # === FUNÇÕES AUXILIARES ===
 def carregar_logs(data_root=DATA_ROOT):
     """Lista execuções disponíveis"""
