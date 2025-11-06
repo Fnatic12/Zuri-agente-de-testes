@@ -4,6 +4,33 @@ import os
 import platform
 import shutil
 
+def titulo_painel(titulo: str, subtitulo: str = ""):
+    st.markdown(
+        f"""
+        <style>
+        .main-title {{
+            font-size: 2.5rem;
+            text-align: center;
+            background: linear-gradient(90deg, #12c2e9, #c471ed, #f64f59);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 0.3em;
+        }}
+        .subtitle {{
+            text-align: center;
+            color: #AAAAAA;
+            font-size: 1rem;
+            margin-bottom: 1.8em;
+        }}
+        </style>
+        <h1 class="main-title">{titulo}</h1>
+        <p class="subtitle">{subtitulo}</p>
+        """,
+        unsafe_allow_html=True
+    )
+
 # === CONFIG ===
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -20,9 +47,8 @@ STOP_FLAG_PATH = os.path.join(BASE_DIR, "stop.flag")
 if "proc_coleta" not in st.session_state:
     st.session_state.proc_coleta = None
 
-st.set_page_config(page_title="ZURI - Automação VW", page_icon="🚗", layout="centered")
-st.title("Plataforma de Automação de Testes")
-st.markdown("**Sistema de testes automatizados - GEI - BTEE4**")
+st.set_page_config(page_title="Menu Tester", page_icon="🚗", layout="centered")
+titulo_painel("🧠 Painel de Automação de Testes", "Plataforma <b>para</b> coletar e processamento de testes")
 st.divider() 
 
 # === COLETA ===

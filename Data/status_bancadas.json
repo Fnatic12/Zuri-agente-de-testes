@@ -1,17 +1,17 @@
 {
-  "2801780e52320038": {
-    "status": "finalizado",
-    "teste": null
-  },
   "BANCADA_SEM_SERIAL": {
-    "teste": "geral3",
+    "teste": "geral4",
     "status": "finalizado",
-    "acoes_totais": 6,
-    "acoes_executadas": 6,
+    "acoes_totais": 55,
+    "acoes_executadas": 55,
     "progresso": 100.0,
     "ultima_acao": "tap",
-    "tempo_decorrido_s": 33.04103994369507,
-    "inicio": "2025-11-05T17:51:37.396334",
-    "fim": "2025-11-05T17:52:15.456830"
+    "tempo_decorrido_s": 339.55842995643616,
+    "inicio": "2025-11-06T18:07:41.044775",
+    "fim": "2025-11-06T18:13:25.610151"
+  },
+  "2801761952320038": {
+    "status": "finalizado",
+    "teste": null
   }
 }

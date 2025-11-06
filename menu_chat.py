@@ -14,9 +14,37 @@ from difflib import SequenceMatcher
 import random
 import seaborn as sns
 import colorama
+import threading
 from colorama import Fore, Style
 colorama.init(autoreset=True)
 import re
+
+def titulo_painel(titulo: str, subtitulo: str = ""):
+    st.markdown(
+        f"""
+        <style>
+        .main-title {{
+            font-size: 2.5rem;
+            text-align: center;
+            background: linear-gradient(90deg, #12c2e9, #c471ed, #f64f59);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 0.3em;
+        }}
+        .subtitle {{
+            text-align: center;
+            color: #AAAAAA;
+            font-size: 1rem;
+            margin-bottom: 1.8em;
+        }}
+        </style>
+        <h1 class="main-title">{titulo}</h1>
+        <p class="subtitle">{subtitulo}</p>
+        """,
+        unsafe_allow_html=True
+    )
 
 def printc(msg, color="white"):
     """
@@ -47,7 +75,8 @@ STATUS_PATH = os.path.join(DATA_ROOT, "status_bancadas.json")
 MODO_CONVERSA = True  # Altere para False se quiser desativar as respostas naturais
 
 
-st.set_page_config(page_title="ZURI - Assistente Gerencial", page_icon="🤖", layout="wide")
+st.set_page_config(page_title="Agente de Testes", page_icon="🤖", layout="wide")
+
 
 # === SESSION STATE ===
 if "chat_history" not in st.session_state:
@@ -173,7 +202,6 @@ def atualizar_status_bancada(serial, status, teste=None):
     except Exception as e:
         print(f"⚠️ Erro ao atualizar status: {e}")
 
-
 def executar_teste(categoria, nome_teste, bancada: str | None = None):
     """
     Executa teste no host em background, permitindo paralelismo entre bancadas.
@@ -211,13 +239,30 @@ def executar_teste(categoria, nome_teste, bancada: str | None = None):
         # Evita executar 2 vezes na mesma bancada
         status_atual = {}
         if os.path.exists(STATUS_PATH):
-            with open(STATUS_PATH, "r", encoding="utf-8") as f:
-                status_atual = json.load(f)
-        if serial in status_atual and status_atual[serial]["status"] == "executando":
+            try:
+                with open(STATUS_PATH, "r", encoding="utf-8") as f:
+                    content = f.read().strip()
+                    if content:
+                        status_atual = json.loads(content)
+                    else:
+                        print("⚠️ status_bancadas.json vazio — recriando automaticamente.")
+                        status_atual = {}
+            except json.JSONDecodeError:
+                print("⚠️ status_bancadas.json corrompido — recriando automaticamente.")
+                status_atual = {}
+            except Exception as e:
+                print(f"⚠️ Erro ao ler status_bancadas.json: {e}")
+                status_atual = {}
+        else:
+            print("ℹ️ status_bancadas.json não encontrado — criando novo.")
+            status_atual = {}
+
+        if serial in status_atual and str(status_atual[serial].get("status", "")).lower() == "executando":
             respostas.append(f"⚠️ A bancada `{serial}` já está executando outro teste.")
             continue
 
         atualizar_status_bancada(serial, "executando", f"{categoria}/{nome_teste}")
+
 
         # Log inicial
         inicio = datetime.now().isoformat()
@@ -241,22 +286,48 @@ def executar_teste(categoria, nome_teste, bancada: str | None = None):
                 stderr=subprocess.PIPE
             )
 
-            # Monitor paralelo para liberar status ao final da execução
-            import threading
-            def _monitor_processo(p, serial):
+            # =============================
+            # 🧠 MONITOR DE EXECUÇÃO (THREAD)
+            # =============================
+            def _monitor_processo(p, serial, categoria, nome_teste):
                 stdout, stderr = p.communicate()
                 if p.returncode != 0:
-                    printc(f"❌ Erro na execução da bancada {serial}:", "red")
+                    atualizar_status_bancada(serial, "erro")
+                    printc(f"❌ Erro na execução do teste {categoria}/{nome_teste} na bancada {serial}.", "red")
                     print(stdout.decode(errors="ignore"))
                     print(stderr.decode(errors="ignore"))
-                    atualizar_status_bancada(serial, "erro")
+
+                    # Envia mensagem para o chat (modo conversa)
+                    if MODO_CONVERSA and "chat_history" in st.session_state:
+                        st.session_state.chat_history.append({
+                            "role": "assistant",
+                            "content": f"❌ O teste **{categoria}/{nome_teste}** falhou na bancada `{serial}`."
+                        })
                 else:
                     atualizar_status_bancada(serial, "finalizado")
-                    printc(f"✅ Teste finalizado na bancada {serial}.", "green")
+                    printc(f"✅ Teste {categoria}/{nome_teste} finalizado com sucesso na bancada {serial}.", "green")
 
+                    # Envia mensagem para o chat (modo conversa)
+                    if MODO_CONVERSA and "chat_history" in st.session_state:
+                        st.session_state.chat_history.append({
+                            "role": "assistant",
+                            "content": f"✅ Teste **{categoria}/{nome_teste}** finalizado com sucesso na bancada `{serial}`."
+                        })
 
-            threading.Thread(target=_monitor_processo, args=(proc, serial), daemon=True).start()
+                    # Atualiza a interface automaticamente após finalização
+                    try:
+                        st.experimental_rerun()
+                    except Exception:
+                        pass
 
+            # 🔹 Inicia o monitoramento do processo (thread em background)
+            threading.Thread(
+                target=_monitor_processo,
+                args=(proc, serial, categoria, nome_teste),
+                daemon=True
+            ).start()
+
+            # Mensagem inicial
             respostas.append(f"▶️ Executando **{categoria}/{nome_teste}** na bancada `{serial}` em background...")
 
         except Exception as e:
@@ -908,7 +979,7 @@ def responder_conversacional(comando: str):
 # ==================
 # === UI LATERAL  ===
 # ==================
-st.sidebar.title("☰ ZURI - Menu")
+st.sidebar.title("☰ VWAIT - Menu")
 pagina = st.sidebar.radio("Navegação", ["💬 Chat", "📊 Dashboard"])
 
 # Side info: bancadas
@@ -921,9 +992,7 @@ with st.sidebar.expander("📡 Bancadas (ADB)"):
 # === CHAT ===
 # ============
 if pagina == "💬 Chat":
-    st.title("💬 ZURI - Agente de Testes")
-    st.markdown("Digite **ajuda** para ver exemplos de comandos.")
-    st.markdown("---")
+    titulo_painel("💬 VWAIT - Agente de Testes", "Digite <b>ajuda</b> para ver exemplos de comandos.")
 
     # === EXEMPLOS DE PROMPTS ESTILIZADOS ===
     st.markdown(

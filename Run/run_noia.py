@@ -341,8 +341,15 @@ def main():
 
         print_color(f"▶️ Ação {i+1}/{total_acoes} ({tipo})", "white")
 
-        # Pausa se necessário
+        # Pausa se necessário (auto-limpa se sobrou de execução anterior)
         pause_path = os.path.join(BASE_DIR, "pause.flag")
+        if os.path.exists(pause_path):
+            print_color("⚠️ Arquivo de pausa residual detectado — removendo para evitar travamento.", "yellow")
+            try:
+                os.remove(pause_path)
+            except Exception as e:
+                print_color(f"⚠️ Não foi possível remover pause.flag: {e}", "red")
+
         while os.path.exists(pause_path):
             print_color("⏸️ Execução pausada... aguardando retomada.", "yellow")
             time.sleep(2)

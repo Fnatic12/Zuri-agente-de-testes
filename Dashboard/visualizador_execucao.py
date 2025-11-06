@@ -7,10 +7,37 @@ import seaborn as sns
 import numpy as np
 import time
 
+def titulo_painel(titulo: str, subtitulo: str = ""):
+    st.markdown(
+        f"""
+        <style>
+        .main-title {{
+            font-size: 2.5rem;
+            text-align: center;
+            background: linear-gradient(90deg, #12c2e9, #c471ed, #f64f59);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 0.3em;
+        }}
+        .subtitle {{
+            text-align: center;
+            color: #AAAAAA;
+            font-size: 1rem;
+            margin-bottom: 1.8em;
+        }}
+        </style>
+        <h1 class="main-title">{titulo}</h1>
+        <p class="subtitle">{subtitulo}</p>
+        """,
+        unsafe_allow_html=True
+    )
+
 # === CONFIGURAÇÕES ===
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_ROOT = os.path.join(BASE_DIR, "Data")
-st.set_page_config(page_title="ZURI - Dashboard", page_icon="📊", layout="wide")
+st.set_page_config(page_title="Dashboard - VWAIT", page_icon="📊", layout="wide")
 
 # === FUNÇÕES AUXILIARES ===
 def carregar_logs(data_root=DATA_ROOT):
@@ -185,7 +212,7 @@ def exibir_regressoes(execucao):
         st.success("Nenhuma falha registrada")
 
 # === INTERFACE ===
-st.title("📊 Dashboard de Execução de Testes - GEI")
+titulo_painel("📊 Dashboard de Execução de Testes - GEI", "Veja <b>todos</b> os resultados dos testes")
 
 logs = carregar_logs()
 if not logs:

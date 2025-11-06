@@ -1,109 +1,102 @@
 [
-  {
-    "id": 1,
-    "timestamp": "2025-11-05T16:56:56.443464",
-    "acao": "tap",
-    "coordenadas": {
-      "x": 1079,
-      "y": 1039,
-      "tipo": "tap",
-      "timestamp": "2025-11-05T16:56:28.640905",
-      "resolucao_largura": 1920,
-      "resolucao_altura": 1080,
-      "x_norm": 0.5619791666666667,
-      "y_norm": 0.962037037037037
+    {
+        "id": 1,
+        "timestamp": "2025-11-06T18:17:42.458123",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 1079,
+            "y": 1039,
+            "tipo": "tap",
+            "timestamp": "2025-11-05T16:56:28.640905",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.5619791666666667,
+            "y_norm": 0.962037037037037
+        },
+        "screenshot": "resultados\\resultado_01.png",
+        "frame_esperado": "frames\\frame_01.png",
+        "similaridade": 0.7567119722359759,
+        "status": "❌ Divergente",
+        "duracao": 1.26
     },
-    "screenshot": "resultados\\resultado_01.png",
-    "frame_esperado": "frames\\frame_01.png",
-    "similaridade": 0.7743779073674601,
-    "status": "❌ Divergente",
-    "duracao": 1.42
-  },
-  {
-    "id": 2,
-    "timestamp": "2025-11-05T16:57:02.768732",
-    "acao": "tap",
-    "coordenadas": {
-      "x": 550,
-      "y": 635,
-      "tipo": "tap",
-      "timestamp": "2025-11-05T16:56:32.139602",
-      "resolucao_largura": 1920,
-      "resolucao_altura": 1080,
-      "x_norm": 0.2864583333333333,
-      "y_norm": 0.5879629629629629
+    {
+        "id": 2,
+        "timestamp": "2025-11-06T18:17:48.801171",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 550,
+            "y": 635,
+            "tipo": "tap",
+            "timestamp": "2025-11-05T16:56:32.139602",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.2864583333333333,
+            "y_norm": 0.5879629629629629
+        },
+        "screenshot": "resultados\\resultado_02.png",
+        "frame_esperado": "frames\\frame_02.png",
+        "similaridade": 0.9060454897897527,
+        "status": "✅ OK",
+        "duracao": 1.34
     },
-    "screenshot": "resultados\\resultado_02.png",
-    "frame_esperado": "frames\\frame_02.png",
-    "similaridade": 0.8259827532222658,
-    "status": "❌ Divergente",
-    "duracao": 1.31
-  },
-  {
-    "id": 3,
-    "timestamp": "2025-11-05T16:57:08.961635",
-    "acao": "tap",
-    "coordenadas": {
-      "x": 292,
-      "y": 350,
-      "tipo": "tap",
-      "timestamp": "2025-11-05T16:56:34.647090",
-      "resolucao_largura": 1920,
-      "resolucao_altura": 1080,
-      "x_norm": 0.1520833333333333,
-      "y_norm": 0.324074074074074
+    {
+        "id": 3,
+        "timestamp": "2025-11-06T18:17:55.074662",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 292,
+            "y": 350,
+            "tipo": "tap",
+            "timestamp": "2025-11-05T16:56:34.647090",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.1520833333333333,
+            "y_norm": 0.324074074074074
+        },
+        "screenshot": "resultados\\resultado_03.png",
+        "frame_esperado": "frames\\frame_03.png",
+        "similaridade": 0.05255584444348661,
+        "status": "❌ Divergente",
+        "duracao": 1.27
     },
-    "screenshot": "resultados\\resultado_03.png",
-    "frame_esperado": "frames\\frame_03.png",
-    "similaridade": 0.9514518135047081,
-    "status": "✅ OK",
-    "duracao": 1.19
-  },
-  {
-    "id": 4,
-    "timestamp": "2025-11-05T16:57:15.174805",
-    "acao": "tap",
-    "coordenadas": {
-      "x": 282,
-      "y": 448,
-      "tipo": "tap",
-      "timestamp": "2025-11-05T16:56:35.457434",
-      "resolucao_largura": 1920,
-      "resolucao_altura": 1080,
-      "x_norm": 0.146875,
-      "y_norm": 0.4148148148148148
+    {
+        "id": 4,
+        "timestamp": "2025-11-06T18:18:01.256679",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 282,
+            "y": 448,
+            "tipo": "tap",
+            "timestamp": "2025-11-05T16:56:35.457434",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.146875,
+            "y_norm": 0.4148148148148148
+        },
+        "screenshot": "resultados\\resultado_04.png",
+        "frame_esperado": "frames\\frame_04.png",
+        "similaridade": 0.6408078798889413,
+        "status": "❌ Divergente",
+        "duracao": 1.16
     },
-    "screenshot": "resultados\\resultado_04.png",
-    "frame_esperado": "frames\\frame_04.png",
-    "similaridade": 0.9866313753102651,
-    "status": "✅ OK",
-    "duracao": 1.21
-  },
-  {
-    "id": 5,
-    "timestamp": "2025-11-05T16:57:21.362061",
-    "acao": "tap",
-    "coordenadas": {
-      "x": 298,
-      "y": 526,
-      "tipo": "tap",
-      "timestamp": "2025-11-05T16:56:37.440004",
-      "resolucao_largura": 1920,
-      "resolucao_altura": 1080,
-      "x_norm": 0.1552083333333333,
-      "y_norm": 0.487037037037037
-    },
-    "screenshot": "resultados\\resultado_05.png",
-    "frame_esperado": "frames\\frame_05.png",
-    "similaridade": 0.9980567813416992,
-    "status": "✅ OK",
-    "duracao": 1.18
-  },
-  {
-    "acao": "execucao_iniciada",
-    "categoria": "geral",
-    "teste": "geral1",
-    "serial": "2801780e52320038",
-    "inicio": "2025-11-05T17:49:28.188671"
-  }
+    {
+        "id": 5,
+        "timestamp": "2025-11-06T18:18:07.438762",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 298,
+            "y": 526,
+            "tipo": "tap",
+            "timestamp": "2025-11-05T16:56:37.440004",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.1552083333333333,
+            "y_norm": 0.487037037037037
+        },
+        "screenshot": "resultados\\resultado_05.png",
+        "frame_esperado": "frames\\frame_05.png",
+        "similaridade": 0.5939235254321584,
+        "status": "❌ Divergente",
+        "duracao": 1.17
+    }
 ]

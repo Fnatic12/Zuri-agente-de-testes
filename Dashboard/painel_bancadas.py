@@ -4,9 +4,10 @@ import streamlit as st
 from datetime import datetime
 from streamlit_autorefresh import st_autorefresh
 import tempfile
+import pandas as pd
 
 # ============ CONFIG ============ #
-st.set_page_config(page_title="ZURI - Painel de Bancadas", page_icon="🧠", layout="wide")
+st.set_page_config(page_title="Painel de Bancadas", page_icon="🧠", layout="wide")
 
 STATUS_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "Data", "status_bancadas.json")
 
@@ -45,27 +46,6 @@ body { background-color: #0B0C10; color: #E0E0E0; font-family: 'Inter', sans-ser
     box-shadow: 0 12px 25px rgba(0,0,0,0.6);
 }
 
-.badge {
-    display: inline-block;
-    padding: 3px 10px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #fff;
-    margin-bottom: 8px;
-}
-
-.badge.executando { background: linear-gradient(90deg,#f6d365,#fda085); animation: pulse 1.5s infinite; }
-.badge.finalizado { background: linear-gradient(90deg,#56ab2f,#a8e063); }
-.badge.ociosa { background: linear-gradient(90deg,#bdc3c7,#2c3e50); }
-.badge.erro { background: linear-gradient(90deg,#ff416c,#ff4b2b); }
-
-@keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(253,160,133, 0.4); }
-  70% { box-shadow: 0 0 0 10px rgba(253,160,133, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(253,160,133, 0); }
-}
-
 .progress-container {
     background: #2a2a2a;
     border-radius: 10px;
@@ -82,7 +62,7 @@ body { background-color: #0B0C10; color: #E0E0E0; font-family: 'Inter', sans-ser
 """, unsafe_allow_html=True)
 
 # ============ HEADER ============ #
-st.markdown("<h1 class='main-title'>🧠 Painel de Execução ZURI</h1>", unsafe_allow_html=True)
+st.markdown("<h1 class='main-title'>Painel de Execução ZURI</h1>", unsafe_allow_html=True)
 st.markdown("<p class='subtitle'>Monitoramento em tempo real das bancadas Android conectadas</p>", unsafe_allow_html=True)
 
 st_autorefresh(interval=3000, limit=None, key="refresh_status")
@@ -125,6 +105,43 @@ def carregar_status_higienizado():
 
     return cleaned
 
+def extrair_kpis(serial):
+    """Busca execucao_log.json recente da bancada e extrai métricas básicas."""
+    logs_dir = os.path.join(os.path.dirname(STATUS_PATH), serial)
+    if not os.path.isdir(logs_dir):
+        return None
+
+    exec_log = os.path.join(logs_dir, "execucao_log.json")
+    if not os.path.exists(exec_log):
+        return None
+
+    try:
+        with open(exec_log, "r", encoding="utf-8") as f:
+            dados = json.load(f)
+        total = len(dados)
+        acertos = sum(1 for a in dados if "✅" in a.get("status", ""))
+        falhas = total - acertos
+        similaridades = [a.get("similaridade", 0) for a in dados if "similaridade" in a]
+        media_sim = sum(similaridades) / len(similaridades) if similaridades else 0
+        precisao = round((acertos / total) * 100, 1) if total else 0
+
+        return {
+            "total": total,
+            "acertos": acertos,
+            "falhas": falhas,
+            "precisao": precisao,
+            "similaridade": round(media_sim, 2)
+        }
+    except Exception:
+        return None
+
+# ============ MAPA DE NOMES FIXOS ============ #
+MAPEAMENTO_BANCADAS = {
+    "2801761952320038": "Bancada 1",  # principal
+    "2801780E52320038": "Bancada 2",
+    "280178XXXXXX0038": "Bancada 3"
+}
+
 # ============ LEITURA E EXIBIÇÃO ============ #
 bancadas = carregar_status_higienizado()
 
@@ -132,13 +149,12 @@ if not bancadas:
     st.info("🔌 Nenhuma bancada ativa no momento. Aguardando execução...")
     st.stop()
 
-# Distribui dinamicamente os cards
 cols_per_row = 3 if len(bancadas) >= 3 else len(bancadas)
 rows = [list(bancadas.items())[i:i+cols_per_row] for i in range(0, len(bancadas), cols_per_row)]
 
 for row in rows:
     cols = st.columns(len(row))
-    for col, (bancada, dados) in zip(cols, row):
+    for col, (serial, dados) in zip(cols, row):
         with col:
             status = str(dados.get("status", "ociosa")).lower()
             teste = dados.get("teste", "-")
@@ -146,34 +162,41 @@ for row in rows:
             ultima_acao = dados.get("ultima_acao", "—")
             tempo_decorrido = float(dados.get("tempo_decorrido_s", 0))
 
+            # Define cor e ícone
             if status == "executando":
-                badge_class, grad = "executando", "linear-gradient(90deg,#f6d365,#fda085)"
-                emoji = "⚙️"
+                cor_icon, grad = "⚙️", "linear-gradient(90deg,#f6d365,#fda085)"
             elif status == "finalizado":
-                badge_class, grad = "finalizado", "linear-gradient(90deg,#56ab2f,#a8e063)"
-                emoji = "✅"
+                cor_icon, grad = "✅", "linear-gradient(90deg,#56ab2f,#a8e063)"
             elif status == "ociosa":
-                badge_class, grad = "ociosa", "linear-gradient(90deg,#bdc3c7,#2c3e50)"
-                emoji = "💤"
+                cor_icon, grad = "💤", "linear-gradient(90deg,#bdc3c7,#2c3e50)"
             else:
-                badge_class, grad = "erro", "linear-gradient(90deg,#ff416c,#ff4b2b)"
-                emoji = "❌"
+                cor_icon, grad = "❌", "linear-gradient(90deg,#ff416c,#ff4b2b)"
 
-            nome_card = bancada if bancada != "BANCADA_SEM_SERIAL" else "Bancada Genérica"
+            nome_card = MAPEAMENTO_BANCADAS.get(serial, serial)
+            kpi = extrair_kpis(serial)
 
+            if kpi:
+                kpi_html = f"""
+                    <p class="metric-label">📈 <b>Precisão:</b> {kpi['precisao']}%</p>
+                    <p class="metric-label">🎯 <b>Similaridade média:</b> {kpi['similaridade']}</p>
+                    <p class="metric-label">✅ <b>Acertos:</b> {kpi['acertos']} | ❌ Falhas: {kpi['falhas']}</p>
+                """
+            else:
+                kpi_html = "<p class='metric-label' style='color:#666;'>Sem métricas disponíveis</p>"
+
+            # Card limpo, sem exibir código HTML literal
             st.markdown(f"""
             <div class="card">
-                <div class="badge {badge_class}">{emoji} {status.capitalize()}</div>
-                <h3 style="color:#fff; margin-bottom:4px;">{nome_card.upper()}</h3>
-                <p style="color:#aaa; font-size:14px;">🧩 <b>Teste:</b> {teste}</p>
-
+                <h3 style="color:#fff; margin-bottom:0.3em;">{cor_icon} {nome_card}</h3>
+                <p style="color:#aaa; font-size:14px; margin:0;">🧩 <b>Teste:</b> {teste}</p>
+                <p style="color:#aaa; font-size:14px; margin-bottom:10px;">📊 <b>Status:</b> {status.capitalize()}</p>
                 <div class="progress-container">
                     <div class="progress-bar" style="width:{progresso}%; background:{grad};"></div>
                 </div>
                 <p class="metric-label" style="text-align:right;">{progresso:.1f}% concluído</p>
-
                 <p class="metric-label">⏱️ <b>Tempo:</b> {tempo_formatado(tempo_decorrido)}</p>
                 <p class="metric-label">🎯 <b>Última ação:</b> {ultima_acao}</p>
+                {kpi_html}
             </div>
             """, unsafe_allow_html=True)
 
@@ -195,13 +218,10 @@ col4.metric("❌ Com Erros", len(erros))
 st.caption("🕒 Atualização automática a cada 3 segundos — dados provenientes de 'status_bancadas.json'")
 
 # ============ TABELA DE DETALHES ============ #
-import pandas as pd
-
 st.markdown("---")
 st.markdown("## 🧠 Detalhamento Técnico das Bancadas")
 
 dados_tabela = []
-
 for bancada, info in bancadas.items():
     total = int(info.get("acoes_totais", 0))
     execs = int(info.get("acoes_executadas", 0))
@@ -215,7 +235,7 @@ for bancada, info in bancadas.items():
         tipo_exec = "Treinamento IA"
 
     dados_tabela.append({
-        "💻 Bancada": bancada,
+        "💻 Bancada": MAPEAMENTO_BANCADAS.get(bancada, bancada),
         "🧩 Teste": info.get("teste", "-"),
         "⚙️ Status": info.get("status", "-").capitalize(),
         "⏱️ Tempo Decorrido": tempo_formatado(float(info.get("tempo_decorrido_s", 0))),
@@ -226,7 +246,6 @@ for bancada, info in bancadas.items():
 
 df = pd.DataFrame(dados_tabela)
 
-# Cores personalizadas por status
 def highlight_status(val):
     v = str(val).lower()
     if "executando" in v:
@@ -243,7 +262,7 @@ def highlight_status(val):
 
 st.dataframe(
     df.style
-    .applymap(highlight_status, subset=["⚙️ Status"])
+    .map(highlight_status, subset=["⚙️ Status"])
     .set_properties(**{
         "background-color": "#1c1c1c",
         "color": "#e0e0e0",
