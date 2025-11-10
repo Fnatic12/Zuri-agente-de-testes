@@ -61,9 +61,9 @@ def run_out(cmd):
 
 def take_screenshot(local_path, serial=None):
     os.makedirs(os.path.dirname(local_path), exist_ok=True)
-    subprocess.run(adb_cmd(serial) + ["shell", "screencap", "-p", REMOTE_TMP])
-    subprocess.run(adb_cmd(serial) + ["pull", REMOTE_TMP, local_path])
-    subprocess.run(adb_cmd(serial) + ["shell", "rm", REMOTE_TMP])
+    cmd = adb_cmd(serial) + ["exec-out", "screencap", "-p"]
+    with open(local_path, "wb") as f:
+        subprocess.run(cmd, stdout=f)
     return local_path
 
 def get_resolution(serial=None):
@@ -148,21 +148,24 @@ def collect_gestures_loop(dev_path, frames_dir, screen_res, abs_ranges, serial=N
     printc("Toque/arraste na tela do rádio. Para finalizar, pressione CTRL+C.\n", "yellow")
 
     cmd = adb_cmd(serial) + ["shell", "getevent", "-lt", dev_path]
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, universal_newlines=True)
+    proc = subprocess.Popen(
+        adb_cmd(serial) + ["shell", "getevent", "-lt", dev_path],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        bufsize=0,              # 🔥 leitura direta sem buffer
+    )
 
     actions = []
     idx = 1
-
     in_touch = False
     sx_raw = sy_raw = None
     lx_raw = ly_raw = None
     t_start = None
 
     try:
-        for line in proc.stdout:
-            line = line.rstrip()
+        for raw_line in proc.stdout:
+            line = raw_line.decode(errors="ignore").rstrip()
 
-            # Permite parada via arquivo stop.flag
             if os.path.exists(os.path.join(PROJECT_ROOT, "stop.flag")):
                 printc("\n🛑 Finalização solicitada via arquivo stop.flag", "yellow")
                 break
@@ -171,10 +174,9 @@ def collect_gestures_loop(dev_path, frames_dir, screen_res, abs_ranges, serial=N
             if "EV_KEY" in line and "BTN_TOUCH" in line and "DOWN" in line:
                 in_touch = True
                 t_start = time.time()
-                sx_raw = sy_raw = None
-                lx_raw = ly_raw = None
+                sx_raw = sy_raw = lx_raw = ly_raw = None
 
-            # Captura das coordenadas brutas
+            # Captura das coordenadas
             if "EV_ABS" in line:
                 if "ABS_MT_POSITION_X" in line or "ABS_X" in line:
                     val = hex_last_int(line)
@@ -196,101 +198,37 @@ def collect_gestures_loop(dev_path, frames_dir, screen_res, abs_ranges, serial=N
             if "EV_ABS" in line and "ABS_MT_TRACKING_ID" in line and "ffffffff" in line:
                 end_touch = True
 
-            # Quando o toque termina → processar gesto
             if in_touch and end_touch:
                 in_touch = False
                 dur_ms = int((time.time() - t_start) * 1000)
-
-                # Se alguma coordenada estiver faltando, ignorar gesto
                 if None in (sx_raw, sy_raw, lx_raw, ly_raw):
-                    printc("⚠️  Gesto ignorado: coordenadas incompletas", "yellow")
                     continue
 
-                # Conversão segura para pixels
-                try:
-                    sx_px = scale_to_px(
-                        sx_raw,
-                        abs_ranges["ABS_MT_POSITION_X"]["min"] if abs_ranges["ABS_MT_POSITION_X"]["max"] is not None else abs_ranges["ABS_X"]["min"],
-                        abs_ranges["ABS_MT_POSITION_X"]["max"] if abs_ranges["ABS_MT_POSITION_X"]["max"] is not None else abs_ranges["ABS_X"]["max"],
-                        screen_res[0]
-                    )
-                    sy_px = scale_to_px(
-                        sy_raw,
-                        abs_ranges["ABS_MT_POSITION_Y"]["min"] if abs_ranges["ABS_MT_POSITION_Y"]["max"] is not None else abs_ranges["ABS_Y"]["min"],
-                        abs_ranges["ABS_MT_POSITION_Y"]["max"] if abs_ranges["ABS_MT_POSITION_Y"]["max"] is not None else abs_ranges["ABS_Y"]["max"],
-                        screen_res[1]
-                    )
-                    lx_px = scale_to_px(
-                        lx_raw,
-                        abs_ranges["ABS_MT_POSITION_X"]["min"] if abs_ranges["ABS_MT_POSITION_X"]["max"] is not None else abs_ranges["ABS_X"]["min"],
-                        abs_ranges["ABS_MT_POSITION_X"]["max"] if abs_ranges["ABS_MT_POSITION_X"]["max"] is not None else abs_ranges["ABS_X"]["max"],
-                        screen_res[0]
-                    )
-                    ly_px = scale_to_px(
-                        ly_raw,
-                        abs_ranges["ABS_MT_POSITION_Y"]["min"] if abs_ranges["ABS_MT_POSITION_Y"]["max"] is not None else abs_ranges["ABS_Y"]["min"],
-                        abs_ranges["ABS_MT_POSITION_Y"]["max"] if abs_ranges["ABS_MT_POSITION_Y"]["max"] is not None else abs_ranges["ABS_Y"]["max"],
-                        screen_res[1]
-                    )
-                except Exception as e:
-                    printc(f"⚠️ Erro ao converter coordenadas: {e}", "red")
-                    continue
+                sx_px = scale_to_px(sx_raw, abs_ranges["ABS_MT_POSITION_X"]["min"], abs_ranges["ABS_MT_POSITION_X"]["max"], screen_res[0])
+                sy_px = scale_to_px(sy_raw, abs_ranges["ABS_MT_POSITION_Y"]["min"], abs_ranges["ABS_MT_POSITION_Y"]["max"], screen_res[1])
+                lx_px = scale_to_px(lx_raw, abs_ranges["ABS_MT_POSITION_X"]["min"], abs_ranges["ABS_MT_POSITION_X"]["max"], screen_res[0])
+                ly_px = scale_to_px(ly_raw, abs_ranges["ABS_MT_POSITION_Y"]["min"], abs_ranges["ABS_MT_POSITION_Y"]["max"], screen_res[1])
 
-                # --- Cálculo de distância e tempo ---
                 dist = math.hypot(lx_px - sx_px, ly_px - sy_px)
-                dur_s = dur_ms / 1000.0  # duração em segundos
+                dur_s = dur_ms / 1000.0
 
-                # === NOVA LÓGICA COM LONG PRESS ===
                 if dist <= MOV_THRESH_PX and dur_s > 0.8:
-                    # Pressionar e segurar
-                    action = {
-                        "tipo": "long_press",
-                        "x": int(sx_px),
-                        "y": int(sy_px),
-                        "duracao_s": round(dur_s, 2),
-                        "resolucao": {"largura": screen_res[0], "altura": screen_res[1]}
-                    }
-                    label = f"LONG PRESS ({action['x']},{action['y']}) {dur_s:.2f}s"
-
+                    action = {"tipo": "long_press", "x": sx_px, "y": sy_px, "duracao_s": round(dur_s, 2)}
+                    label = f"LONG PRESS ({sx_px},{sy_px}) {dur_s:.2f}s"
                 elif dist <= MOV_THRESH_PX:
-                    # Toque rápido normal
-                    action = {
-                        "tipo": "tap",
-                        "x": int(sx_px),
-                        "y": int(sy_px),
-                        "duracao_s": round(dur_s, 2),
-                        "resolucao": {"largura": screen_res[0], "altura": screen_res[1]}
-                    }
-                    label = f"TAP ({action['x']},{action['y']})"
-
+                    action = {"tipo": "tap", "x": sx_px, "y": sy_px, "duracao_s": round(dur_s, 2)}
+                    label = f"TAP ({sx_px},{sy_px})"
                 else:
-                    # Movimento longo → swipe
-                    action = {
-                        "tipo": "swipe",
-                        "x1": int(sx_px),
-                        "y1": int(sy_px),
-                        "x2": int(lx_px),
-                        "y2": int(ly_px),
-                        "duracao_ms": max(dur_ms, 1),
-                        "resolucao": {"largura": screen_res[0], "altura": screen_res[1]}
-                    }
-                    label = f"SWIPE ({action['x1']},{action['y1']})→({action['x2']},{action['y2']}) {dur_ms}ms"
+                    action = {"tipo": "swipe", "x1": sx_px, "y1": sy_px, "x2": lx_px, "y2": ly_px, "duracao_ms": dur_ms}
+                    label = f"SWIPE ({sx_px},{sy_px})→({lx_px},{ly_px}) {dur_ms}ms"
 
-                # Captura e log da ação
+                # Captura instantânea (sem sleep)
+                time.sleep(2)
                 img_name = f"frame_{idx:02d}.png"
                 take_screenshot(os.path.join(frames_dir, img_name), serial)
 
-                actions.append({
-                    "id": idx,
-                    "timestamp": datetime.now().isoformat(),
-                    "imagem": img_name,
-                    "acao": action
-                })
-
+                actions.append({"id": idx, "timestamp": datetime.now().isoformat(), "imagem": img_name, "acao": action})
                 printc(f"✅ Ação {idx}: {label} | frame: {img_name}", "green")
-                if action["tipo"] == "long_press":
-                    printc(f"🕒 Duração detectada: {action['duracao_s']:.2f}s", "cyan")
-
                 idx += 1
 
     except KeyboardInterrupt:
@@ -303,7 +241,6 @@ def collect_gestures_loop(dev_path, frames_dir, screen_res, abs_ranges, serial=N
             pass
 
     return actions
-
 
 def print_banner():
     banner = pyfiglet.figlet_format("ZURI Coletor")

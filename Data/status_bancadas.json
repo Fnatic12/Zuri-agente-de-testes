@@ -1,17 +1,10 @@
 {
-  "BANCADA_SEM_SERIAL": {
-    "teste": "geral4",
-    "status": "finalizado",
-    "acoes_totais": 55,
-    "acoes_executadas": 55,
-    "progresso": 100.0,
-    "ultima_acao": "tap",
-    "tempo_decorrido_s": 339.55842995643616,
-    "inicio": "2025-11-06T18:07:41.044775",
-    "fim": "2025-11-06T18:13:25.610151"
-  },
-  "2801761952320038": {
+  "2801839552320038": {
     "status": "finalizado",
     "teste": null
+  },
+  "2801761952320038": {
+    "status": "erro_adb",
+    "fim": "2025-11-10T11:04:15.088595"
   }
 }

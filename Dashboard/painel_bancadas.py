@@ -5,9 +5,10 @@ from datetime import datetime
 from streamlit_autorefresh import st_autorefresh
 import tempfile
 import pandas as pd
+import statistics
 
 # ============ CONFIG ============ #
-st.set_page_config(page_title="Painel de Bancadas", page_icon="🧠", layout="wide")
+st.set_page_config(page_title="Painel de Bancadas VWAIT", page_icon="🧠", layout="wide")
 
 STATUS_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "Data", "status_bancadas.json")
 
@@ -17,12 +18,12 @@ st.markdown("""
 body { background-color: #0B0C10; color: #E0E0E0; font-family: 'Inter', sans-serif; }
 
 .main-title {
-    font-size: 2.5rem;
+    font-size: 2.6rem;
     text-align: center;
     background: linear-gradient(90deg, #12c2e9, #c471ed, #f64f59);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-weight: 700;
+    font-weight: 800;
     letter-spacing: -0.5px;
     margin-bottom: 0.3em;
 }
@@ -30,7 +31,7 @@ body { background-color: #0B0C10; color: #E0E0E0; font-family: 'Inter', sans-ser
     text-align: center;
     color: #AAAAAA;
     font-size: 1rem;
-    margin-bottom: 1.8em;
+    margin-bottom: 2em;
 }
 
 .card {
@@ -42,8 +43,8 @@ body { background-color: #0B0C10; color: #E0E0E0; font-family: 'Inter', sans-ser
     transition: all 0.3s ease-in-out;
 }
 .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 25px rgba(0,0,0,0.6);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.55);
 }
 
 .progress-container {
@@ -62,7 +63,7 @@ body { background-color: #0B0C10; color: #E0E0E0; font-family: 'Inter', sans-ser
 """, unsafe_allow_html=True)
 
 # ============ HEADER ============ #
-st.markdown("<h1 class='main-title'>Painel de Execução ZURI</h1>", unsafe_allow_html=True)
+st.markdown("<h1 class='main-title'>Painel de Execução VWAIT</h1>", unsafe_allow_html=True)
 st.markdown("<p class='subtitle'>Monitoramento em tempo real das bancadas Android conectadas</p>", unsafe_allow_html=True)
 
 st_autorefresh(interval=3000, limit=None, key="refresh_status")
@@ -102,7 +103,6 @@ def carregar_status_higienizado():
 
     if cleaned != raw:
         _atomic_overwrite(STATUS_PATH, cleaned)
-
     return cleaned
 
 def extrair_kpis(serial):
@@ -110,7 +110,6 @@ def extrair_kpis(serial):
     logs_dir = os.path.join(os.path.dirname(STATUS_PATH), serial)
     if not os.path.isdir(logs_dir):
         return None
-
     exec_log = os.path.join(logs_dir, "execucao_log.json")
     if not os.path.exists(exec_log):
         return None
@@ -137,70 +136,18 @@ def extrair_kpis(serial):
 
 # ============ MAPA DE NOMES FIXOS ============ #
 MAPEAMENTO_BANCADAS = {
-    "2801761952320038": "Bancada 1",  # principal
+    "2801761952320038": "Bancada 1",
     "2801780E52320038": "Bancada 2",
-    "280178XXXXXX0038": "Bancada 3"
+    "2801839552320038": "Bancada 3"
 }
 
-# ============ LEITURA E EXIBIÇÃO ============ #
+# ============ LEITURA DO STATUS ============ #
 bancadas = carregar_status_higienizado()
-
 if not bancadas:
     st.info("🔌 Nenhuma bancada ativa no momento. Aguardando execução...")
     st.stop()
 
-cols_per_row = 3 if len(bancadas) >= 3 else len(bancadas)
-rows = [list(bancadas.items())[i:i+cols_per_row] for i in range(0, len(bancadas), cols_per_row)]
-
-for row in rows:
-    cols = st.columns(len(row))
-    for col, (serial, dados) in zip(cols, row):
-        with col:
-            status = str(dados.get("status", "ociosa")).lower()
-            teste = dados.get("teste", "-")
-            progresso = float(dados.get("progresso", 0))
-            ultima_acao = dados.get("ultima_acao", "—")
-            tempo_decorrido = float(dados.get("tempo_decorrido_s", 0))
-
-            # Define cor e ícone
-            if status == "executando":
-                cor_icon, grad = "⚙️", "linear-gradient(90deg,#f6d365,#fda085)"
-            elif status == "finalizado":
-                cor_icon, grad = "✅", "linear-gradient(90deg,#56ab2f,#a8e063)"
-            elif status == "ociosa":
-                cor_icon, grad = "💤", "linear-gradient(90deg,#bdc3c7,#2c3e50)"
-            else:
-                cor_icon, grad = "❌", "linear-gradient(90deg,#ff416c,#ff4b2b)"
-
-            nome_card = MAPEAMENTO_BANCADAS.get(serial, serial)
-            kpi = extrair_kpis(serial)
-
-            if kpi:
-                kpi_html = f"""
-                    <p class="metric-label">📈 <b>Precisão:</b> {kpi['precisao']}%</p>
-                    <p class="metric-label">🎯 <b>Similaridade média:</b> {kpi['similaridade']}</p>
-                    <p class="metric-label">✅ <b>Acertos:</b> {kpi['acertos']} | ❌ Falhas: {kpi['falhas']}</p>
-                """
-            else:
-                kpi_html = "<p class='metric-label' style='color:#666;'>Sem métricas disponíveis</p>"
-
-            # Card limpo, sem exibir código HTML literal
-            st.markdown(f"""
-            <div class="card">
-                <h3 style="color:#fff; margin-bottom:0.3em;">{cor_icon} {nome_card}</h3>
-                <p style="color:#aaa; font-size:14px; margin:0;">🧩 <b>Teste:</b> {teste}</p>
-                <p style="color:#aaa; font-size:14px; margin-bottom:10px;">📊 <b>Status:</b> {status.capitalize()}</p>
-                <div class="progress-container">
-                    <div class="progress-bar" style="width:{progresso}%; background:{grad};"></div>
-                </div>
-                <p class="metric-label" style="text-align:right;">{progresso:.1f}% concluído</p>
-                <p class="metric-label">⏱️ <b>Tempo:</b> {tempo_formatado(tempo_decorrido)}</p>
-                <p class="metric-label">🎯 <b>Última ação:</b> {ultima_acao}</p>
-                {kpi_html}
-            </div>
-            """, unsafe_allow_html=True)
-
-# ============ RESUMO ============ #
+# ============ RESUMO GERAL ============ #
 st.markdown("---")
 st.markdown("## 📊 Resumo das Bancadas")
 
@@ -217,7 +164,7 @@ col4.metric("❌ Com Erros", len(erros))
 
 st.caption("🕒 Atualização automática a cada 3 segundos — dados provenientes de 'status_bancadas.json'")
 
-# ============ TABELA DE DETALHES ============ #
+# ============ TABELA DETALHADA ============ #
 st.markdown("---")
 st.markdown("## 🧠 Detalhamento Técnico das Bancadas")
 

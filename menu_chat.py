@@ -863,6 +863,26 @@ def interpretar_comando(comando: str):
             return "📂 Categorias disponíveis:\n- " + "\n- ".join(cats)
         return "📂 Nenhuma categoria encontrada em `Data/`."
 
+    # ✅ RESETAR INTERFACE / REVERTER AÇÕES
+    if any(_norm(p) in texto_norm for p in ["reset", "resetar", "reverter", "restaurar", "desfazer"]):
+        token = _extrair_token_teste(texto)
+        if token:
+            cat, nome = _resolver_teste(token)
+            if cat and nome:
+                bancada = _extrair_bancada(texto)
+                try:
+                    cmd = ["python", RUN_SCRIPT, "--reset", cat, nome]
+                    if bancada:
+                        cmd += ["--serial", bancada]
+                    subprocess.Popen(cmd, cwd=BASE_DIR)
+                    return f"♻️ Reset comportamental iniciado para **{cat}/{nome}** na bancada `{bancada or 'padrão'}`."
+                except Exception as e:
+                    return f"❌ Erro ao iniciar reset: {e}"
+            else:
+                return f"❌ Teste **{token}** não encontrado."
+        else:
+            return "⚠️ Especifique o teste para resetar (ex: `reset geral_1 na bancada 1`)."
+
     # 8) CONTROLE DE EXECUÇÃO (pausar, retomar, parar)
     if any(_norm(p) in texto_norm for p in ["pausar", "pause", "parar teste", "interromper", "stop"]):
         return pausar_execucao()
@@ -948,6 +968,12 @@ def responder_conversacional(comando: str):
         resposta_pre = random.choice(frases_bancadas)
         st.session_state.chat_history.append({"role": "assistant", "content": resposta_pre})
         return interpretar_comando("listar bancadas")
+
+    # ♻️ RESETAR TESTE / REVERTER AÇÕES
+    if any(p in comando_norm for p in ["reset", "resetar", "reverter", "restaurar", "desfazer", "voltar estado inicial"]):
+        resposta_pre = f"{random.choice(frases_iniciais)} ♻️ Restaurando estado inicial do teste..."
+        st.session_state.chat_history.append({"role": "assistant", "content": resposta_pre})
+        return interpretar_comando(comando)
 
     if any(p in comando_norm for p in ["executar", "rodar", "testar", "rodar o teste"]):
         resposta_pre = f"{random.choice(frases_iniciais)} {random.choice(frases_execucao)}"

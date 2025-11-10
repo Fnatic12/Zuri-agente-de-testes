@@ -33,7 +33,7 @@ if platform.system() == "Windows":
 else:
     ADB_PATH = "adb"
 
-PAUSA_ENTRE_ACOES = 5              # segundos entre cada ação
+PAUSA_ENTRE_ACOES = 4              # segundos entre cada ação
 SIMILARIDADE_HOME_OK = 0.85        # limite mínimo para considerar OK
 ADB_TIMEOUT = 25                   # timeout padrão para chamadas ADB (seg)
 
@@ -116,17 +116,30 @@ def print_color(msg, color="white"):
 
 
 def run_subprocess(cmd, timeout=ADB_TIMEOUT, quiet=False):
-    """Wrapper com timeout e supressão opcional de stdout/stderr."""
+    """Wrapper com timeout e verificação de falhas ADB."""
     try:
-        stdout = subprocess.DEVNULL if quiet else None
-        stderr = subprocess.DEVNULL if quiet else None
-        return subprocess.run(cmd, timeout=timeout, stdout=stdout, stderr=stderr)
+        result = subprocess.run(
+            cmd,
+            timeout=timeout,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+
+        if "device '" in result.stderr and "not found" in result.stderr:
+            print_color(f"❌ Dispositivo ADB não encontrado: {cmd}", "red")
+            return None
+
+        if result.returncode != 0 and not quiet:
+            print_color(f"⚠️ Erro ADB: {result.stderr.strip()}", "yellow")
+
+        return result
     except subprocess.TimeoutExpired:
         print_color(f"⏳ Timeout ao executar: {' '.join(cmd)}", "yellow")
     except FileNotFoundError:
         print_color(f"❌ Comando não encontrado: {cmd[0]}", "red")
     except Exception as e:
-        print_color(f"⚠️ Erro ao executar {' '.join(cmd)} -> {e}", "red")
+        print_color(f"⚠️ Erro inesperado: {e}", "red")
     return None
 
 
@@ -151,38 +164,56 @@ def shutil_which(path):
 def executar_tap(x, y, serial=None):
     """Executa um toque na tela via ADB"""
     comando = adb_cmd(serial) + ["shell", "input", "tap", str(x), str(y)]
-    run_subprocess(comando)
-    print_color(f"👉 TAP em ({x},{y})", "green")
+    result = run_subprocess(comando)
+    if result:
+        print_color(f"👉 TAP em ({x},{y})", "green")
+    return result
 
 
 def executar_long_press(x, y, duracao_ms=1000, serial=None):
-    """Simula um toque longo (pressionar e segurar)."""
     comando = adb_cmd(serial) + [
         "shell", "input", "swipe",
         str(x), str(y), str(x), str(y), str(int(duracao_ms))
     ]
-    run_subprocess(comando)
-    print_color(f"🖐️ LONG PRESS em ({x},{y}) por {duracao_ms/1000:.2f}s", "green")
+    result = run_subprocess(comando)
+    if result:
+        print_color(f"🖐️ LONG PRESS em ({x},{y}) por {duracao_ms/1000:.2f}s", "green")
+    return result
 
 
 def executar_swipe(x1, y1, x2, y2, duracao=300, serial=None):
-    """Executa um swipe (arrastar) na tela via ADB"""
     comando = adb_cmd(serial) + [
         "shell", "input", "swipe",
         str(x1), str(y1), str(x2), str(y2), str(duracao)
     ]
-    run_subprocess(comando)
-    print_color(f"👉 SWIPE ({x1},{y1}) → ({x2},{y2}) [{duracao}ms]", "green")
+    result = run_subprocess(comando)
+    if result:
+        print_color(f"👉 SWIPE ({x1},{y1}) → ({x2},{y2}) [{duracao}ms]", "green")
+    return result
 
 
 def capturar_screenshot(pasta, nome, serial=None):
-    """Captura uma screenshot do dispositivo"""
+    """Captura uma screenshot do dispositivo e valida o resultado"""
     os.makedirs(pasta, exist_ok=True)
     caminho_local = os.path.join(pasta, nome)
     caminho_tmp = "/sdcard/tmp_shot.png"
-    run_subprocess(adb_cmd(serial) + ["shell", "screencap", "-p", caminho_tmp])
-    run_subprocess(adb_cmd(serial) + ["pull", caminho_tmp, caminho_local], quiet=True)
+
+    res1 = run_subprocess(adb_cmd(serial) + ["shell", "screencap", "-p", caminho_tmp])
+    if res1 is None:
+        print_color("❌ Falha ao capturar screenshot no dispositivo.", "red")
+        return None
+
+    res2 = run_subprocess(adb_cmd(serial) + ["pull", caminho_tmp, caminho_local], quiet=True)
+    if res2 is None:
+        print_color("⚠️ Falha ao transferir screenshot para o PC.", "yellow")
+        return None
+
     run_subprocess(adb_cmd(serial) + ["shell", "rm", caminho_tmp], quiet=True)
+
+    if not os.path.exists(caminho_local):
+        print_color(f"⚠️ Screenshot não encontrada em {caminho_local}", "yellow")
+        return None
+
     return caminho_local
 
 
@@ -212,7 +243,9 @@ INICIO_EXECUCAO = {}
 
 def _bancada_key_from_serial(serial):
     """Retorna a chave de identificação da bancada."""
-    return serial if serial else "BANCADA_SEM_SERIAL"
+    if not serial or str(serial).strip() == "":
+        return "2801761952320038"  # fallback seguro
+    return str(serial)
 
 def carregar_status():
     if not os.path.exists(STATUS_FILE):
@@ -271,6 +304,66 @@ def finalizar_status_bancada(bancada_key, resultado="finalizado"):
         status[bancada_key] = {"status": resultado, "fim": datetime.now().isoformat()}
     salvar_status(status)
 
+def reverse_tester_actions(categoria, nome_teste, serial=None):
+    """
+    Executa o caminho inverso das ações registradas em acoes.json,
+    simulando uma execução normal (com pausas e logs).
+    """
+    json_path = os.path.join(DATA_ROOT, categoria, nome_teste, "json", "acoes.json")
+    if not os.path.exists(json_path):
+        print_color(f"⚠️ Nenhum JSON de ações encontrado para {categoria}/{nome_teste}.", "yellow")
+        return
+
+    with open(json_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    actions = data.get("acoes", [])
+    if not actions:
+        print_color("⚠️ Nenhuma ação registrada para reverter.", "yellow")
+        return
+
+    print_color(f"\n♻️ Iniciando reset comportamental ({len(actions)} ações)...", "cyan")
+
+    total = len(actions)
+    for i, act in enumerate(reversed(actions)):
+        a = act.get("acao", {})
+        tipo = a.get("tipo")
+
+        inicio = time.time()
+        print_color(f"↩️ Reset Ação {i+1}/{total} ({tipo})", "white")
+
+        if tipo == "tap":
+            run_subprocess(adb_cmd(serial) + ["shell", "input", "tap", str(a["x"]), str(a["y"])])
+            print_color(f"↩️ TAP reverso em ({a['x']},{a['y']})", "green")
+
+        elif tipo == "swipe":
+            run_subprocess(adb_cmd(serial) + [
+                "shell", "input", "swipe",
+                str(a["x2"]), str(a["y2"]),
+                str(a["x1"]), str(a["y1"]),
+                str(a.get("duracao_ms", 300))
+            ])
+            print_color(f"↩️ SWIPE reverso ({a['x2']},{a['y2']})→({a['x1']},{a['y1']})", "green")
+
+        elif tipo == "long_press":
+            duracao = int(a.get("duracao_ms", 1000))
+            run_subprocess(adb_cmd(serial) + [
+                "shell", "input", "swipe",
+                str(a["x"]), str(a["y"]), str(a["x"]), str(a["y"]), str(duracao)
+            ])
+            print_color(f"↩️ LONG PRESS revertido em ({a['x']},{a['y']}) por {duracao/1000:.1f}s", "green")
+
+        fim = time.time()
+        print_color(f"⏱️ Duração ação: {fim - inicio:.2f}s", "cyan")
+
+        # 🔹 Captura opcional (pode comentar se quiser mais velocidade)
+        # nome = f"reset_{i+1:02d}.png"
+        # pasta_result = os.path.join(DATA_ROOT, categoria, nome_teste, "resultados_reset")
+        # capturar_screenshot(pasta_result, nome, serial)
+
+        # 🔹 Pausa entre ações (igual ao teste normal)
+        time.sleep(PAUSA_ENTRE_ACOES)
+
+    print_color("✅ Reset comportamental concluído. Estado restaurado.", "green")
 
 # =========================
 # MAIN
@@ -287,6 +380,40 @@ def main():
         categoria = input("📂 Categoria do teste: ").strip().lower().replace(" ", "_")
         nome_teste = input("📝 Nome do teste: ").strip().lower().replace(" ", "_")
 
+    # 🔹 Detecta modo reset
+    if len(sys.argv) >= 2 and sys.argv[1].lower() == "reset":
+        if len(sys.argv) < 3:
+            print_color("⚠️ Informe o nome do teste para resetar. Exemplo: python run_noia.py reset geral1", "yellow")
+            return
+
+        nome_teste = sys.argv[2].strip().lower().replace(" ", "_")
+
+        # Detecta serial, se passado
+        serial = None
+        if "--serial" in sys.argv:
+            idx = sys.argv.index("--serial")
+            if idx + 1 < len(sys.argv):
+                serial = sys.argv[idx + 1]
+
+        if not serial:
+            # Detecta automaticamente o primeiro dispositivo ADB conectado
+            try:
+                devices = subprocess.check_output([ADB_PATH, "devices"], text=True)
+                lines = devices.strip().split("\n")[1:]
+                serials = [l.split("\t")[0] for l in lines if "\tdevice" in l]
+                serial = serials[0] if serials else None
+            except Exception:
+                serial = None
+
+        if not serial:
+            print_color("❌ Nenhum dispositivo ADB conectado. Conecte o rádio e tente novamente.", "red")
+            return
+
+        print_color(f"\n♻️ Iniciando reset comportamental do teste '{nome_teste}' (serial {serial})...\n", "cyan")
+        reverse_tester_actions("geral", nome_teste, serial)
+        print_color("✅ Reset concluído com sucesso!\n", "green")
+        return
+
     # 🔹 Verifica se foi passado --serial
     serial = None
     if "--serial" in sys.argv:
@@ -294,11 +421,26 @@ def main():
         if idx + 1 < len(sys.argv):
             serial = sys.argv[idx + 1]
 
-    # 🔹 Identificador único da bancada (por serial quando disponível)
-    # Isso permite rodar paralelamente várias instâncias sem sobrescrever status
+    # 🔹 Garante que sempre exista uma bancada_key
+    if not serial or serial.strip() == "":
+        print_color("⚠️ Nenhum serial ADB detectado — atribuindo Bancada 1 (2801761952320038)", "yellow")
+        serial = "2801761952320038"
 
+    # ✅ Define identificador único da bancada (corrige o NameError)
     bancada_key = _bancada_key_from_serial(serial)
 
+    # 🔍 Verifica se o dispositivo está conectado
+    print_color("🔍 Verificando dispositivos ADB conectados...", "cyan")
+    try:
+        devices = subprocess.check_output([ADB_PATH, "devices"], text=True)
+        if serial not in devices:
+            print_color(f"❌ Dispositivo {serial} não encontrado. Conecte o rádio e tente novamente.", "red")
+            finalizar_status_bancada(serial, "erro_adb")
+            return
+    except Exception as e:
+        print_color(f"⚠️ Falha ao verificar dispositivos ADB: {e}", "red")
+        finalizar_status_bancada(serial, "erro_adb")
+        return
 
     teste_dir = os.path.join(DATA_ROOT, categoria, nome_teste)
     dataset_path = os.path.join(teste_dir, "dataset.csv")
@@ -359,7 +501,12 @@ def main():
         # ===== Executa ação =====
         try:
             if tipo == "tap":
-                executar_tap(int(row["x"]), int(row["y"]), serial)
+                res = executar_tap(int(row["x"]), int(row["y"]), serial)
+                if res is None:
+                    print_color("❌ Falha na execução do TAP — interrompendo teste.", "red")
+                    finalizar_status_bancada(bancada_key, "erro_adb")
+                    return
+
 
             elif tipo in ["swipe", "swipe_inicio"]:
                 # Busca próximo registro com término do swipe
@@ -390,6 +537,7 @@ def main():
             print_color(f"⚠️ Erro ao executar ação {i+1}: {e}", "red")
 
         # ===== Screenshot e Similaridade =====
+        time.sleep(1)
         screenshot_nome = f"resultado_{i+1:02d}.png"
         screenshot_path = capturar_screenshot(resultados_dir, screenshot_nome, serial)
 
@@ -439,6 +587,13 @@ def main():
     except Exception as e:
         print_color(f"❌ Falha ao salvar log final: {e}", "red")
 
+    # === RESET COMPORTAMENTAL ===
+    try:
+        print_color("\n⏳ Restaurando estado inicial (reset comportamental)...", "yellow")
+        reverse_tester_actions(categoria, nome_teste, serial)
+        print_color("✅ Ambiente restaurado com sucesso.\n", "green")
+    except Exception as e:
+        print_color(f"⚠️ Falha ao reverter ações: {e}", "red")
 
 if __name__ == "__main__":
     main()

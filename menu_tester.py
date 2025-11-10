@@ -3,6 +3,13 @@ import subprocess
 import os
 import platform
 import shutil
+import platform
+
+# === Caminho do ADB ===
+if platform.system() == "Windows":
+    ADB_PATH = r"C:\Users\Automation01\platform-tools\adb.exe"
+else:
+    ADB_PATH = "adb"
 
 def titulo_painel(titulo: str, subtitulo: str = ""):
     st.markdown(
@@ -48,7 +55,7 @@ if "proc_coleta" not in st.session_state:
     st.session_state.proc_coleta = None
 
 st.set_page_config(page_title="Menu Tester", page_icon="🚗", layout="centered")
-titulo_painel("🧠 Painel de Automação de Testes", "Plataforma <b>para</b> coletar e processamento de testes")
+titulo_painel("🧠 Painel de Automação de Testes", "Plataforma <b>para</b> Coletar e Processar Testes")
 st.divider() 
 
 # === COLETA ===
@@ -145,8 +152,9 @@ st.subheader("🚀 Executar Testes")
 categoria_exec = st.text_input("Categoria do Teste", key="cat_exec")
 nome_teste_exec = st.text_input("Nome do Teste (deixe vazio para rodar todos)", key="nome_exec")
 
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
 
+# ▶️ EXECUTAR TESTE ÚNICO
 with col1:
     if st.button("▶️ Executar Teste Único"):
         if categoria_exec and nome_teste_exec:
@@ -176,8 +184,36 @@ with col1:
         else:
             st.error("⚠️ Informe categoria e nome do teste.")
 
+# ♻️ RESETAR INTERFACE
 with col2:
-    # Botão de pausa/retomada
+    if st.button("♻️ Resetar Interface"):
+        if nome_teste_exec:
+            try:
+                result = subprocess.run(
+                    [ADB_PATH, "devices"], capture_output=True, text=True, timeout=5
+                )
+                lines = result.stdout.strip().split("\n")[1:]
+                dispositivos = [l.split("\t")[0] for l in lines if "\tdevice" in l]
+                if not dispositivos:
+                    st.error("❌ Nenhum dispositivo ADB conectado.")
+                    st.stop()
+                serial = dispositivos[0]
+            except Exception as e:
+                st.error(f"⚠️ Falha ao listar dispositivos ADB: {e}")
+                st.stop()
+
+            subprocess.Popen(
+                ["python", SCRIPTS["Executar Teste"], "reset", nome_teste_exec, "--serial", serial],
+                cwd=BASE_DIR
+            )
+            st.success(f"♻️ Reset iniciado para {nome_teste_exec} (Bancada {serial})")
+        else:
+            st.error("⚠️ Informe o nome do teste para resetar.")
+
+
+
+# ⏸️ PAUSAR / RETOMAR TESTE
+with col3:
     if "teste_em_execucao" in st.session_state and st.session_state["teste_em_execucao"]:
         if not st.session_state.get("teste_pausado", False):
             if st.button("⏸️ Pausar Teste"):
@@ -195,7 +231,8 @@ with col2:
     else:
         st.info("⚙️ Nenhum teste em execução.")
 
-with col3:
+# 📂 EXECUTAR TODOS
+with col4:
     if st.button("📂 Executar Todos da Categoria"):
         if categoria_exec:
             categoria_path = os.path.join(BASE_DIR, "Data", categoria_exec)

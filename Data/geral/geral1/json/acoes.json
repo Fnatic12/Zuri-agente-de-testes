@@ -4,77 +4,215 @@
     "acoes": [
         {
             "id": 1,
-            "timestamp": "2025-11-05T16:56:28.640905",
+            "timestamp": "2025-11-10T09:55:11.074822",
             "imagem": "frame_01.png",
             "acao": {
                 "tipo": "tap",
-                "x": 1079,
-                "y": 1039,
-                "duracao_s": 0.05,
-                "resolucao": {
-                    "largura": 1920,
-                    "altura": 1080
-                }
+                "x": 956,
+                "y": 985,
+                "duracao_s": 0.17
             }
         },
         {
             "id": 2,
-            "timestamp": "2025-11-05T16:56:32.139602",
+            "timestamp": "2025-11-10T09:55:16.153842",
             "imagem": "frame_02.png",
             "acao": {
                 "tipo": "tap",
-                "x": 550,
-                "y": 635,
-                "duracao_s": 0.06,
-                "resolucao": {
-                    "largura": 1920,
-                    "altura": 1080
-                }
+                "x": 1073,
+                "y": 1019,
+                "duracao_s": 0.12
             }
         },
         {
             "id": 3,
-            "timestamp": "2025-11-05T16:56:34.647090",
+            "timestamp": "2025-11-10T09:55:21.198516",
             "imagem": "frame_03.png",
             "acao": {
                 "tipo": "tap",
-                "x": 292,
-                "y": 350,
-                "duracao_s": 0.04,
-                "resolucao": {
-                    "largura": 1920,
-                    "altura": 1080
-                }
+                "x": 1081,
+                "y": 410,
+                "duracao_s": 0.06
             }
         },
         {
             "id": 4,
-            "timestamp": "2025-11-05T16:56:35.457434",
+            "timestamp": "2025-11-10T09:55:25.914742",
             "imagem": "frame_04.png",
             "acao": {
                 "tipo": "tap",
-                "x": 282,
-                "y": 448,
-                "duracao_s": 0.08,
-                "resolucao": {
-                    "largura": 1920,
-                    "altura": 1080
-                }
+                "x": 174,
+                "y": 390,
+                "duracao_s": 0.09
             }
         },
         {
             "id": 5,
-            "timestamp": "2025-11-05T16:56:37.440004",
+            "timestamp": "2025-11-10T09:55:31.355751",
             "imagem": "frame_05.png",
             "acao": {
+                "tipo": "swipe",
+                "x1": 1395,
+                "y1": 579,
+                "x2": 1763,
+                "y2": 246,
+                "duracao_ms": 297
+            }
+        },
+        {
+            "id": 6,
+            "timestamp": "2025-11-10T09:55:36.260386",
+            "imagem": "frame_06.png",
+            "acao": {
+                "tipo": "swipe",
+                "x1": 1563,
+                "y1": 418,
+                "x2": 1155,
+                "y2": 927,
+                "duracao_ms": 424
+            }
+        },
+        {
+            "id": 7,
+            "timestamp": "2025-11-10T09:55:40.835091",
+            "imagem": "frame_07.png",
+            "acao": {
                 "tipo": "tap",
-                "x": 298,
-                "y": 526,
-                "duracao_s": 0.07,
-                "resolucao": {
-                    "largura": 1920,
-                    "altura": 1080
-                }
+                "x": 834,
+                "y": 545,
+                "duracao_s": 0.11
+            }
+        },
+        {
+            "id": 8,
+            "timestamp": "2025-11-10T09:55:44.870045",
+            "imagem": "frame_08.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 258,
+                "y": 508,
+                "duracao_s": 0.06
+            }
+        },
+        {
+            "id": 9,
+            "timestamp": "2025-11-10T09:55:48.990122",
+            "imagem": "frame_09.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 1291,
+                "y": 438,
+                "duracao_s": 0.05
+            }
+        },
+        {
+            "id": 10,
+            "timestamp": "2025-11-10T09:55:52.522536",
+            "imagem": "frame_10.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 1555,
+                "y": 404,
+                "duracao_s": 0.07
+            }
+        },
+        {
+            "id": 11,
+            "timestamp": "2025-11-10T09:55:56.206940",
+            "imagem": "frame_11.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 1395,
+                "y": 659,
+                "duracao_s": 0.09
+            }
+        },
+        {
+            "id": 12,
+            "timestamp": "2025-11-10T09:56:02.693273",
+            "imagem": "frame_12.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 310,
+                "y": 587,
+                "duracao_s": 0.07
+            }
+        },
+        {
+            "id": 13,
+            "timestamp": "2025-11-10T09:56:06.106859",
+            "imagem": "frame_13.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 868,
+                "y": 589,
+                "duracao_s": 0.07
+            }
+        },
+        {
+            "id": 14,
+            "timestamp": "2025-11-10T09:56:10.054646",
+            "imagem": "frame_14.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 838,
+                "y": 510,
+                "duracao_s": 0.07
+            }
+        },
+        {
+            "id": 15,
+            "timestamp": "2025-11-10T09:56:13.858216",
+            "imagem": "frame_15.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 872,
+                "y": 332,
+                "duracao_s": 0.1
+            }
+        },
+        {
+            "id": 16,
+            "timestamp": "2025-11-10T09:56:16.336361",
+            "imagem": "frame_16.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 880,
+                "y": 380,
+                "duracao_s": 0.0
+            }
+        },
+        {
+            "id": 17,
+            "timestamp": "2025-11-10T09:56:22.148655",
+            "imagem": "frame_17.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 278,
+                "y": 723,
+                "duracao_s": 0.07
+            }
+        },
+        {
+            "id": 18,
+            "timestamp": "2025-11-10T09:56:31.948934",
+            "imagem": "frame_18.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 108,
+                "y": 162,
+                "duracao_s": 0.08
+            }
+        },
+        {
+            "id": 19,
+            "timestamp": "2025-11-10T09:56:35.710674",
+            "imagem": "frame_19.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 950,
+                "y": 1031,
+                "duracao_s": 0.15
             }
         }
     ],

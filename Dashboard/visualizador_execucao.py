@@ -211,8 +211,7 @@ def exibir_regressoes(execucao):
     else:
         st.success("Nenhuma falha registrada")
 
-# === INTERFACE ===
-titulo_painel("📊 Dashboard de Execução de Testes - GEI", "Veja <b>todos</b> os resultados dos testes")
+titulo_painel("📋 Dashboard de Execução de Testes - VWAIT", "Veja <b>todos</b> os resultados dos testes")
 
 logs = carregar_logs()
 if not logs:
