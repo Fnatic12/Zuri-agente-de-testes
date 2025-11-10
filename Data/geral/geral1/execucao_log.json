@@ -1,7 +1,7 @@
 [
     {
         "id": 1,
-        "timestamp": "2025-11-10T10:32:31.062279",
+        "timestamp": "2025-11-10T12:14:36.465914",
         "acao": "tap",
         "coordenadas": {
             "x": 956,
@@ -15,13 +15,13 @@
         },
         "screenshot": "resultados\\resultado_01.png",
         "frame_esperado": "frames\\frame_01.png",
-        "similaridade": 0.943731540629037,
+        "similaridade": 0.9427825835478649,
         "status": "✅ OK",
-        "duracao": 2.28
+        "duracao": 2.31
     },
     {
         "id": 2,
-        "timestamp": "2025-11-10T10:32:38.281124",
+        "timestamp": "2025-11-10T12:14:42.738464",
         "acao": "tap",
         "coordenadas": {
             "x": 1073,
@@ -35,13 +35,13 @@
         },
         "screenshot": "resultados\\resultado_02.png",
         "frame_esperado": "frames\\frame_02.png",
-        "similaridade": 0.995118546148242,
+        "similaridade": 0.9952540632014434,
         "status": "✅ OK",
-        "duracao": 2.2
+        "duracao": 2.26
     },
     {
         "id": 3,
-        "timestamp": "2025-11-10T10:32:45.779776",
+        "timestamp": "2025-11-10T12:14:49.438389",
         "acao": "tap",
         "coordenadas": {
             "x": 1081,
@@ -55,13 +55,13 @@
         },
         "screenshot": "resultados\\resultado_03.png",
         "frame_esperado": "frames\\frame_03.png",
-        "similaridade": 0.9987517657504693,
+        "similaridade": 0.9978208462390318,
         "status": "✅ OK",
-        "duracao": 2.48
+        "duracao": 2.68
     },
     {
         "id": 4,
-        "timestamp": "2025-11-10T10:32:53.066855",
+        "timestamp": "2025-11-10T12:14:55.610977",
         "acao": "tap",
         "coordenadas": {
             "x": 174,
@@ -75,13 +75,13 @@
         },
         "screenshot": "resultados\\resultado_04.png",
         "frame_esperado": "frames\\frame_04.png",
-        "similaridade": 0.996913149371418,
+        "similaridade": 0.9952315783481599,
         "status": "✅ OK",
-        "duracao": 2.27
+        "duracao": 2.16
     },
     {
         "id": 5,
-        "timestamp": "2025-11-10T10:33:00.658526",
+        "timestamp": "2025-11-10T12:15:02.058452",
         "acao": "swipe_inicio",
         "coordenadas": {
             "x": 1395,
@@ -95,13 +95,13 @@
         },
         "screenshot": "resultados\\resultado_05.png",
         "frame_esperado": "frames\\frame_05.png",
-        "similaridade": 0.9977457344866927,
+        "similaridade": 0.9947225376062481,
         "status": "✅ OK",
-        "duracao": 2.57
+        "duracao": 2.43
     },
     {
         "id": 6,
-        "timestamp": "2025-11-10T10:33:07.838051",
+        "timestamp": "2025-11-10T12:15:08.199590",
         "acao": "swipe_fim",
         "coordenadas": {
             "x": 1763,
@@ -115,13 +115,13 @@
         },
         "screenshot": "resultados\\resultado_06.png",
         "frame_esperado": "frames\\frame_06.png",
-        "similaridade": 0.991731209042897,
+        "similaridade": 0.9889522874975439,
         "status": "✅ OK",
-        "duracao": 2.16
+        "duracao": 2.13
     },
     {
         "id": 7,
-        "timestamp": "2025-11-10T10:33:15.617921",
+        "timestamp": "2025-11-10T12:15:14.688726",
         "acao": "swipe_inicio",
         "coordenadas": {
             "x": 1563,
@@ -135,13 +135,13 @@
         },
         "screenshot": "resultados\\resultado_07.png",
         "frame_esperado": "frames\\frame_07.png",
-        "similaridade": 0.9894937239813193,
+        "similaridade": 0.9928235709011958,
         "status": "✅ OK",
-        "duracao": 2.76
+        "duracao": 2.48
     },
     {
         "id": 8,
-        "timestamp": "2025-11-10T10:33:22.762161",
+        "timestamp": "2025-11-10T12:15:20.857116",
         "acao": "swipe_fim",
         "coordenadas": {
             "x": 1155,
@@ -155,13 +155,13 @@
         },
         "screenshot": "resultados\\resultado_08.png",
         "frame_esperado": "frames\\frame_08.png",
-        "similaridade": 0.9520668849779003,
+        "similaridade": 0.9538028781949919,
         "status": "✅ OK",
-        "duracao": 2.13
+        "duracao": 2.15
     },
     {
         "id": 9,
-        "timestamp": "2025-11-10T10:33:30.041926",
+        "timestamp": "2025-11-10T12:15:27.164473",
         "acao": "tap",
         "coordenadas": {
             "x": 834,
@@ -175,13 +175,13 @@
         },
         "screenshot": "resultados\\resultado_09.png",
         "frame_esperado": "frames\\frame_09.png",
-        "similaridade": 0.9570623681529459,
+        "similaridade": 0.9596989269068081,
         "status": "✅ OK",
-        "duracao": 2.26
+        "duracao": 2.29
     },
     {
         "id": 10,
-        "timestamp": "2025-11-10T10:33:37.287621",
+        "timestamp": "2025-11-10T12:15:33.442941",
         "acao": "tap",
         "coordenadas": {
             "x": 258,
@@ -195,13 +195,13 @@
         },
         "screenshot": "resultados\\resultado_10.png",
         "frame_esperado": "frames\\frame_10.png",
-        "similaridade": 0.985172726677921,
+        "similaridade": 0.9854717299662108,
         "status": "✅ OK",
-        "duracao": 2.22
+        "duracao": 2.27
     },
     {
         "id": 11,
-        "timestamp": "2025-11-10T10:33:44.503079",
+        "timestamp": "2025-11-10T12:15:39.722959",
         "acao": "tap",
         "coordenadas": {
             "x": 1291,
@@ -215,13 +215,13 @@
         },
         "screenshot": "resultados\\resultado_11.png",
         "frame_esperado": "frames\\frame_11.png",
-        "similaridade": 0.9812976712830864,
+        "similaridade": 0.9779246463195229,
         "status": "✅ OK",
-        "duracao": 2.2
+        "duracao": 2.27
     },
     {
         "id": 12,
-        "timestamp": "2025-11-10T10:33:51.715486",
+        "timestamp": "2025-11-10T12:15:46.023404",
         "acao": "tap",
         "coordenadas": {
             "x": 1555,
@@ -235,13 +235,13 @@
         },
         "screenshot": "resultados\\resultado_12.png",
         "frame_esperado": "frames\\frame_12.png",
-        "similaridade": 0.9530404841249106,
+        "similaridade": 0.9500240465022215,
         "status": "✅ OK",
-        "duracao": 2.2
+        "duracao": 2.29
     },
     {
         "id": 13,
-        "timestamp": "2025-11-10T10:33:59.611237",
+        "timestamp": "2025-11-10T12:15:52.303700",
         "acao": "tap",
         "coordenadas": {
             "x": 1395,
@@ -255,13 +255,13 @@
         },
         "screenshot": "resultados\\resultado_13.png",
         "frame_esperado": "frames\\frame_13.png",
-        "similaridade": 0.9539820693591453,
+        "similaridade": 0.9509489035815618,
         "status": "✅ OK",
-        "duracao": 2.88
+        "duracao": 2.27
     },
     {
         "id": 14,
-        "timestamp": "2025-11-10T10:34:06.833620",
+        "timestamp": "2025-11-10T12:15:58.600761",
         "acao": "tap",
         "coordenadas": {
             "x": 310,
@@ -275,13 +275,13 @@
         },
         "screenshot": "resultados\\resultado_14.png",
         "frame_esperado": "frames\\frame_14.png",
-        "similaridade": 0.9648400274064263,
+        "similaridade": 0.9606961160972843,
         "status": "✅ OK",
-        "duracao": 2.2
+        "duracao": 2.28
     },
     {
         "id": 15,
-        "timestamp": "2025-11-10T10:34:14.038843",
+        "timestamp": "2025-11-10T12:16:04.906003",
         "acao": "tap",
         "coordenadas": {
             "x": 868,
@@ -295,13 +295,13 @@
         },
         "screenshot": "resultados\\resultado_15.png",
         "frame_esperado": "frames\\frame_15.png",
-        "similaridade": 0.9734982310130371,
+        "similaridade": 0.9706892841552691,
         "status": "✅ OK",
-        "duracao": 2.19
+        "duracao": 2.29
     },
     {
         "id": 16,
-        "timestamp": "2025-11-10T10:34:21.237423",
+        "timestamp": "2025-11-10T12:16:11.270405",
         "acao": "tap",
         "coordenadas": {
             "x": 838,
@@ -315,13 +315,13 @@
         },
         "screenshot": "resultados\\resultado_16.png",
         "frame_esperado": "frames\\frame_16.png",
-        "similaridade": 0.9768834328046463,
+        "similaridade": 0.9743411577978063,
         "status": "✅ OK",
-        "duracao": 2.18
+        "duracao": 2.35
     },
     {
         "id": 17,
-        "timestamp": "2025-11-10T10:34:28.431049",
+        "timestamp": "2025-11-10T12:16:17.554146",
         "acao": "tap",
         "coordenadas": {
             "x": 872,
@@ -335,13 +335,13 @@
         },
         "screenshot": "resultados\\resultado_17.png",
         "frame_esperado": "frames\\frame_17.png",
-        "similaridade": 0.7772540010105442,
+        "similaridade": 0.7754686782225713,
         "status": "❌ Divergente",
-        "duracao": 2.17
+        "duracao": 2.27
     },
     {
         "id": 18,
-        "timestamp": "2025-11-10T10:34:35.645264",
+        "timestamp": "2025-11-10T12:16:23.785227",
         "acao": "tap",
         "coordenadas": {
             "x": 880,
@@ -355,13 +355,13 @@
         },
         "screenshot": "resultados\\resultado_18.png",
         "frame_esperado": "frames\\frame_18.png",
-        "similaridade": 0.7991612948699918,
+        "similaridade": 0.7986633627270302,
         "status": "❌ Divergente",
-        "duracao": 2.2
+        "duracao": 2.21
     },
     {
         "id": 19,
-        "timestamp": "2025-11-10T10:34:42.855834",
+        "timestamp": "2025-11-10T12:16:29.953422",
         "acao": "tap",
         "coordenadas": {
             "x": 278,
@@ -375,13 +375,13 @@
         },
         "screenshot": "resultados\\resultado_19.png",
         "frame_esperado": "frames\\frame_19.png",
-        "similaridade": 0.6984989199531941,
+        "similaridade": 0.6985838167638407,
         "status": "❌ Divergente",
         "duracao": 2.15
     },
     {
         "id": 20,
-        "timestamp": "2025-11-10T10:34:49.536913",
+        "timestamp": "2025-11-10T12:16:35.917814",
         "acao": "tap",
         "coordenadas": {
             "x": 108,
@@ -397,11 +397,11 @@
         "frame_esperado": "frames\\frame_20.png",
         "similaridade": 0.0,
         "status": "❌ Divergente",
-        "duracao": 1.67
+        "duracao": 1.95
     },
     {
         "id": 21,
-        "timestamp": "2025-11-10T10:34:56.270377",
+        "timestamp": "2025-11-10T12:16:41.809676",
         "acao": "tap",
         "coordenadas": {
             "x": 950,
@@ -417,6 +417,6 @@
         "frame_esperado": "frames\\frame_21.png",
         "similaridade": 0.0,
         "status": "❌ Divergente",
-        "duracao": 1.72
+        "duracao": 1.88
     }
 ]

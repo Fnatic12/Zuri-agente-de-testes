@@ -19,6 +19,48 @@ from colorama import Fore, Style
 colorama.init(autoreset=True)
 import re
 
+import speech_recognition as sr
+
+def configurar_reconhecedor() -> sr.Recognizer:
+    r = sr.Recognizer()
+    # torna o nível de corte adaptativo ao ruído
+    r.dynamic_energy_threshold = True
+    # base razoável; será recalibrado pelo adjust_for_ambient_noise
+    r.energy_threshold = 250
+    # tolerância para pequenas pausas no meio da frase
+    r.pause_threshold = 0.9
+    # considera silêncio curtinho antes de encerrar
+    r.non_speaking_duration = 0.3
+    return r
+
+def normalizar_pos_fala(txt: str) -> str:
+    # correções comuns da fala -> texto
+    m = {
+        "executa": "executar",
+        "rode": "rodar",
+        "voltar ": "resetar ",
+        "volta ": "resetar ",
+        "reset ": "resetar ",
+        "geral um": "geral 1",
+        "geral dois": "geral 2",
+        "geral tres": "geral 3",
+        "bancada um": "bancada 1",
+        "bancada dois": "bancada 2",
+        "bancada três": "bancada 3",
+        "na bancada um": "na bancada 1",
+        "na bancada dois": "na bancada 2",
+        "na bancada três": "na bancada 3",
+        "rodar todos os teste": "rodar todos os testes",
+        "listar a bancada": "listar bancadas",
+        "listar bancada": "listar bancadas",
+    }
+    s = txt.strip().lower()
+    for k, v in m.items():
+        s = s.replace(k, v)
+    # se você já tem _replace_number_words/_norm, aplique aqui também se quiser:
+    # s = _replace_number_words(s)
+    return s
+
 def titulo_painel(titulo: str, subtitulo: str = ""):
     st.markdown(
         f"""
@@ -910,8 +952,16 @@ def responder_conversacional(comando: str):
         "listar bancada": "listar bancadas",
         "listra bancadas": "listar bancadas",
         "ver bancadas": "listar bancadas",
-        "mostra bancadas": "listar bancadas"
+        "mostra bancadas": "listar bancadas",
+        "voltar": "resetar",
+        "voltar teste": "resetar",
+        "voltar o teste": "resetar",
+        "voltar geral": "resetar geral",
+        "volta geral": "resetar geral",
+        "reset": "resetar",
+        "refazer estado": "resetar",
     }
+
     for errado, certo in substituicoes_voz.items():
         if errado in comando.lower():
             comando = comando.lower().replace(errado, certo)
@@ -1059,41 +1109,63 @@ with col_input:
     user_input = st.chat_input("Digite seu comando...")
 
 with col_button:
-    # 🎙️ BOTÃO DE FALA
     if st.button("🎙️ Falar comando"):
-        recognizer = sr.Recognizer()
-        mic = sr.Microphone()
+        recognizer = configurar_reconhecedor()
+
+        # selecione o primeiro mic disponível (ou mantenha padrão)
+        try:
+            mic = sr.Microphone()  # você pode passar device_index se quiser fixar
+        except Exception as e:
+            st.session_state.chat_history.append({
+                "role": "assistant",
+                "content": f"❌ Microfone indisponível: {e}"
+            })
+            st.rerun()
 
         with mic as source:
-            st.toast("🎧 Ouvindo... fale seu comando claramente.", icon="🎙️")
-            recognizer.adjust_for_ambient_noise(source)
-            audio = recognizer.listen(source, timeout=5)
+            st.toast("🎧 Ouvindo... fale seu comando completo.", icon="🎙️")
+            # calibração de ruído um pouco mais longa evita corte do início
+            recognizer.adjust_for_ambient_noise(source, duration=0.8)
+
+            # sem 'timeout', usamos só 'phrase_time_limit' para não cortar no meio
+            audio = recognizer.listen(source, phrase_time_limit=12)
 
         try:
             st.toast("🧠 Reconhecendo fala...", icon="🧠")
+            # idioma fixo pt-BR
             command_text = recognizer.recognize_google(audio, language="pt-BR")
+            command_text = normalizar_pos_fala(command_text)
 
-            # 🧑 Adiciona mensagem do usuário
+            # 🧑 Usuário
             st.session_state.chat_history.append({"role": "user", "content": command_text})
 
-            # 🤖 Mostra feedback de processamento
+            # ⏳ Feedback
             placeholder = st.empty()
             with placeholder.container():
                 with st.chat_message("assistant", avatar="🤖"):
                     st.markdown("💭 **Processando comando...**")
-            time.sleep(1.2)  # Delay suave para simular processamento
 
-            # 🔍 Interpreta comando conforme o modo
+            # Interpretação
             if MODO_CONVERSA:
                 resposta = responder_conversacional(command_text)
             else:
                 resposta = interpretar_comando(command_text)
 
-            # 💬 Atualiza o chat com a resposta em texto
             placeholder.empty()
             st.session_state.chat_history.append({"role": "assistant", "content": resposta})
+            st.rerun()
 
-            # ✅ Apenas texto — voz desativada
+        except sr.UnknownValueError:
+            st.session_state.chat_history.append({
+                "role": "assistant",
+                "content": "❌ Não consegui entender claramente. Pode repetir mais pausado?"
+            })
+            st.rerun()
+        except sr.RequestError as e:
+            st.session_state.chat_history.append({
+                "role": "assistant",
+                "content": f"⚠️ Falha no serviço de voz: {e}"
+            })
             st.rerun()
 
         except sr.UnknownValueError:

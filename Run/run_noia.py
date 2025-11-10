@@ -1,4 +1,3 @@
-# Run/run_noia.py
 import os
 import platform
 import subprocess
