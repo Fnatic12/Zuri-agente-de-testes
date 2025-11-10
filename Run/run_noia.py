@@ -2,6 +2,7 @@ import os
 import platform
 import subprocess
 import pandas as pd
+import threading
 import time
 import sys
 import json
@@ -246,21 +247,42 @@ def _bancada_key_from_serial(serial):
         return "2801761952320038"  # fallback seguro
     return str(serial)
 
-def carregar_status():
-    if not os.path.exists(STATUS_FILE):
+def carregar_status(serial=None):
+    """Carrega status da bancada específica (ou global, se serial for None)."""
+    if serial:
+        status_file = os.path.join(DATA_ROOT, f"status_{serial}.json")
+    else:
+        status_file = os.path.join(DATA_ROOT, "status_bancadas.json")
+
+    if not os.path.exists(status_file):
         return {}
+
     try:
-        with open(STATUS_FILE, "r", encoding="utf-8") as f:
+        with open(status_file, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception:
         return {}
 
-def salvar_status(data):
-    """Grava atomicamente o status atualizado no arquivo JSON."""
-    tmp_path = STATUS_FILE + ".tmp"
-    with open(tmp_path, "w", encoding="utf-8") as tmp:
-        json.dump(data, tmp, ensure_ascii=False, indent=2)
-    os.replace(tmp_path, STATUS_FILE)
+status_lock = threading.Lock()  # adiciona lock global
+
+def salvar_status(status, serial=None):
+    """
+    Salva status da execução de forma segura e isolada por bancada.
+    Se 'serial' for fornecido, cria um arquivo status_<serial>.json.
+    """
+    try:
+        with status_lock:
+            if serial:
+                status_file = os.path.join(DATA_ROOT, f"status_{serial}.json")
+            else:
+                status_file = os.path.join(DATA_ROOT, "status_bancadas.json")
+
+            tmp_path = status_file + ".tmp"
+            with open(tmp_path, "w", encoding="utf-8") as f:
+                json.dump(status, f, ensure_ascii=False, indent=2)
+            os.replace(tmp_path, status_file)
+    except Exception as e:
+        print(f"⚠️ Erro ao salvar status: {e}")
 
 def inicializar_status_bancada(bancada_key, teste_nome, total_acoes):
     status = carregar_status()
@@ -275,7 +297,7 @@ def inicializar_status_bancada(bancada_key, teste_nome, total_acoes):
         "tempo_decorrido_s": 0.0,
         "inicio": datetime.now().isoformat()
     }
-    salvar_status(status)
+    salvar_status(status, serial=bancada_key)
 
 def atualizar_status_bancada(bancada_key, teste_nome, total_acoes, executadas, ultima_acao):
     status = carregar_status()
@@ -292,7 +314,7 @@ def atualizar_status_bancada(bancada_key, teste_nome, total_acoes, executadas, u
         "tempo_decorrido_s": float(tempo_decorrido),
         "inicio": status.get(bancada_key, {}).get("inicio")
     }
-    salvar_status(status)
+    salvar_status(status, serial=bancada_key)
 
 def finalizar_status_bancada(bancada_key, resultado="finalizado"):
     status = carregar_status()
@@ -301,7 +323,7 @@ def finalizar_status_bancada(bancada_key, resultado="finalizado"):
         status[bancada_key]["fim"] = datetime.now().isoformat()
     else:
         status[bancada_key] = {"status": resultado, "fim": datetime.now().isoformat()}
-    salvar_status(status)
+    salvar_status(status, serial=bancada_key)
 
 def reverse_tester_actions(categoria, nome_teste, serial=None):
     """
@@ -582,7 +604,7 @@ def main():
         with open(log_path, "w", encoding="utf-8") as f:
             json.dump(log, f, indent=4, ensure_ascii=False)
         print_color(f"\n✅ Execução finalizada. Log salvo em: {log_path}", "green")
-        print_color(f"📊 Status atualizado em: {STATUS_FILE}", "cyan")
+        print_color(f"📊 Status atualizado em: Data/status_{bancada_key}.json", "cyan")
     except Exception as e:
         print_color(f"❌ Falha ao salvar log final: {e}", "red")
 

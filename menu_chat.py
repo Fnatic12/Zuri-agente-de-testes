@@ -9,6 +9,7 @@ from unicodedata import normalize
 from PIL import Image
 import matplotlib.pyplot as plt
 import time
+from threading import Lock
 from datetime import datetime
 from difflib import SequenceMatcher
 import random
@@ -20,6 +21,8 @@ colorama.init(autoreset=True)
 import re
 
 import speech_recognition as sr
+
+status_lock = Lock()  # lock global de escrita
 
 def configurar_reconhecedor() -> sr.Recognizer:
     r = sr.Recognizer()
@@ -232,17 +235,27 @@ def _popen_host_python(cmd):
         return False, f"Falha ao executar comando: {e}"
 
 def atualizar_status_bancada(serial, status, teste=None):
-    """Atualiza o status atual de cada bancada (executando, ociosa, etc.)."""
+    """Atualiza o status atual de cada bancada (executando, ociosa, etc.) de forma isolada e thread-safe."""
     try:
-        data = {}
-        if os.path.exists(STATUS_PATH):
-            with open(STATUS_PATH, "r", encoding="utf-8") as f:
-                data = json.load(f)
-        data[serial] = {"status": status, "teste": teste}
-        with open(STATUS_PATH, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+        with status_lock:
+            # usa um arquivo separado por bancada para evitar conflito
+            status_file = os.path.join(DATA_ROOT, f"status_{serial}.json")
+
+            data = {}
+            if os.path.exists(status_file):
+                with open(status_file, "r", encoding="utf-8") as f:
+                    try:
+                        data = json.load(f)
+                    except json.JSONDecodeError:
+                        data = {}
+
+            data.update({"status": status, "teste": teste, "atualizado_em": datetime.now().isoformat()})
+
+            with open(status_file, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+
     except Exception as e:
-        print(f"⚠️ Erro ao atualizar status: {e}")
+        print(f"⚠️ Erro ao atualizar status da bancada {serial}: {e}")
 
 def executar_teste(categoria, nome_teste, bancada: str | None = None):
     """
@@ -279,16 +292,12 @@ def executar_teste(categoria, nome_teste, bancada: str | None = None):
 
     for serial in seriais:
         # Evita executar 2 vezes na mesma bancada
+        status_file = os.path.join(DATA_ROOT, f"status_{serial}.json")
         status_atual = {}
-        if os.path.exists(STATUS_PATH):
+        if os.path.exists(status_file):
             try:
-                with open(STATUS_PATH, "r", encoding="utf-8") as f:
-                    content = f.read().strip()
-                    if content:
-                        status_atual = json.loads(content)
-                    else:
-                        print("⚠️ status_bancadas.json vazio — recriando automaticamente.")
-                        status_atual = {}
+                with open(status_file, "r", encoding="utf-8") as f:
+                    status_atual = json.load(f)
             except json.JSONDecodeError:
                 print("⚠️ status_bancadas.json corrompido — recriando automaticamente.")
                 status_atual = {}
@@ -299,12 +308,11 @@ def executar_teste(categoria, nome_teste, bancada: str | None = None):
             print("ℹ️ status_bancadas.json não encontrado — criando novo.")
             status_atual = {}
 
-        if serial in status_atual and str(status_atual[serial].get("status", "")).lower() == "executando":
+        if str(status_atual.get("status", "")).lower() == "executando":
             respostas.append(f"⚠️ A bancada `{serial}` já está executando outro teste.")
             continue
 
         atualizar_status_bancada(serial, "executando", f"{categoria}/{nome_teste}")
-
 
         # Log inicial
         inicio = datetime.now().isoformat()
@@ -371,6 +379,7 @@ def executar_teste(categoria, nome_teste, bancada: str | None = None):
 
             # Mensagem inicial
             respostas.append(f"▶️ Executando **{categoria}/{nome_teste}** na bancada `{serial}` em background...")
+            printc(f"🚀 Teste {categoria}/{nome_teste} iniciado em {serial} (PID={proc.pid})", "cyan")
 
         except Exception as e:
             respostas.append(f"❌ Falha ao iniciar execução na bancada `{serial}`: {e}")
@@ -962,7 +971,7 @@ def responder_conversacional(comando: str):
         "refazer estado": "resetar",
     }
 
-    for errado, certo in substituicoes_voz.items():
+    for errado, certo in substituicoes_voz.items(): 
         if errado in comando.lower():
             comando = comando.lower().replace(errado, certo)
 

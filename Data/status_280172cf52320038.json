@@ -9,5 +9,12 @@
     "tempo_decorrido_s": 127.84850144386292,
     "inicio": null,
     "fim": "2025-11-10T15:22:45.148482"
-  }
+  },
+  "280172cf52320038": {
+    "status": "finalizado",
+    "fim": "2025-11-10T15:32:28.743974"
+  },
+  "status": "finalizado",
+  "teste": null,
+  "atualizado_em": "2025-11-10T15:33:48.031598"
 }
