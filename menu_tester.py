@@ -3,7 +3,6 @@ import subprocess
 import os
 import platform
 import shutil
-import platform
 
 # === Caminho do ADB ===
 if platform.system() == "Windows":
@@ -69,14 +68,14 @@ with col1:
     if st.button("▶️ Iniciar Coleta"):
         if categoria and nome_teste:
             if st.session_state.proc_coleta is None:
-                # 1) Garante que não existe stop.flag esquecido
+                # 1) Remove stop.flag antigo
                 if os.path.exists(STOP_FLAG_PATH):
                     try:
                         os.remove(STOP_FLAG_PATH)
                     except Exception:
                         pass
 
-                # Inicia o coletor com os argumentos (categoria / nome)
+                # Inicia coleta
                 st.session_state.proc_coleta = subprocess.Popen(
                     ["python", SCRIPTS["Coletar Gestos"], categoria, nome_teste],
                     cwd=BASE_DIR
@@ -91,17 +90,14 @@ with col1:
         proc = st.session_state.proc_coleta
         if proc:
             try:
-                # Cria stop.flag para sinalizar ao coletor
                 with open(STOP_FLAG_PATH, "w") as f:
                     f.write("stop")
-
-                st.warning("👉 Toque uma vez na tela do rádio para capturar o print final...")
-
-                proc.wait(timeout=15)  # espera o coletor encerrar sozinho
+                st.warning("👉 Toque na tela do rádio para capturar o print final...")
+                proc.wait(timeout=15)
                 st.success("🛑 Coleta finalizada com sucesso. Print final e ações salvos.")
             except subprocess.TimeoutExpired:
                 proc.kill()
-                st.warning("⚠️ Coletor não respondeu, processo finalizado à força (sem print final).")
+                st.warning("⚠️ Coletor não respondeu, finalizado à força.")
             finally:
                 if os.path.exists(STOP_FLAG_PATH):
                     os.remove(STOP_FLAG_PATH)
@@ -129,7 +125,7 @@ if st.button("❌ Deletar Teste"):
     else:
         st.error("⚠️ Informe categoria e nome do teste para deletar.")
 
-# === PROCESSAR DATASET (manual, opcional) ===
+# === PROCESSAR DATASET (manual) ===
 st.divider()
 st.subheader("⚙️ Processar Dataset (opcional)")
 categoria_ds = st.text_input("Categoria do Dataset", key="cat_dataset")
@@ -143,7 +139,7 @@ if st.button("📂 Processar Dataset"):
         )
         st.info(f"🔄 Processando dataset de {categoria_ds}/{nome_teste_ds}...")
     else:
-        st.error("⚠️ Informe categoria e nome do teste para processar o dataset.")
+        st.error("⚠️ Informe categoria e nome do teste.")
 
 # === EXECUTAR TESTE ===
 st.divider()
@@ -171,16 +167,31 @@ with col1:
                 if proc.returncode == 0:
                     st.success("✅ Dataset processado com sucesso.")
                 else:
-                    st.error("❌ Falha ao processar dataset. Verifique o JSON de ações.")
+                    st.error("❌ Falha ao processar dataset.")
                     st.stop()
 
-            subprocess.Popen(
-                ["python", SCRIPTS["Executar Teste"], categoria_exec, nome_teste_exec],
-                cwd=BASE_DIR
-            )
-            st.session_state["teste_em_execucao"] = True
-            st.session_state["teste_pausado"] = False
-            st.info(f"▶️ Execução iniciada para {categoria_exec}/{nome_teste_exec}")
+            # Detecta automaticamente o primeiro dispositivo ADB conectado
+            try:
+                result = subprocess.run([ADB_PATH, "devices"], capture_output=True, text=True, timeout=5)
+                lines = result.stdout.strip().split("\n")[1:]
+                dispositivos = [l.split("\t")[0] for l in lines if "\tdevice" in l]
+
+                if not dispositivos:
+                    st.error("❌ Nenhum dispositivo ADB conectado.")
+                    st.stop()
+
+                serial = dispositivos[0]
+
+                subprocess.Popen(
+                    ["python", SCRIPTS["Executar Teste"], categoria_exec, nome_teste_exec, "--serial", serial],
+                    cwd=BASE_DIR
+                )
+                st.session_state["teste_em_execucao"] = True
+                st.session_state["teste_pausado"] = False
+                st.success(f"▶️ Execução iniciada para {categoria_exec}/{nome_teste_exec} (Bancada {serial})")
+
+            except Exception as e:
+                st.error(f"⚠️ Falha ao iniciar execução: {e}")
         else:
             st.error("⚠️ Informe categoria e nome do teste.")
 
@@ -189,28 +200,27 @@ with col2:
     if st.button("♻️ Resetar Interface"):
         if nome_teste_exec:
             try:
-                result = subprocess.run(
-                    [ADB_PATH, "devices"], capture_output=True, text=True, timeout=5
-                )
+                result = subprocess.run([ADB_PATH, "devices"], capture_output=True, text=True, timeout=5)
                 lines = result.stdout.strip().split("\n")[1:]
                 dispositivos = [l.split("\t")[0] for l in lines if "\tdevice" in l]
+
                 if not dispositivos:
                     st.error("❌ Nenhum dispositivo ADB conectado.")
                     st.stop()
-                serial = dispositivos[0]
-            except Exception as e:
-                st.error(f"⚠️ Falha ao listar dispositivos ADB: {e}")
-                st.stop()
 
-            subprocess.Popen(
-                ["python", SCRIPTS["Executar Teste"], "reset", nome_teste_exec, "--serial", serial],
-                cwd=BASE_DIR
-            )
-            st.success(f"♻️ Reset iniciado para {nome_teste_exec} (Bancada {serial})")
+                serial = dispositivos[0]
+
+                subprocess.Popen(
+                    ["python", SCRIPTS["Executar Teste"], "reset", nome_teste_exec, "--serial", serial],
+                    cwd=BASE_DIR
+                )
+
+                st.info(f"⏳ Reset comportamental iniciado para {nome_teste_exec} (Bancada {serial}). Acompanhe no terminal.")
+
+            except Exception as e:
+                st.error(f"⚠️ Falha ao iniciar reset: {e}")
         else:
             st.error("⚠️ Informe o nome do teste para resetar.")
-
-
 
 # ⏸️ PAUSAR / RETOMAR TESTE
 with col3:
@@ -220,7 +230,7 @@ with col3:
                 with open(os.path.join(BASE_DIR, "pause.flag"), "w") as f:
                     f.write("pause")
                 st.session_state["teste_pausado"] = True
-                st.warning("⏸️ Execução pausada. Aguarde para retomar.")
+                st.warning("⏸️ Execução pausada.")
         else:
             if st.button("▶️ Retomar Teste"):
                 pause_path = os.path.join(BASE_DIR, "pause.flag")
@@ -265,7 +275,7 @@ st.subheader("🧩 Gerar Relatórios de Falhas")
 if st.button("📄 Gerar Relatórios de Falhas (execução_log.json)"):
     gerar_falha_path = os.path.join(BASE_DIR, "gerar_falha.py")
     if not os.path.exists(gerar_falha_path):
-        st.error("❌ Arquivo gerar_falha.py não encontrado na raiz do projeto.")
+        st.error("❌ Arquivo gerar_falha.py não encontrado.")
     else:
         with st.spinner("🔍 Analisando execucao_log.json e gerando relatórios..."):
             try:
@@ -277,7 +287,6 @@ if st.button("📄 Gerar Relatórios de Falhas (execução_log.json)"):
                 )
                 st.text_area("📜 Saída do Script", result.stdout, height=250)
 
-                # Listar relatórios recém-criados
                 rel_dir = os.path.join(BASE_DIR, "Relatorios_Falhas")
                 if os.path.isdir(rel_dir):
                     relatorios = sorted(
@@ -286,10 +295,10 @@ if st.button("📄 Gerar Relatórios de Falhas (execução_log.json)"):
                     )
                     if relatorios:
                         st.success(f"✅ {len(relatorios)} relatórios gerados!")
-                        for r in relatorios[:10]:  # mostra os 10 mais recentes
+                        for r in relatorios[:10]:
                             st.markdown(f"- 📁 **{r}** — `{os.path.join(rel_dir, r)}`")
                     else:
-                        st.info("Nenhum relatório foi encontrado em /Relatorios_Falhas.")
+                        st.info("Nenhum relatório encontrado.")
                 else:
                     st.warning("A pasta Relatorios_Falhas ainda não existe.")
             except Exception as e:

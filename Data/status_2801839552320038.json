@@ -1,16 +1,9 @@
 {
   "2801839552320038": {
-    "teste": "geral1",
     "status": "finalizado",
-    "acoes_totais": 21,
-    "acoes_executadas": 21,
-    "progresso": 100.0,
-    "ultima_acao": "tap",
-    "tempo_decorrido_s": 127.84850144386292,
-    "inicio": null,
-    "fim": "2025-11-10T15:32:41.948497"
+    "fim": "2025-11-11T17:09:04.877271"
   },
   "status": "finalizado",
   "teste": null,
-  "atualizado_em": "2025-11-10T15:34:01.172314"
+  "atualizado_em": "2025-11-11T17:09:29.610275"
 }
