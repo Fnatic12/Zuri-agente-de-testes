@@ -27,13 +27,12 @@ REMOTE_TMP = "/sdcard/tmp_shot.png"
 MOV_THRESH_PX = 25            # distância p/ classificar SWIPE (senão é TAP)
 DEFAULT_RES = (1920, 1080)    # fallback
 DEFAULT_DEV = "/dev/input/event2"
+SCREENSHOT_DELAY_S = 0.1      # atraso minimo antes de capturar o frame
 stop_requested = False
 
 def handle_sigterm(signum, frame):
     global stop_requested
     stop_requested = True
-    printc("\n🛑 Finalizando coleta (SIGTERM recebido)...", "yellow")
-
 signal.signal(signal.SIGTERM, handle_sigterm)
 
 # Caminho absoluto para a raiz do projeto (um nível acima da pasta Scripts/)
@@ -143,18 +142,8 @@ def hex_last_int(line):
     return int(m.group(1), 16) if m else None
 
 
+
 def collect_gestures_loop(dev_path, frames_dir, screen_res, abs_ranges, serial=None):
-    printc(f"\n▶️ Escutando touchscreen em {dev_path}", "cyan")
-    printc("Toque/arraste na tela do rádio. Para finalizar, pressione CTRL+C.\n", "yellow")
-
-    cmd = adb_cmd(serial) + ["shell", "getevent", "-lt", dev_path]
-    proc = subprocess.Popen(
-        adb_cmd(serial) + ["shell", "getevent", "-lt", dev_path],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        bufsize=0,              # 🔥 leitura direta sem buffer
-    )
-
     actions = []
     idx = 1
     in_touch = False
@@ -162,103 +151,120 @@ def collect_gestures_loop(dev_path, frames_dir, screen_res, abs_ranges, serial=N
     lx_raw = ly_raw = None
     t_start = None
 
-    try:
-        for raw_line in proc.stdout:
-            line = raw_line.decode(errors="ignore").rstrip()
+    while True:
+        proc = subprocess.Popen(
+            adb_cmd(serial) + ["shell", "getevent", "-lt", dev_path],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            bufsize=0,
+        )
 
-            if os.path.exists(os.path.join(PROJECT_ROOT, "stop.flag")):
-                printc("\n🛑 Finalização solicitada via arquivo stop.flag", "yellow")
-                break
+        if proc.stdout is None:
+            break
 
-            # Início do toque
-            if "EV_KEY" in line and "BTN_TOUCH" in line and "DOWN" in line:
-                in_touch = True
-                t_start = time.time()
-                sx_raw = sy_raw = lx_raw = ly_raw = None
-
-            # Captura das coordenadas
-            if "EV_ABS" in line:
-                if "ABS_MT_POSITION_X" in line or "ABS_X" in line:
-                    val = hex_last_int(line)
-                    if val is not None:
-                        lx_raw = val
-                        if sx_raw is None:
-                            sx_raw = val
-                elif "ABS_MT_POSITION_Y" in line or "ABS_Y" in line:
-                    val = hex_last_int(line)
-                    if val is not None:
-                        ly_raw = val
-                        if sy_raw is None:
-                            sy_raw = val
-
-            # Final do toque
-            end_touch = False
-            if "EV_KEY" in line and "BTN_TOUCH" in line and "UP" in line:
-                end_touch = True
-            if "EV_ABS" in line and "ABS_MT_TRACKING_ID" in line and "ffffffff" in line:
-                end_touch = True
-
-            if in_touch and end_touch:
-                in_touch = False
-                dur_ms = int((time.time() - t_start) * 1000)
-                if None in (sx_raw, sy_raw, lx_raw, ly_raw):
-                    continue
-
-                sx_px = scale_to_px(sx_raw, abs_ranges["ABS_MT_POSITION_X"]["min"], abs_ranges["ABS_MT_POSITION_X"]["max"], screen_res[0])
-                sy_px = scale_to_px(sy_raw, abs_ranges["ABS_MT_POSITION_Y"]["min"], abs_ranges["ABS_MT_POSITION_Y"]["max"], screen_res[1])
-                lx_px = scale_to_px(lx_raw, abs_ranges["ABS_MT_POSITION_X"]["min"], abs_ranges["ABS_MT_POSITION_X"]["max"], screen_res[0])
-                ly_px = scale_to_px(ly_raw, abs_ranges["ABS_MT_POSITION_Y"]["min"], abs_ranges["ABS_MT_POSITION_Y"]["max"], screen_res[1])
-
-                dist = math.hypot(lx_px - sx_px, ly_px - sy_px)
-                dur_s = dur_ms / 1000.0
-
-                if dist <= MOV_THRESH_PX and dur_s > 0.8:
-                    action = {"tipo": "long_press", "x": sx_px, "y": sy_px, "duracao_s": round(dur_s, 2)}
-                    label = f"LONG PRESS ({sx_px},{sy_px}) {dur_s:.2f}s"
-                elif dist <= MOV_THRESH_PX:
-                    action = {"tipo": "tap", "x": sx_px, "y": sy_px, "duracao_s": round(dur_s, 2)}
-                    label = f"TAP ({sx_px},{sy_px})"
-                else:
-                    action = {"tipo": "swipe", "x1": sx_px, "y1": sy_px, "x2": lx_px, "y2": ly_px, "duracao_ms": dur_ms}
-                    label = f"SWIPE ({sx_px},{sy_px})→({lx_px},{ly_px}) {dur_ms}ms"
-
-                # Captura instantânea (sem sleep)
-                time.sleep(2)
-                img_name = f"frame_{idx:02d}.png"
-                take_screenshot(os.path.join(frames_dir, img_name), serial)
-
-                actions.append({"id": idx, "timestamp": datetime.now().isoformat(), "imagem": img_name, "acao": action})
-                printc(f"✅ Ação {idx}: {label} | frame: {img_name}", "green")
-                idx += 1
-
-    except KeyboardInterrupt:
-        printc("\n⏹️ Coleta encerrada pelo usuário.", "yellow")
-    finally:
         try:
-            proc.terminate()
-            proc.wait(timeout=1)
-        except Exception:
+            for raw_line in proc.stdout:
+                line = raw_line.decode(errors="ignore").rstrip()
+
+                if stop_requested or os.path.exists(os.path.join(PROJECT_ROOT, "stop.flag")):
+                    break
+
+                # Inicio do toque
+                if "EV_KEY" in line and "BTN_TOUCH" in line and "DOWN" in line:
+                    in_touch = True
+                    t_start = time.time()
+                    sx_raw = sy_raw = lx_raw = ly_raw = None
+
+                # Captura das coordenadas
+                if "EV_ABS" in line:
+                    if "ABS_MT_POSITION_X" in line or "ABS_X" in line:
+                        val = hex_last_int(line)
+                        if val is not None:
+                            lx_raw = val
+                            if sx_raw is None:
+                                sx_raw = val
+                    elif "ABS_MT_POSITION_Y" in line or "ABS_Y" in line:
+                        val = hex_last_int(line)
+                        if val is not None:
+                            ly_raw = val
+                            if sy_raw is None:
+                                sy_raw = val
+
+                # Final do toque
+                end_touch = False
+                if "EV_KEY" in line and "BTN_TOUCH" in line and "UP" in line:
+                    end_touch = True
+                if "EV_ABS" in line and "ABS_MT_TRACKING_ID" in line and "ffffffff" in line:
+                    end_touch = True
+
+                if in_touch and end_touch:
+                    in_touch = False
+                    dur_ms = int((time.time() - t_start) * 1000)
+                    if None in (sx_raw, sy_raw, lx_raw, ly_raw):
+                        continue
+
+                    sx_px = scale_to_px(sx_raw, abs_ranges["ABS_MT_POSITION_X"]["min"], abs_ranges["ABS_MT_POSITION_X"]["max"], screen_res[0])
+                    sy_px = scale_to_px(sy_raw, abs_ranges["ABS_MT_POSITION_Y"]["min"], abs_ranges["ABS_MT_POSITION_Y"]["max"], screen_res[1])
+                    lx_px = scale_to_px(lx_raw, abs_ranges["ABS_MT_POSITION_X"]["min"], abs_ranges["ABS_MT_POSITION_X"]["max"], screen_res[0])
+                    ly_px = scale_to_px(ly_raw, abs_ranges["ABS_MT_POSITION_Y"]["min"], abs_ranges["ABS_MT_POSITION_Y"]["max"], screen_res[1])
+
+                    dist = math.hypot(lx_px - sx_px, ly_px - sy_px)
+                    dur_s = dur_ms / 1000.0
+
+                    if dist <= MOV_THRESH_PX and dur_s > 0.8:
+                        action = {"tipo": "long_press", "x": sx_px, "y": sy_px, "duracao_s": round(dur_s, 2)}
+                    elif dist <= MOV_THRESH_PX:
+                        action = {"tipo": "tap", "x": sx_px, "y": sy_px, "duracao_s": round(dur_s, 2)}
+                    else:
+                        action = {"tipo": "swipe", "x1": sx_px, "y1": sy_px, "x2": lx_px, "y2": ly_px, "duracao_ms": dur_ms}
+
+                    # Captura rapida do frame
+                    time.sleep(SCREENSHOT_DELAY_S)
+                    img_name = f"frame_{idx:02d}.png"
+                    img_path = os.path.join(frames_dir, img_name)
+                    shot_path = take_screenshot(img_path, serial)
+
+                    actions.append({"id": idx, "timestamp": datetime.now().isoformat(), "imagem": img_name, "acao": action})
+
+                    if action.get("tipo") == "tap":
+                        printc(f"TAP {idx}: ({sx_px},{sy_px})", "green")
+                    elif action.get("tipo") == "swipe":
+                        printc(f"SWIPE {idx}: ({sx_px},{sy_px})->({lx_px},{ly_px})", "green")
+                    elif action.get("tipo") == "long_press":
+                        printc(f"LONG_PRESS {idx}: ({sx_px},{sy_px})", "green")
+
+                    captured_ok = bool(shot_path) and os.path.exists(shot_path) and os.path.getsize(shot_path) > 0
+                    if captured_ok:
+                        printc(f"IMG {idx}: OK ({img_name})", "cyan")
+                    else:
+                        printc(f"IMG {idx}: FALHA ({img_name})", "red")
+
+                    idx += 1
+
+        except KeyboardInterrupt:
             pass
+        finally:
+            try:
+                proc.terminate()
+                proc.wait(timeout=1)
+            except Exception:
+                pass
+
+        if stop_requested or os.path.exists(os.path.join(PROJECT_ROOT, "stop.flag")):
+            break
+
+        # Se getevent encerrou sem stop, tenta reconectar
+        time.sleep(1)
 
     return actions
 
-def print_banner():
-    banner = pyfiglet.figlet_format("ZURI Coletor")
-    print(colored(banner, "blue"))
-    print(colored("v2 - Coleta Automática de Ações no Rádio via ADB", "blue"))
-    print(colored("=" * 55, "blue"))
-    print(colored("         VWAIT   -   BTEE   -   ZURI", "blue"))
-    print(colored("=" * 55, "blue"))
 
 
 # =========================
 # MAIN
 # =========================
 def main():
-    print_banner()
-
     if len(sys.argv) < 3:
-        printc("❌ Uso correto: python coletor_adb.py <categoria> <nome_teste> [--serial <serial>]", "red")
         sys.exit(1)
 
     categoria = sys.argv[1].strip().lower().replace(" ", "_")
@@ -270,9 +276,6 @@ def main():
         if idx + 1 < len(sys.argv):
             serial = sys.argv[idx + 1]
 
-    printc(f"📦 {BUILD_TAG}", "cyan")
-    print("📁 Coleta Automática de Ações no Rádio via ADB")
-
     base_dir = os.path.join(PROJECT_ROOT, "Data", categoria, nome_teste)
     json_dir = os.path.join(base_dir, "json")
     frames_dir = os.path.join(base_dir, "frames")
@@ -280,17 +283,9 @@ def main():
     os.makedirs(frames_dir, exist_ok=True)
 
     screen_res = get_resolution(serial)
-    printc(f"🖥️ Resolução detectada: {screen_res[0]}x{screen_res[1]}", "cyan")
-
     dev = autodetect_touch_device(serial)
-    printc(f"📟 Device de touch: {dev}", "cyan")
-
     abs_ranges = get_abs_ranges_for_device(dev, serial)
-    printc(f"🔎 Ranges capturados (ABS): {abs_ranges}", "white")
-
     actions = collect_gestures_loop(dev, frames_dir, screen_res, abs_ranges, serial)
-
-    printc("\n📸 Capturando screenshot final do teste...", "yellow")
     final_img = take_screenshot(os.path.join(base_dir, "resultado_final.png"), serial)
 
     saida = {
@@ -303,9 +298,6 @@ def main():
     with open(acoes_path, "w", encoding="utf-8") as f:
         json.dump(saida, f, indent=4, ensure_ascii=False)
 
-    printc(f"\n✅ Coleta finalizada.", "green")
-    printc(f"📄 Ações salvas em: {acoes_path}", "green")
-    printc(f"🖼️ Screenshot final: {final_img}", "green")
 
 if __name__ == "__main__":
     try:

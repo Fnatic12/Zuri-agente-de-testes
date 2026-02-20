@@ -2,7 +2,9 @@ import streamlit as st
 import subprocess
 import os
 import platform
+import sys
 import shutil
+from streamlit_autorefresh import st_autorefresh
 
 # === Caminho do ADB ===
 if platform.system() == "Windows":
@@ -40,6 +42,7 @@ def titulo_painel(titulo: str, subtitulo: str = ""):
 # === CONFIG ===
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+
 SCRIPTS = {
     "Coletar Gestos": os.path.join(BASE_DIR, "Scripts", "coletor_adb.py"),
     "Processar Dataset": os.path.join(BASE_DIR, "Pre_process", "processar_dataset.py"),
@@ -49,9 +52,24 @@ SCRIPTS = {
 
 STOP_FLAG_PATH = os.path.join(BASE_DIR, "stop.flag")
 
-# Guarda referência do processo da coleta
+# Guarda referencia do processo da coleta
 if "proc_coleta" not in st.session_state:
     st.session_state.proc_coleta = None
+if "coleta_log_path" not in st.session_state:
+    st.session_state.coleta_log_path = None
+if "coleta_log_file" not in st.session_state:
+    st.session_state.coleta_log_file = None
+if "proc_execucao_unica" not in st.session_state:
+    st.session_state.proc_execucao_unica = None
+if "execucao_unica_status" not in st.session_state:
+    st.session_state.execucao_unica_status = ""
+if "execucao_log_path" not in st.session_state:
+    st.session_state.execucao_log_path = None
+
+if "execucao_log_path" not in st.session_state:
+    st.session_state.execucao_log_path = None
+
+
 
 st.set_page_config(page_title="Menu Tester", page_icon="🚗", layout="centered")
 titulo_painel("🧠 Painel de Automação de Testes", "Plataforma <b>para</b> Coletar e Processar Testes")
@@ -69,6 +87,12 @@ with col1:
         if categoria and nome_teste:
             if st.session_state.proc_coleta is None:
                 # 1) Remove stop.flag antigo
+                pause_path = os.path.join(BASE_DIR, "pause.flag")
+                if os.path.exists(pause_path):
+                    try:
+                        os.remove(pause_path)
+                    except Exception:
+                        pass
                 if os.path.exists(STOP_FLAG_PATH):
                     try:
                         os.remove(STOP_FLAG_PATH)
@@ -76,9 +100,19 @@ with col1:
                         pass
 
                 # Inicia coleta
+                log_path = os.path.join(BASE_DIR, "Data", "coleta_live.log")
+                st.session_state.coleta_log_path = log_path
+                log_file = open(log_path, "w", encoding="utf-8", errors="ignore", buffering=1)
+                st.session_state.coleta_log_file = log_file
+                env = os.environ.copy()
+                env["PYTHONUNBUFFERED"] = "1"
                 st.session_state.proc_coleta = subprocess.Popen(
-                    ["python", SCRIPTS["Coletar Gestos"], categoria, nome_teste],
-                    cwd=BASE_DIR
+                    [sys.executable, "-u", SCRIPTS["Coletar Gestos"], categoria, nome_teste],
+                    cwd=BASE_DIR,
+                    stdout=log_file,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    env=env
                 )
                 st.success(f"✅ Coleta iniciada para {categoria}/{nome_teste}")
             else:
@@ -101,9 +135,33 @@ with col1:
             finally:
                 if os.path.exists(STOP_FLAG_PATH):
                     os.remove(STOP_FLAG_PATH)
+                if st.session_state.coleta_log_file:
+                    try:
+                        st.session_state.coleta_log_file.close()
+                    except Exception:
+                        pass
+                    st.session_state.coleta_log_file = None
                 st.session_state.proc_coleta = None
         else:
             st.info("Nenhuma coleta em andamento.")
+
+# === LOGS DA COLETA (ao vivo) ===
+log_path = st.session_state.coleta_log_path
+proc = st.session_state.proc_coleta
+if log_path and os.path.exists(log_path):
+    st.markdown("**Logs da coleta (ao vivo)**" if proc is not None else "**Logs da ultima coleta**")
+    if proc is not None and proc.poll() is None:
+        st_autorefresh(interval=1000, limit=None, key="coleta_refresh")
+    try:
+        with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
+            lines = f.readlines()
+        logs_txt = "".join(lines[-200:])
+    except Exception:
+        logs_txt = ""
+    st.text_area("Toques e eventos", value=logs_txt, height=220)
+    if proc is not None and proc.poll() is not None:
+        st.warning(f"Coleta finalizada com codigo {proc.returncode}. Veja o log acima.")
+        st.session_state.proc_coleta = None
 
 # === DELETAR TESTE ===
 st.divider()
@@ -143,117 +201,136 @@ if st.button("📂 Processar Dataset"):
 
 # === EXECUTAR TESTE ===
 st.divider()
-st.subheader("🚀 Executar Testes")
+st.subheader("Executar Testes")
 
 categoria_exec = st.text_input("Categoria do Teste", key="cat_exec")
 nome_teste_exec = st.text_input("Nome do Teste (deixe vazio para rodar todos)", key="nome_exec")
 
-col1, col2, col3, col4 = st.columns(4)
+st.markdown("<div class='exec-row'>", unsafe_allow_html=True)
+col_a, col_b, col_c = st.columns([2, 2, 2])
 
-# ▶️ EXECUTAR TESTE ÚNICO
-with col1:
-    if st.button("▶️ Executar Teste Único"):
+with col_a:
+    st.markdown("<div class='exec-card'>", unsafe_allow_html=True)
+    st.markdown("<h4>Executar teste unico</h4>", unsafe_allow_html=True)
+    if st.button("Executar Teste Unico"):
         if categoria_exec and nome_teste_exec:
             teste_path = os.path.join(BASE_DIR, "Data", categoria_exec, nome_teste_exec)
             dataset_path = os.path.join(teste_path, "dataset.csv")
 
-            # Se não existir dataset, processa antes
             if not os.path.exists(dataset_path):
-                st.warning("⚠️ Dataset não encontrado. Gerando automaticamente...")
+                st.warning("Dataset nao encontrado. Gerando automaticamente...")
                 proc = subprocess.run(
                     ["python", SCRIPTS["Processar Dataset"], categoria_exec, nome_teste_exec],
                     cwd=BASE_DIR
                 )
                 if proc.returncode == 0:
-                    st.success("✅ Dataset processado com sucesso.")
+                    st.success("Dataset processado com sucesso.")
                 else:
-                    st.error("❌ Falha ao processar dataset.")
+                    st.error("Falha ao processar dataset.")
                     st.stop()
 
-            # Detecta automaticamente o primeiro dispositivo ADB conectado
             try:
                 result = subprocess.run([ADB_PATH, "devices"], capture_output=True, text=True, timeout=5)
                 lines = result.stdout.strip().split("\n")[1:]
                 dispositivos = [l.split("\t")[0] for l in lines if "\tdevice" in l]
 
                 if not dispositivos:
-                    st.error("❌ Nenhum dispositivo ADB conectado.")
+                    st.error("Nenhum dispositivo ADB conectado.")
                     st.stop()
 
                 serial = dispositivos[0]
 
-                subprocess.Popen(
+                log_path = os.path.join(BASE_DIR, "Data", "execucao_live.log")
+                st.session_state["execucao_log_path"] = log_path
+                log_file = open(log_path, "w", encoding="utf-8", errors="ignore", buffering=1)
+                proc_exec = subprocess.Popen(
                     ["python", SCRIPTS["Executar Teste"], categoria_exec, nome_teste_exec, "--serial", serial],
-                    cwd=BASE_DIR
+                    cwd=BASE_DIR,
+                    stdout=log_file,
+                    stderr=subprocess.STDOUT,
+                    text=True
                 )
+                st.session_state["proc_execucao_unica"] = proc_exec
+                st.session_state["execucao_unica_status"] = f"Executando {categoria_exec}/{nome_teste_exec} na bancada {serial}..."
                 st.session_state["teste_em_execucao"] = True
                 st.session_state["teste_pausado"] = False
-                st.success(f"▶️ Execução iniciada para {categoria_exec}/{nome_teste_exec} (Bancada {serial})")
+                st.success(f"Execucao iniciada para {categoria_exec}/{nome_teste_exec} (Bancada {serial})")
 
             except Exception as e:
-                st.error(f"⚠️ Falha ao iniciar execução: {e}")
+                st.error(f"Falha ao iniciar execucao: {e}")
         else:
-            st.error("⚠️ Informe categoria e nome do teste.")
+            st.error("Informe categoria e nome do teste.")
+    st.markdown("</div>", unsafe_allow_html=True)
 
-# ♻️ RESETAR INTERFACE
-with col2:
-    if st.button("♻️ Resetar Interface"):
-        if nome_teste_exec:
-            try:
-                result = subprocess.run([ADB_PATH, "devices"], capture_output=True, text=True, timeout=5)
-                lines = result.stdout.strip().split("\n")[1:]
-                dispositivos = [l.split("\t")[0] for l in lines if "\tdevice" in l]
+# Logs de execucao (ao vivo)
+log_path = st.session_state.get("execucao_log_path")
+if log_path and os.path.exists(log_path):
+    st.markdown("**Logs de execucao**")
+    try:
+        with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
+            lines = f.readlines()
+        logs_txt = "".join(lines[-200:])
+    except Exception:
+        logs_txt = ""
+    st.markdown(f"<div class='log-box'><pre>{logs_txt}</pre></div>", unsafe_allow_html=True)
 
-                if not dispositivos:
-                    st.error("❌ Nenhum dispositivo ADB conectado.")
-                    st.stop()
-
-                serial = dispositivos[0]
-
-                subprocess.Popen(
-                    ["python", SCRIPTS["Executar Teste"], "reset", nome_teste_exec, "--serial", serial],
-                    cwd=BASE_DIR
-                )
-
-                st.info(f"⏳ Reset comportamental iniciado para {nome_teste_exec} (Bancada {serial}). Acompanhe no terminal.")
-
-            except Exception as e:
-                st.error(f"⚠️ Falha ao iniciar reset: {e}")
+with col_b:
+    st.markdown("<div class='exec-card secondary'>", unsafe_allow_html=True)
+    st.markdown("<h4>Status</h4>", unsafe_allow_html=True)
+    proc_exec = st.session_state.get("proc_execucao_unica")
+    if proc_exec is not None and proc_exec.poll() is None:
+        st_autorefresh(interval=1500, limit=None, key="execucao_unica_refresh")
+        status_msg = st.session_state.get("execucao_unica_status", "Executando teste...")
+    elif proc_exec is not None:
+        if proc_exec.returncode == 0:
+            status_msg = "Execucao do teste unico finalizada com sucesso."
         else:
-            st.error("⚠️ Informe o nome do teste para resetar.")
+            status_msg = f"Execucao do teste unico finalizou com erro (codigo {proc_exec.returncode})."
+        st.session_state["proc_execucao_unica"] = None
+        st.session_state["execucao_unica_status"] = ""
+        st.session_state["teste_em_execucao"] = False
+    else:
+        status_msg = "Nenhum teste em execucao."
+    st.markdown(f"<div class='status-box'>{status_msg}</div>", unsafe_allow_html=True)
 
-# ⏸️ PAUSAR / RETOMAR TESTE
-with col3:
     if "teste_em_execucao" in st.session_state and st.session_state["teste_em_execucao"]:
         if not st.session_state.get("teste_pausado", False):
-            if st.button("⏸️ Pausar Teste"):
+            st.markdown("<div class='pause-btn'>", unsafe_allow_html=True)
+            if st.button("Pausar Teste", key="pause_teste"):
                 with open(os.path.join(BASE_DIR, "pause.flag"), "w") as f:
                     f.write("pause")
                 st.session_state["teste_pausado"] = True
-                st.warning("⏸️ Execução pausada.")
+                st.warning("Execucao pausada.")
+            st.markdown("</div>", unsafe_allow_html=True)
         else:
-            if st.button("▶️ Retomar Teste"):
+            st.markdown("<div class='resume-btn'>", unsafe_allow_html=True)
+            if st.button("Retomar Teste", key="resume_teste"):
                 pause_path = os.path.join(BASE_DIR, "pause.flag")
                 if os.path.exists(pause_path):
                     os.remove(pause_path)
                 st.session_state["teste_pausado"] = False
-                st.success("✅ Execução retomada com sucesso.")
+                st.success("Execucao retomada com sucesso.")
+            st.markdown("</div>", unsafe_allow_html=True)
     else:
-        st.info("⚙️ Nenhum teste em execução.")
+        st.caption("Sem teste em execucao.")
 
-# 📂 EXECUTAR TODOS
-with col4:
-    if st.button("📂 Executar Todos da Categoria"):
+    st.markdown("</div>", unsafe_allow_html=True)
+
+with col_c:
+
+    st.markdown("<div class='exec-card secondary'>", unsafe_allow_html=True)
+    st.markdown("<h4>Executar todos</h4>", unsafe_allow_html=True)
+    if st.button("Executar Todos da Categoria"):
         if categoria_exec:
             categoria_path = os.path.join(BASE_DIR, "Data", categoria_exec)
             if not os.path.isdir(categoria_path):
-                st.error(f"❌ Categoria {categoria_exec} não encontrada em Data/")
+                st.error(f"Categoria {categoria_exec} nao encontrada em Data/")
             else:
                 testes = [t for t in os.listdir(categoria_path) if os.path.isdir(os.path.join(categoria_path, t))]
                 if not testes:
-                    st.warning(f"⚠️ Nenhum teste encontrado em Data/{categoria_exec}/")
+                    st.warning(f"Nenhum teste encontrado em Data/{categoria_exec}/")
                 else:
-                    st.success(f"▶️ Executando {len(testes)} testes da categoria {categoria_exec}...")
+                    st.success(f"Executando {len(testes)} testes da categoria {categoria_exec}...")
                     for t in testes:
                         dataset_path = os.path.join(categoria_path, t, "dataset.csv")
                         if not os.path.exists(dataset_path):
@@ -261,12 +338,21 @@ with col4:
                                 ["python", SCRIPTS["Processar Dataset"], categoria_exec, t],
                                 cwd=BASE_DIR
                             )
+                        log_path = os.path.join(BASE_DIR, "Data", "execucao_live.log")
+                        st.session_state["execucao_log_path"] = log_path
+                        log_file = open(log_path, "a", encoding="utf-8", errors="ignore", buffering=1)
                         subprocess.Popen(
                             ["python", SCRIPTS["Executar Teste"], categoria_exec, t],
-                            cwd=BASE_DIR    
+                            cwd=BASE_DIR,
+                            stdout=log_file,
+                            stderr=subprocess.STDOUT,
+                            text=True
                         )
         else:
-            st.error("⚠️ Informe a categoria para rodar todos os testes.")
+            st.error("Informe a categoria para rodar todos os testes.")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+st.markdown("</div>", unsafe_allow_html=True)
 
 # === RELATÓRIOS DE FALHAS ===
 st.divider()

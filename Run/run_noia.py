@@ -33,7 +33,8 @@ if platform.system() == "Windows":
 else:
     ADB_PATH = "adb"
 
-PAUSA_ENTRE_ACOES = 4              # segundos entre cada ação
+PAUSA_ENTRE_ACOES = 0              # segundos entre cada ação
+ESPERA_POS_ACAO_S = 1.7              # espera apos cada acao antes do screenshot
 SIMILARIDADE_HOME_OK = 0.85        # limite mínimo para considerar OK
 ADB_TIMEOUT = 25                   # timeout padrão para chamadas ADB (seg)
 
@@ -325,67 +326,6 @@ def finalizar_status_bancada(bancada_key, resultado="finalizado"):
         status[bancada_key] = {"status": resultado, "fim": datetime.now().isoformat()}
     salvar_status(status, serial=bancada_key)
 
-def reverse_tester_actions(categoria, nome_teste, serial=None):
-    """
-    Executa o caminho inverso das ações registradas em acoes.json,
-    simulando uma execução normal (com pausas e logs).
-    """
-    json_path = os.path.join(DATA_ROOT, categoria, nome_teste, "json", "acoes.json")
-    if not os.path.exists(json_path):
-        print_color(f"⚠️ Nenhum JSON de ações encontrado para {categoria}/{nome_teste}.", "yellow")
-        return
-
-    with open(json_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    actions = data.get("acoes", [])
-    if not actions:
-        print_color("⚠️ Nenhuma ação registrada para reverter.", "yellow")
-        return
-
-    print_color(f"\n♻️ Iniciando reset comportamental ({len(actions)} ações)...", "cyan")
-
-    total = len(actions)
-    for i, act in enumerate(reversed(actions)):
-        a = act.get("acao", {})
-        tipo = a.get("tipo")
-
-        inicio = time.time()
-        print_color(f"↩️ Reset Ação {i+1}/{total} ({tipo})", "white")
-
-        if tipo == "tap":
-            run_subprocess(adb_cmd(serial) + ["shell", "input", "tap", str(a["x"]), str(a["y"])])
-            print_color(f"↩️ TAP reverso em ({a['x']},{a['y']})", "green")
-
-        elif tipo == "swipe":
-            run_subprocess(adb_cmd(serial) + [
-                "shell", "input", "swipe",
-                str(a["x2"]), str(a["y2"]),
-                str(a["x1"]), str(a["y1"]),
-                str(a.get("duracao_ms", 300))
-            ])
-            print_color(f"↩️ SWIPE reverso ({a['x2']},{a['y2']})→({a['x1']},{a['y1']})", "green")
-
-        elif tipo == "long_press":
-            duracao = int(a.get("duracao_ms", 1000))
-            run_subprocess(adb_cmd(serial) + [
-                "shell", "input", "swipe",
-                str(a["x"]), str(a["y"]), str(a["x"]), str(a["y"]), str(duracao)
-            ])
-            print_color(f"↩️ LONG PRESS revertido em ({a['x']},{a['y']}) por {duracao/1000:.1f}s", "green")
-
-        fim = time.time()
-        print_color(f"⏱️ Duração ação: {fim - inicio:.2f}s", "cyan")
-
-        # 🔹 Captura opcional (pode comentar se quiser mais velocidade)
-        # nome = f"reset_{i+1:02d}.png"
-        # pasta_result = os.path.join(DATA_ROOT, categoria, nome_teste, "resultados_reset")
-        # capturar_screenshot(pasta_result, nome, serial)
-
-        # 🔹 Pausa entre ações (igual ao teste normal)
-        time.sleep(PAUSA_ENTRE_ACOES)
-
-    print_color("✅ Reset comportamental concluído. Estado restaurado.", "green")
-
 # =========================
 # MAIN
 # =========================
@@ -401,41 +341,6 @@ def main():
         categoria = input("📂 Categoria do teste: ").strip().lower().replace(" ", "_")
         nome_teste = input("📝 Nome do teste: ").strip().lower().replace(" ", "_")
 
-    # 🔹 Detecta modo reset
-    if len(sys.argv) >= 2 and sys.argv[1].lower() == "reset":
-        if len(sys.argv) < 3:
-            print_color("⚠️ Informe o nome do teste para resetar. Exemplo: python run_noia.py reset geral1", "yellow")
-            return
-
-        nome_teste = sys.argv[2].strip().lower().replace(" ", "_")
-
-        # Detecta serial, se passado
-        serial = None
-        if "--serial" in sys.argv:
-            idx = sys.argv.index("--serial")
-            if idx + 1 < len(sys.argv):
-                serial = sys.argv[idx + 1]
-
-        if not serial:
-            # Detecta automaticamente o primeiro dispositivo ADB conectado
-            try:
-                devices = subprocess.check_output([ADB_PATH, "devices"], text=True)
-                lines = devices.strip().split("\n")[1:]
-                serials = [l.split("\t")[0] for l in lines if "\tdevice" in l]
-                serial = serials[0] if serials else None
-            except Exception:
-                serial = None
-
-        if not serial:
-            print_color("❌ Nenhum dispositivo ADB conectado. Conecte o rádio e tente novamente.", "red")
-            return
-
-        print_color(f"\n♻️ Iniciando reset comportamental do teste '{nome_teste}' (serial {serial})...\n", "cyan")
-        reverse_tester_actions("geral", nome_teste, serial)
-        print_color("✅ Reset concluído com sucesso!\n", "green")
-        return
-
-    # 🔹 Verifica se foi passado --serial
     serial = None
     if "--serial" in sys.argv:
         idx = sys.argv.index("--serial")
@@ -557,8 +462,9 @@ def main():
         except Exception as e:
             print_color(f"⚠️ Erro ao executar ação {i+1}: {e}", "red")
 
+        # Aguarda a UI estabilizar ap?s a a??o antes de capturar o screenshot.
+        time.sleep(ESPERA_POS_ACAO_S)
         # ===== Screenshot e Similaridade =====
-        time.sleep(1)
         screenshot_nome = f"resultado_{i+1:02d}.png"
         screenshot_path = capturar_screenshot(resultados_dir, screenshot_nome, serial)
 
@@ -607,14 +513,6 @@ def main():
         print_color(f"📊 Status atualizado em: Data/status_{bancada_key}.json", "cyan")
     except Exception as e:
         print_color(f"❌ Falha ao salvar log final: {e}", "red")
-
-    # === RESET COMPORTAMENTAL ===
-    try:
-        print_color("\n⏳ Restaurando estado inicial (reset comportamental)...", "yellow")
-        reverse_tester_actions(categoria, nome_teste, serial)
-        print_color("✅ Ambiente restaurado com sucesso.\n", "green")
-    except Exception as e:
-        print_color(f"⚠️ Falha ao reverter ações: {e}", "red")
 
 if __name__ == "__main__":
     main()

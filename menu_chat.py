@@ -3,12 +3,18 @@ import re
 import json
 import shutil
 import subprocess
+from shutil import which
 import speech_recognition as sr
+try:
+    import requests
+except Exception:
+    requests = None
 import streamlit as st
 from unicodedata import normalize
 from PIL import Image
 import matplotlib.pyplot as plt
 import time
+import urllib.request
 from threading import Lock
 from datetime import datetime
 from difflib import SequenceMatcher
@@ -18,11 +24,45 @@ import colorama
 import threading
 from colorama import Fore, Style
 colorama.init(autoreset=True)
-import re
-
-import speech_recognition as sr
 
 status_lock = Lock()  # lock global de escrita
+
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1:3b")
+OLLAMA_CLI = os.getenv("OLLAMA_CLI", "ollama")
+OLLAMA_NUM_PREDICT = int(os.getenv("OLLAMA_NUM_PREDICT", "40"))
+OLLAMA_TEMPERATURE = float(os.getenv("OLLAMA_TEMPERATURE", "0.2"))
+OLLAMA_TOP_P = float(os.getenv("OLLAMA_TOP_P", "0.9"))
+OLLAMA_NUM_CTX = int(os.getenv("OLLAMA_NUM_CTX", "256"))
+OLLAMA_KEEP_ALIVE = os.getenv("OLLAMA_KEEP_ALIVE", "10m")
+
+
+def _resolve_ollama_cli() -> str:
+    path = which(OLLAMA_CLI)
+    if path:
+        return path
+    local_app = os.getenv("LOCALAPPDATA", "")
+    candidate = os.path.join(local_app, "Programs", "Ollama", "ollama.exe")
+    if candidate and os.path.exists(candidate):
+        return candidate
+    return OLLAMA_CLI
+
+
+
+
+def _warmup_ollama():
+    def _run():
+        try:
+            _ollama_generate("Responda apenas com 'ok'.", timeout_s=8, allow_cli=False)
+        except Exception:
+            pass
+    t = threading.Thread(target=_run, daemon=True)
+    t.start()
+
+# aquece o modelo uma vez por sess?o
+if "ollama_warm" not in st.session_state:
+    st.session_state["ollama_warm"] = True
+    _warmup_ollama()
 
 def configurar_reconhecedor() -> sr.Recognizer:
     r = sr.Recognizer()
@@ -256,6 +296,156 @@ def atualizar_status_bancada(serial, status, teste=None):
 
     except Exception as e:
         print(f"⚠️ Erro ao atualizar status da bancada {serial}: {e}")
+
+
+
+def _ollama_generate(prompt: str, timeout_s: int = 12, allow_cli: bool = True) -> str | None:
+    payload = {"model": OLLAMA_MODEL, "prompt": prompt, "stream": False, "keep_alive": OLLAMA_KEEP_ALIVE, "options": {"num_predict": OLLAMA_NUM_PREDICT, "temperature": OLLAMA_TEMPERATURE, "top_p": OLLAMA_TOP_P, "num_ctx": OLLAMA_NUM_CTX}}
+    urls = [OLLAMA_URL]
+    if "localhost" in OLLAMA_URL:
+        urls.append(OLLAMA_URL.replace("localhost", "127.0.0.1"))
+
+    # Prefer requests if available
+    if requests is not None:
+        for url in urls:
+            try:
+                r = requests.post(f"{url}/api/generate", json=payload, timeout=timeout_s)
+                r.raise_for_status()
+                data = r.json()
+                return data.get("response", "").strip() or None
+            except Exception:
+                pass
+
+    # Fallback to stdlib urllib
+    for url in urls:
+        try:
+            req = urllib.request.Request(
+                f"{url}/api/generate",
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=timeout_s) as resp:
+                body = resp.read().decode("utf-8", errors="ignore")
+                data = json.loads(body)
+                return (data.get("response", "").strip() or None)
+        except Exception:
+            pass
+
+    # CLI fallback (ollama run)
+    if allow_cli:
+        try:
+            result = subprocess.run(
+                [_resolve_ollama_cli(), "run", OLLAMA_MODEL],
+                input=prompt,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                timeout=timeout_s
+            )
+            if result.returncode == 0:
+                out = (result.stdout or "").strip()
+                return out or None
+        except Exception:
+            pass
+
+    return None
+
+
+def llm_para_comando(frase: str, testes_disponiveis: list[str], categorias: list[str]) -> str | None:
+    """
+    Usa LLM local (Ollama) para transformar frase livre em comando can?nico.
+    Retorna None se o LLM estiver indispon?vel ou com baixa confian?a.
+    """
+    prompt = f"""
+Classifique em JSON.
+Frase: "{frase}"
+Comandos: executar/rodar, gravar/coletar, processar, apagar/deletar, listar categorias, listar testes, listar bancadas, resetar, pausar, retomar, parar.
+Categorias: {categorias}
+Testes: {testes_disponiveis[:25]}
+Formato:
+{{"acao":"executar|gravar|processar|apagar|listar_categorias|listar_testes|listar_bancadas|resetar|pausar|retomar|parar|nenhuma",
+  "teste":"audio_1",
+  "categoria":"audio",
+  "bancada":"1|todas|",
+  "confidence":0.0}}
+""".strip()
+
+    try:
+        import json as _json
+        resp = _ollama_generate(prompt, timeout_s=6, allow_cli=False)
+        if not resp:
+            return None
+        parsed = _json.loads(resp)
+    except Exception:
+        return None
+
+    if parsed.get("confidence", 0) < 0.6:
+        return None
+
+    acao = parsed.get("acao", "")
+    teste = parsed.get("teste", "")
+    categoria = parsed.get("categoria", "")
+    bancada = parsed.get("bancada", "")
+
+    if acao == "executar":
+        return f"executar {teste} na bancada {bancada}".strip()
+    if acao == "gravar":
+        return f"gravar {teste} na bancada {bancada}".strip()
+    if acao == "processar":
+        return f"processar {teste}".strip()
+    if acao == "apagar":
+        return f"apagar {teste}".strip()
+    if acao == "listar_categorias":
+        return "listar categorias"
+    if acao == "listar_testes":
+        return f"listar testes de {categoria}".strip()
+    if acao == "listar_bancadas":
+        return "listar bancadas"
+    if acao == "resetar":
+        return f"resetar {teste} na bancada {bancada}".strip()
+    if acao == "pausar":
+        return "pausar"
+    if acao == "retomar":
+        return "retomar"
+    if acao == "parar":
+        return "parar"
+    return None
+
+
+def llm_responder_chat(frase: str) -> str | None:
+    """
+    Usa LLM local (Ollama) para responder conversa livre.
+    Retorna None se indispon?vel.
+    """
+    prompt = f"""
+Responda em pt-BR com no m?ximo 2 frases.
+Se a pergunta for sobre uso, d? 1 exemplo de comando.
+Usu?rio: "{frase}"
+Assistente:
+""".strip()
+
+    try:
+        resp = _ollama_generate(prompt, timeout_s=4, allow_cli=False)
+        return resp or None
+    except Exception:
+        return None
+
+
+def resolver_comando_com_llm_ou_fallback(texto: str) -> str:
+    """Tenta LLM local e faz fallback para o parser atual."""
+    try:
+        cats = listar_categorias()
+        testes_ex = []
+        for c in cats:
+            testes_ex.extend(listar_testes(c))
+        cmd = llm_para_comando(texto, testes_ex, cats)
+        if cmd:
+            return interpretar_comando(cmd)
+    except Exception:
+        pass
+    return interpretar_comando(texto)
+
 
 def executar_teste(categoria, nome_teste, bancada: str | None = None):
     """
@@ -1018,6 +1208,30 @@ def responder_conversacional(comando: str):
         "Lista de comandos à disposição 👇"
     ]
 
+    respostas_rapidas = {
+        "oi": "Ol?! ?? Posso ajudar com testes ou explicar comandos. Ex.: `executar audio_1 na bancada 1`",
+        "ola": "Ol?! ?? Posso ajudar com testes ou explicar comandos. Ex.: `executar audio_1 na bancada 1`",
+        "ol?": "Ol?! ?? Posso ajudar com testes ou explicar comandos. Ex.: `executar audio_1 na bancada 1`",
+        "eai": "Fala! ?? Se quiser rodar algo: `executar audio_1 na bancada 1`",
+        "e a?": "Fala! ?? Se quiser rodar algo: `executar audio_1 na bancada 1`",
+        "bom dia": "Bom dia! Posso ajudar com testes ou comandos.",
+        "boa tarde": "Boa tarde! Posso ajudar com testes ou comandos.",
+        "boa noite": "Boa noite! Posso ajudar com testes ou comandos.",
+        "tudo bem": "Tudo sim! Posso ajudar com testes ou comandos.",
+        "beleza": "Beleza! Posso ajudar com testes ou comandos.",
+        "blz": "Blz! Posso ajudar com testes ou comandos."
+    }
+
+    saudacoes_rapidas = ["oi", "ola", "ol?", "eai", "e a?", "bom dia", "boa tarde", "boa noite", "tudo bem", "beleza", "blz"]
+    comando_norm_limpo = re.sub(r"[^a-z0-9\s]", "", comando_norm).strip()
+    for s in saudacoes_rapidas:
+        if comando_norm_limpo == s or comando_norm_limpo.startswith(s + " "):
+            st.session_state.chat_history.append({
+                "role": "assistant",
+                "content": respostas_rapidas.get(s, "Ol?! ?? Posso ajudar com testes ou comandos.")
+            })
+            return ""
+
     # Permite frases como "Zuri, listar bancadas"
     if comando_norm.startswith("zuri"):
         comando_norm = comando_norm.replace("zuri", "", 1).strip()
@@ -1026,38 +1240,46 @@ def responder_conversacional(comando: str):
     if any(p in comando_norm for p in ["listar bancadas", "ver bancadas", "bancadas conectadas"]):
         resposta_pre = random.choice(frases_bancadas)
         st.session_state.chat_history.append({"role": "assistant", "content": resposta_pre})
-        return interpretar_comando("listar bancadas")
+        return resolver_comando_com_llm_ou_fallback("listar bancadas")
 
     # ♻️ RESETAR TESTE / REVERTER AÇÕES
     if any(p in comando_norm for p in ["reset", "resetar", "reverter", "restaurar", "desfazer", "voltar estado inicial"]):
         resposta_pre = f"{random.choice(frases_iniciais)} ♻️ Restaurando estado inicial do teste..."
         st.session_state.chat_history.append({"role": "assistant", "content": resposta_pre})
-        return interpretar_comando(comando)
+        return resolver_comando_com_llm_ou_fallback(comando)
 
     if any(p in comando_norm for p in ["executar", "rodar", "testar", "rodar o teste"]):
         resposta_pre = f"{random.choice(frases_iniciais)} {random.choice(frases_execucao)}"
         st.session_state.chat_history.append({"role": "assistant", "content": resposta_pre})
-        return interpretar_comando(comando)
+        return resolver_comando_com_llm_ou_fallback(comando)
 
     if any(p in comando_norm for p in ["gravar", "coletar", "capturar"]):
         resposta_pre = f"{random.choice(frases_iniciais)} {random.choice(frases_coleta)}"
         st.session_state.chat_history.append({"role": "assistant", "content": resposta_pre})
-        return interpretar_comando(comando)
+        return resolver_comando_com_llm_ou_fallback(comando)
 
     if any(p in comando_norm for p in ["processar", "gerar dataset", "montar csv"]):
         resposta_pre = f"{random.choice(frases_iniciais)} {random.choice(frases_processamento)}"
         st.session_state.chat_history.append({"role": "assistant", "content": resposta_pre})
-        return interpretar_comando(comando)
+        return resolver_comando_com_llm_ou_fallback(comando)
 
     if any(p in comando_norm for p in ["ajuda", "comandos", "socorro", "me ajuda"]):
         resposta_pre = random.choice(frases_ajuda)
         st.session_state.chat_history.append({"role": "assistant", "content": resposta_pre})
-        return interpretar_comando("ajuda")
+        return resolver_comando_com_llm_ou_fallback("ajuda")
 
-    # Caso não tenha correspondência
+    # Caso n?o tenha correspond?ncia
+    resposta_llm = llm_responder_chat(comando) if MODO_CONVERSA else None
+    if resposta_llm:
+        st.session_state.chat_history.append({
+            "role": "assistant",
+            "content": resposta_llm
+        })
+        return ""
+
     st.session_state.chat_history.append({
         "role": "assistant",
-        "content": "Hmm 🤔 não entendi muito bem o que você quis dizer... pode repetir?"
+        "content": "Posso ajudar com comandos de testes. Ex.: `executar audio_1 na bancada 1`"
     })
     return ""
 
@@ -1065,7 +1287,7 @@ def responder_conversacional(comando: str):
 # === UI LATERAL  ===
 # ==================
 st.sidebar.title("☰ VWAIT - Menu")
-pagina = st.sidebar.radio("Navegação", ["💬 Chat", "📊 Dashboard"])
+pagina = st.sidebar.radio("Navegacao", ["Chat", "Dashboard"])
 
 # Side info: bancadas
 with st.sidebar.expander("📡 Bancadas (ADB)"):
@@ -1076,8 +1298,8 @@ with st.sidebar.expander("📡 Bancadas (ADB)"):
 # ============
 # === CHAT ===
 # ============
-if pagina == "💬 Chat":
-    titulo_painel("💬 VWAIT - Agente de Testes", "Digite <b>ajuda</b> para ver exemplos de comandos.")
+if pagina == "Chat":
+    titulo_painel("VWAIT - Agente de Testes", "Digite <b>ajuda</b> para ver exemplos de comandos.")
 
     # === EXEMPLOS DE PROMPTS ESTILIZADOS ===
     st.markdown(
@@ -1091,129 +1313,105 @@ if pagina == "💬 Chat":
             margin-bottom: 20px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.4);
         ">
-            <h3 style="color:#E0E0E0; margin-bottom:8px;">💡 Exemplos de comandos</h3>
+            <h3 style="color:#E0E0E0; margin-bottom:8px;">Exemplos de comandos</h3>
             <ul style="color:#CCCCCC; line-height:1.6; font-size:15px;">
-                <li><code>gravar audio_1 na bancada 1</code> — inicia gravação do teste de áudio na bancada 1</li>
-                <li><code>processar audio_1</code> — processa o dataset coletado</li>
-                <li><code>executar audio_1 na bancada 1</code> — roda o teste gravado</li>
-                <li><code>rodar todos os testes da categoria video</code> — executa todos os testes de uma categoria</li>
-                <li><code>listar bancadas</code> — mostra bancadas ADB conectadas</li>
-                <li><code>ajuda</code> — exibe a lista completa de comandos</li>
+                <li><code>gravar audio_1 na bancada 1</code> - inicia gravacao do teste de audio na bancada 1</li>
+                <li><code>processar audio_1</code> - processa o dataset coletado</li>
+                <li><code>executar audio_1 na bancada 1</code> - roda o teste gravado</li>
+                <li><code>rodar todos os testes da categoria video</code> - executa todos os testes de uma categoria</li>
+                <li><code>listar bancadas</code> - mostra bancadas ADB conectadas</li>
+                <li><code>ajuda</code> - exibe a lista completa de comandos</li>
             </ul>
         </div>
         """,
         unsafe_allow_html=True
     )
 
-import time
+    # === Exibi??o do hist?rico ===
+    for msg in st.session_state.chat_history:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
 
-# === Exibição do histórico ===
-for msg in st.session_state.chat_history:
-    with st.chat_message(msg["role"], avatar="🧑" if msg["role"] == "user" else "🤖"):
-        st.markdown(msg["content"])
-
-col_input, col_button = st.columns([4, 1])
-
-with col_input:
+    processing_placeholder = st.empty()
     user_input = st.chat_input("Digite seu comando...")
 
-with col_button:
-    if st.button("🎙️ Falar comando"):
+    # Botao de voz no sidebar (parte de baixo)
+    st.sidebar.markdown("<div style='height: 2rem;'></div>", unsafe_allow_html=True)
+    mic_clicked = st.sidebar.button("Falar comando")
+
+    if mic_clicked:
         recognizer = configurar_reconhecedor()
 
-        # selecione o primeiro mic disponível (ou mantenha padrão)
         try:
-            mic = sr.Microphone()  # você pode passar device_index se quiser fixar
+            mic = sr.Microphone()
         except Exception as e:
             st.session_state.chat_history.append({
                 "role": "assistant",
-                "content": f"❌ Microfone indisponível: {e}"
+                "content": f"Microfone indisponivel: {e}"
             })
             st.rerun()
 
         with mic as source:
-            st.toast("🎧 Ouvindo... fale seu comando completo.", icon="🎙️")
-            # calibração de ruído um pouco mais longa evita corte do início
+            st.toast("Ouvindo... fale seu comando completo.")
             recognizer.adjust_for_ambient_noise(source, duration=0.8)
-
-            # sem 'timeout', usamos só 'phrase_time_limit' para não cortar no meio
             audio = recognizer.listen(source, phrase_time_limit=12)
 
         try:
-            st.toast("🧠 Reconhecendo fala...", icon="🧠")
-            # idioma fixo pt-BR
+            st.toast("Reconhecendo fala...")
             command_text = recognizer.recognize_google(audio, language="pt-BR")
             command_text = normalizar_pos_fala(command_text)
 
-            # 🧑 Usuário
             st.session_state.chat_history.append({"role": "user", "content": command_text})
 
-            # ⏳ Feedback
-            placeholder = st.empty()
-            with placeholder.container():
-                with st.chat_message("assistant", avatar="🤖"):
-                    st.markdown("💭 **Processando comando...**")
+            with st.spinner("Processando comando..."):
+                if MODO_CONVERSA:
+                    resposta = responder_conversacional(command_text)
+                else:
+                    resposta = resolver_comando_com_llm_ou_fallback(command_text)
 
-            # Interpretação
-            if MODO_CONVERSA:
-                resposta = responder_conversacional(command_text)
-            else:
-                resposta = interpretar_comando(command_text)
-
-            placeholder.empty()
-            st.session_state.chat_history.append({"role": "assistant", "content": resposta})
+            if resposta:
+                st.session_state.chat_history.append({"role": "assistant", "content": resposta})
             st.rerun()
 
         except sr.UnknownValueError:
             st.session_state.chat_history.append({
                 "role": "assistant",
-                "content": "❌ Não consegui entender claramente. Pode repetir mais pausado?"
+                "content": "Nao consegui entender claramente. Pode repetir mais pausado?"
             })
             st.rerun()
         except sr.RequestError as e:
             st.session_state.chat_history.append({
                 "role": "assistant",
-                "content": f"⚠️ Falha no serviço de voz: {e}"
+                "content": f"Falha no servico de voz: {e}"
             })
             st.rerun()
-
         except sr.UnknownValueError:
             st.session_state.chat_history.append({
                 "role": "assistant",
-                "content": "❌ Não consegui entender o que você disse."
+                "content": "Nao consegui entender o que voce disse."
             })
             st.rerun()
-
         except sr.RequestError:
             st.session_state.chat_history.append({
                 "role": "assistant",
-                "content": "⚠️ Erro ao conectar ao serviço de reconhecimento de voz."
+                "content": "Erro ao conectar ao servico de reconhecimento de voz."
             })
             st.rerun()
 
-# 💬 ENTRADA MANUAL
-if user_input:
-    st.session_state.chat_history.append({"role": "user", "content": user_input})
+    # ENTRADA MANUAL
+    if user_input:
+        st.session_state.chat_history.append({"role": "user", "content": user_input})
 
-    # Exibe mensagem temporária de "pensando"
-    placeholder = st.empty()
-    with placeholder.container():
-        with st.chat_message("assistant", avatar="🤖"):
-            st.markdown("💭 **Processando comando...**")
-    time.sleep(1.2)
+        with st.spinner("Processando comando..."):
+            if MODO_CONVERSA:
+                resposta = responder_conversacional(user_input)
+            else:
+                resposta = resolver_comando_com_llm_ou_fallback(user_input)
 
-    if MODO_CONVERSA:
-        resposta = responder_conversacional(user_input)
-    else:
-        resposta = interpretar_comando(user_input)
+        if resposta:
+            st.session_state.chat_history.append({"role": "assistant", "content": resposta})
+        st.rerun()
 
-    placeholder.empty()
-    st.session_state.chat_history.append({"role": "assistant", "content": resposta})
-    st.rerun()
-
-# =================
-# === DASHBOARD ===
-# =================
 elif pagina == "📊 Dashboard":
     st.title("📊 Dashboard de Execução de Testes - Rádio Android")
 
