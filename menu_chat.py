@@ -166,6 +166,8 @@ st.set_page_config(page_title="Agente de Testes", page_icon="🤖", layout="wide
 # === SESSION STATE ===
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
+if "coletas_ativas" not in st.session_state:
+    st.session_state.coletas_ativas = set()
 
 # =========================
 # === SUPORTE A BANCADAS ===
@@ -614,6 +616,28 @@ def gravar_teste(categoria, nome_teste, bancada: str | None = None):
         else:
             respostas.append(f"❌ {msg}")
     return "\n".join(respostas)
+
+
+def finalizar_gravacao():
+    """Encerra coletas ativas criando stop.flag (igual ao menu_tester)."""
+    stop_path = os.path.join(PROJECT_ROOT, "stop.flag")
+    try:
+        with open(stop_path, "w") as f:
+            f.write("stop")
+
+        def _cleanup():
+            try:
+                time.sleep(15)
+                if os.path.exists(stop_path):
+                    os.remove(stop_path)
+            except Exception:
+                pass
+
+        threading.Thread(target=_cleanup, daemon=True).start()
+        return "Finalizando gravacao... toque na tela do radio para capturar o print final."
+    except Exception as e:
+        return f"Falha ao finalizar gravacao: {e}"
+        return f"Falha ao finalizar gravacao: {e}"
 
 def processar_teste(categoria, nome_teste):
     cmd = ["python", PROCESSAR_SCRIPT, categoria, nome_teste]
@@ -1287,7 +1311,7 @@ def responder_conversacional(comando: str):
 # === UI LATERAL  ===
 # ==================
 st.sidebar.title("☰ VWAIT - Menu")
-pagina = st.sidebar.radio("Navegacao", ["Chat", "Dashboard"])
+pagina = st.sidebar.radio("Navegacao", ["Chat", "Dashboard", "Menu Tester"])
 
 # Side info: bancadas
 with st.sidebar.expander("📡 Bancadas (ADB)"):
@@ -1331,6 +1355,11 @@ if pagina == "Chat":
     for msg in st.session_state.chat_history:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
+            if msg["role"] == "assistant" and "Gravando" in msg["content"]:
+                if st.button("Finalizar gravacao", key=f"finalizar_{len(st.session_state.chat_history)}"):
+                    msg_resp = finalizar_gravacao()
+                    st.session_state.chat_history.append({"role": "assistant", "content": msg_resp})
+                    st.rerun()
 
     processing_placeholder = st.empty()
     user_input = st.chat_input("Digite seu comando...")
