@@ -1,0 +1,34 @@
+📁 Execução Automática de Testes no Rádio via ADB
+[96m🔍 Verificando dispositivos ADB conectados...[0m
+[96m
+🗂️ Dataset: C:\Users\Automation01\Desktop\zuri_agente\Data\deep_dive\teste_2\dataset.csv[0m
+[96m🗂️ Frames:  C:\Users\Automation01\Desktop\zuri_agente\Data\deep_dive\teste_2\frames[0m
+[96m🗂️ Result.: C:\Users\Automation01\Desktop\zuri_agente\Data\deep_dive\teste_2\resultados
+[0m
+[96m
+🎬 Executando 7 ações do dataset...
+[0m
+[0m▶️ Ação 1/7 (tap)[0m
+[92m👉 TAP em (952,1013)[0m
+[96m🔎 Similaridade: 0.996 → ✅ OK | ⏱️ 2.92s[0m
+[0m▶️ Ação 2/7 (tap)[0m
+[92m👉 TAP em (696,1021)[0m
+[96m🔎 Similaridade: 0.996 → ✅ OK | ⏱️ 2.78s[0m
+[0m▶️ Ação 3/7 (tap)[0m
+[92m👉 TAP em (1665,701)[0m
+[96m🔎 Similaridade: 0.996 → ✅ OK | ⏱️ 2.99s[0m
+[0m▶️ Ação 4/7 (tap)[0m
+[92m👉 TAP em (736,482)[0m
+[96m🔎 Similaridade: 0.996 → ✅ OK | ⏱️ 2.82s[0m
+[0m▶️ Ação 5/7 (tap)[0m
+[92m👉 TAP em (624,841)[0m
+[96m🔎 Similaridade: 0.996 → ✅ OK | ⏱️ 2.73s[0m
+[0m▶️ Ação 6/7 (tap)[0m
+[92m👉 TAP em (298,645)[0m
+[96m🔎 Similaridade: 0.996 → ✅ OK | ⏱️ 2.84s[0m
+[0m▶️ Ação 7/7 (tap)[0m
+[92m👉 TAP em (314,569)[0m
+[96m🔎 Similaridade: 0.995 → ✅ OK | ⏱️ 2.80s[0m
+[92m
+✅ Execução finalizada. Log salvo em: C:\Users\Automation01\Desktop\zuri_agente\Data\deep_dive\teste_2\execucao_log.json[0m
+[96m📊 Status atualizado em: Data/status_0000f28500000000.json[0m

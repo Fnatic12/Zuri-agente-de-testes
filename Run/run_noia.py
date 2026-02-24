@@ -33,7 +33,7 @@ if platform.system() == "Windows":
 else:
     ADB_PATH = "adb"
 
-PAUSA_ENTRE_ACOES = 0              # segundos entre cada ação
+PAUSA_ENTRE_ACOES = 1              # segundos entre cada ação (mais lento)
 ESPERA_POS_ACAO_S = 1.7              # espera apos cada acao antes do screenshot
 SIMILARIDADE_HOME_OK = 0.85        # limite mínimo para considerar OK
 ADB_TIMEOUT = 25                   # timeout padrão para chamadas ADB (seg)
@@ -394,20 +394,25 @@ def main():
         print_color(f"❌ Falha ao ler dataset.csv: {e}", "red")
         return
 
-    total_acoes = len(df)
+    total_acoes = sum(1 for _, r in df.iterrows() if str(r.get("tipo", "")).lower() != "swipe_fim")
     print_color(f"\n🎬 Executando {total_acoes} ações do dataset...\n", "cyan")
     log = []
 
     # 🔹 Inicializa status
     inicializar_status_bancada(bancada_key, nome_teste, len(df))
 
+    action_idx = 0
     for i, row in df.iterrows():
         try:
             tipo = str(row.get("tipo", "tap")).lower()
         except Exception:
             tipo = "tap"
 
-        print_color(f"▶️ Ação {i+1}/{total_acoes} ({tipo})", "white")
+        if tipo == "swipe_fim":
+            # swipe_fim é consumido pelo swipe_inicio e não deve gerar ação/screenshot
+            continue
+
+        print_color(f"▶️ Ação {action_idx+1}/{total_acoes} ({tipo})", "white")
 
         # Pausa se necessário (auto-limpa se sobrou de execução anterior)
         pause_path = os.path.join(BASE_DIR, "pause.flag")
@@ -435,17 +440,23 @@ def main():
 
 
             elif tipo in ["swipe", "swipe_inicio"]:
-                # Busca próximo registro com término do swipe
-                x1, y1 = int(row.get("x", 0)), int(row.get("y", 0))
+                # Busca coordenadas do swipe (prioriza x1/y1/x2/y2 se existirem)
+                x1 = int(row.get("x1", row.get("x", 0)))
+                y1 = int(row.get("y1", row.get("y", 0)))
                 dur = int(row.get("duracao_ms", 300))
                 x2, y2 = None, None
 
-                if i + 1 < len(df):
-                    proxima = df.iloc[i + 1]
-                    prox_tipo = str(proxima.get("tipo", "")).lower()
-                    if prox_tipo in ["swipe_fim", "swipe"]:
-                        x2 = int(proxima.get("x2", proxima.get("x", 0)))
-                        y2 = int(proxima.get("y2", proxima.get("y", 0)))
+                if tipo == "swipe":
+                    x2 = int(row.get("x2", row.get("x", 0)))
+                    y2 = int(row.get("y2", row.get("y", 0)))
+                else:
+                    # Busca próximo registro com término do swipe
+                    if i + 1 < len(df):
+                        proxima = df.iloc[i + 1]
+                        prox_tipo = str(proxima.get("tipo", "")).lower()
+                        if prox_tipo in ["swipe_fim", "swipe"]:
+                            x2 = int(proxima.get("x2", proxima.get("x", 0)))
+                            y2 = int(proxima.get("y2", proxima.get("y", 0)))
 
                 if x2 is not None and y2 is not None:
                     executar_swipe(x1, y1, x2, y2, duracao=dur, serial=serial)
@@ -462,13 +473,14 @@ def main():
         except Exception as e:
             print_color(f"⚠️ Erro ao executar ação {i+1}: {e}", "red")
 
-        # Aguarda a UI estabilizar ap?s a a??o antes de capturar o screenshot.
+        # Aguarda a UI estabilizar após a ação antes de capturar o screenshot.
         time.sleep(ESPERA_POS_ACAO_S)
         # ===== Screenshot e Similaridade =====
-        screenshot_nome = f"resultado_{i+1:02d}.png"
+        action_idx += 1
+        screenshot_nome = f"resultado_{action_idx:02d}.png"
         screenshot_path = capturar_screenshot(resultados_dir, screenshot_nome, serial)
 
-        esperado_rel = os.path.join("frames", f"frame_{i+1:02d}.png")
+        esperado_rel = os.path.join("frames", f"frame_{action_idx:02d}.png")
         esperado_abs = os.path.join(teste_dir, esperado_rel)
 
         similaridade = comparar_imagens(screenshot_path, esperado_abs)

@@ -27,7 +27,7 @@ REMOTE_TMP = "/sdcard/tmp_shot.png"
 MOV_THRESH_PX = 25            # distância p/ classificar SWIPE (senão é TAP)
 DEFAULT_RES = (1920, 1080)    # fallback
 DEFAULT_DEV = "/dev/input/event2"
-SCREENSHOT_DELAY_S = 0.1      # atraso minimo antes de capturar o frame
+SCREENSHOT_DELAY_S = 1.1      # atraso antes de capturar o frame (aguarda transicao de tela)
 stop_requested = False
 
 def handle_sigterm(signum, frame):

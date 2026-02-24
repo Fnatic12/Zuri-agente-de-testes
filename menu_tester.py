@@ -4,13 +4,57 @@ import os
 import platform
 import sys
 import shutil
+import time
+import webbrowser
 from streamlit_autorefresh import st_autorefresh
+from datetime import datetime
 
 # === Caminho do ADB ===
 if platform.system() == "Windows":
     ADB_PATH = r"C:\Users\Automation01\platform-tools\adb.exe"
 else:
     ADB_PATH = "adb"
+
+def _parse_adb_devices(raw_lines):
+    seriais = []
+    for ln in raw_lines[1:]:
+        ln = ln.strip()
+        if not ln:
+            continue
+        if ln.endswith("\tdevice"):
+            seriais.append(ln.split("\t")[0])
+    return seriais
+
+def listar_bancadas():
+    try:
+        result = subprocess.check_output([ADB_PATH, "devices"], text=True).strip().splitlines()
+        devices = _parse_adb_devices(result)
+        return devices
+    except Exception:
+        return []
+
+def _adb_cmd(serial=None):
+    if serial:
+        return [ADB_PATH, "-s", serial]
+    return [ADB_PATH]
+
+def salvar_resultado_parcial(categoria, nome_teste, serial=None):
+    """Salva uma screenshot de resultado esperado sem parar a coleta."""
+    base_dir = os.path.join(BASE_DIR, "Data", categoria, nome_teste)
+    esperados_dir = os.path.join(base_dir, "esperados")
+    os.makedirs(esperados_dir, exist_ok=True)
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    img_name = f"esperado_{ts}.png"
+    img_path = os.path.join(esperados_dir, img_name)
+    try:
+        cmd = _adb_cmd(serial) + ["exec-out", "screencap", "-p"]
+        with open(img_path, "wb") as f:
+            subprocess.run(cmd, stdout=f, stderr=subprocess.PIPE)
+        if os.path.exists(img_path) and os.path.getsize(img_path) > 0:
+            return True, img_name
+        return False, "Falha ao salvar resultado esperado."
+    except Exception as e:
+        return False, f"Falha ao salvar resultado esperado: {e}"
 
 def titulo_painel(titulo: str, subtitulo: str = ""):
     st.markdown(
@@ -79,6 +123,12 @@ st.divider()
 st.subheader("🎥 Coletar Gestos")
 categoria = st.text_input("Categoria do Teste (ex: audio, video, bluetooth)", key="cat_coleta")
 nome_teste = st.text_input("Nome do Teste (ex: audio_1, bt_pareamento)", key="nome_coleta")
+bancadas = listar_bancadas()
+serial_sel = None
+if bancadas:
+    serial_sel = st.selectbox("Bancada/Dispositivo ADB", options=bancadas, index=0)
+else:
+    st.info("Nenhum dispositivo ADB encontrado. Conecte o radio e clique em iniciar.")
 
 col1, col2 = st.columns(2)
 
@@ -106,8 +156,11 @@ with col1:
                 st.session_state.coleta_log_file = log_file
                 env = os.environ.copy()
                 env["PYTHONUNBUFFERED"] = "1"
+                cmd = [sys.executable, "-u", SCRIPTS["Coletar Gestos"], categoria, nome_teste]
+                if serial_sel:
+                    cmd += ["--serial", serial_sel]
                 st.session_state.proc_coleta = subprocess.Popen(
-                    [sys.executable, "-u", SCRIPTS["Coletar Gestos"], categoria, nome_teste],
+                    cmd,
                     cwd=BASE_DIR,
                     stdout=log_file,
                     stderr=subprocess.STDOUT,
@@ -127,8 +180,24 @@ with col1:
                 with open(STOP_FLAG_PATH, "w") as f:
                     f.write("stop")
                 st.warning("👉 Toque na tela do rádio para capturar o print final...")
-                proc.wait(timeout=15)
-                st.success("🛑 Coleta finalizada com sucesso. Print final e ações salvos.")
+                # aguarda término e criação do acoes.json (pode levar um pouco)
+                acoes_path = os.path.join(BASE_DIR, "Data", categoria, nome_teste, "json", "acoes.json")
+                timeout_s = 60
+                t0 = time.time()
+                while time.time() - t0 < timeout_s:
+                    if os.path.exists(acoes_path):
+                        break
+                    if proc.poll() is not None:
+                        break
+                    time.sleep(1)
+                if os.path.exists(acoes_path):
+                    st.success("🛑 Coleta finalizada com sucesso. Print final e ações salvos.")
+                else:
+                    proc.wait(timeout=10)
+                    if os.path.exists(acoes_path):
+                        st.success("🛑 Coleta finalizada com sucesso. Print final e ações salvos.")
+                    else:
+                        st.warning("⚠️ Coleta finalizada, mas o acoes.json não apareceu. Verifique o log.")
             except subprocess.TimeoutExpired:
                 proc.kill()
                 st.warning("⚠️ Coletor não respondeu, finalizado à força.")
@@ -144,6 +213,18 @@ with col1:
                 st.session_state.proc_coleta = None
         else:
             st.info("Nenhuma coleta em andamento.")
+
+# === RESULTADO ESPERADO (sem parar coleta) ===
+with col2:
+    if st.button("📸 Salvar Resultado Esperado"):
+        if categoria and nome_teste:
+            ok, msg = salvar_resultado_parcial(categoria, nome_teste, serial_sel)
+            if ok:
+                st.success(f"✅ Resultado esperado salvo: {msg}")
+            else:
+                st.error(msg)
+        else:
+            st.error("Informe categoria e nome do teste antes de salvar o esperado.")
 
 # === LOGS DA COLETA (ao vivo) ===
 log_path = st.session_state.coleta_log_path
@@ -262,7 +343,7 @@ with col_a:
             st.error("Informe categoria e nome do teste.")
     st.markdown("</div>", unsafe_allow_html=True)
 
-# Logs de execucao (ao vivo)
+# Logs de execucao (ao vivo) dentro de um box
 log_path = st.session_state.get("execucao_log_path")
 if log_path and os.path.exists(log_path):
     st.markdown("**Logs de execucao**")
@@ -272,7 +353,25 @@ if log_path and os.path.exists(log_path):
         logs_txt = "".join(lines[-200:])
     except Exception:
         logs_txt = ""
-    st.markdown(f"<div class='log-box'><pre>{logs_txt}</pre></div>", unsafe_allow_html=True)
+    st.markdown(
+        """
+        <div style="
+            background: #1f1f1f;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            padding: 12px;
+            max-height: 260px;
+            overflow: auto;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+            color: #E6E6E6;
+        ">
+        {logs}
+        </div>
+        """.format(logs=logs_txt.replace("<", "&lt;").replace(">", "&gt;")),
+        unsafe_allow_html=True
+    )
 
 with col_b:
     st.markdown("<div class='exec-card secondary'>", unsafe_allow_html=True)
@@ -393,5 +492,25 @@ if st.button("📄 Gerar Relatórios de Falhas (execução_log.json)"):
 # === DASHBOARD ===
 st.divider()
 if st.button("📊 Abrir Dashboard"):
-    subprocess.Popen(["streamlit", "run", SCRIPTS["Abrir Dashboard"]], cwd=BASE_DIR)
-    st.success("🌐 Dashboard aberto em nova aba do navegador.")
+    try:
+        port = int(os.environ.get("VWAIT_DASHBOARD_PORT", "8504"))
+        subprocess.Popen(
+            [
+                sys.executable,
+                "-m",
+                "streamlit",
+                "run",
+                SCRIPTS["Abrir Dashboard"],
+                "--server.port",
+                str(port),
+                "--server.headless",
+                "false",
+            ],
+            cwd=BASE_DIR,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        webbrowser.open_new_tab(f"http://localhost:{port}")
+        st.success(f"Dashboard iniciado em http://localhost:{port}")
+    except Exception as e:
+        st.error(f"Falha ao abrir dashboard: {e}")

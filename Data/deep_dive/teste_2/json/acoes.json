@@ -1,81 +1,81 @@
 {
-    "teste": "audio_1",
-    "categoria": "audio",
+    "teste": "teste_2",
+    "categoria": "deep_dive",
     "acoes": [
         {
             "id": 1,
-            "timestamp": "2026-02-20T11:59:22.313165",
+            "timestamp": "2026-02-24T08:55:16.091248",
             "imagem": "frame_01.png",
             "acao": {
                 "tipo": "tap",
-                "x": 973,
-                "y": 995,
-                "duracao_s": 0.06
+                "x": 952,
+                "y": 1013,
+                "duracao_s": 0.11
             }
         },
         {
             "id": 2,
-            "timestamp": "2026-02-20T11:59:23.835169",
+            "timestamp": "2026-02-24T08:55:19.503647",
             "imagem": "frame_02.png",
             "acao": {
                 "tipo": "tap",
-                "x": 975,
-                "y": 1003,
-                "duracao_s": 0.07
+                "x": 696,
+                "y": 1021,
+                "duracao_s": 0.14
             }
         },
         {
             "id": 3,
-            "timestamp": "2026-02-20T11:59:26.021694",
+            "timestamp": "2026-02-24T08:55:23.276969",
             "imagem": "frame_03.png",
             "acao": {
                 "tipo": "tap",
-                "x": 1095,
-                "y": 1009,
+                "x": 1665,
+                "y": 701,
                 "duracao_s": 0.1
             }
         },
         {
             "id": 4,
-            "timestamp": "2026-02-20T11:59:29.452115",
+            "timestamp": "2026-02-24T08:55:29.612655",
             "imagem": "frame_04.png",
             "acao": {
                 "tipo": "tap",
-                "x": 806,
-                "y": 354,
-                "duracao_s": 0.05
+                "x": 736,
+                "y": 482,
+                "duracao_s": 0.06
             }
         },
         {
             "id": 5,
-            "timestamp": "2026-02-20T11:59:33.623080",
+            "timestamp": "2026-02-24T08:55:34.297712",
             "imagem": "frame_05.png",
             "acao": {
                 "tipo": "tap",
-                "x": 876,
-                "y": 534,
-                "duracao_s": 0.07
+                "x": 624,
+                "y": 841,
+                "duracao_s": 0.1
             }
         },
         {
             "id": 6,
-            "timestamp": "2026-02-20T11:59:36.162807",
+            "timestamp": "2026-02-24T08:55:41.805917",
             "imagem": "frame_06.png",
             "acao": {
                 "tipo": "tap",
-                "x": 82,
-                "y": 160,
-                "duracao_s": 0.08
+                "x": 298,
+                "y": 645,
+                "duracao_s": 0.12
             }
         },
         {
             "id": 7,
-            "timestamp": "2026-02-20T11:59:37.340239",
+            "timestamp": "2026-02-24T08:55:45.406343",
             "imagem": "frame_07.png",
             "acao": {
                 "tipo": "tap",
-                "x": 973,
-                "y": 1019,
+                "x": 314,
+                "y": 569,
                 "duracao_s": 0.06
             }
         }

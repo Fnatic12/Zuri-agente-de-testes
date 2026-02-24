@@ -210,13 +210,6 @@ def highlight_status(val):
 st.dataframe(
     df.style
     .map(highlight_status, subset=["⚙️ Status"])
-    .set_properties(**{
-        "background-color": "#1c1c1c",
-        "color": "#e0e0e0",
-        "border-color": "#333",
-        "font-size": "14px",
-        "text-align": "center"
-    })
     .set_table_styles([
         {'selector': 'thead th', 'props': [
             ('background-color', '#242424'),
@@ -224,6 +217,13 @@ st.dataframe(
             ('font-size', '14px'),
             ('font-weight', 'bold'),
             ('border-bottom', '2px solid #444')
+        ]},
+        {'selector': 'tbody td', 'props': [
+            ('background-color', '#1c1c1c'),
+            ('color', '#e0e0e0'),
+            ('border-color', '#333'),
+            ('font-size', '14px'),
+            ('text-align', 'center')
         ]}
     ]),
     use_container_width=True,

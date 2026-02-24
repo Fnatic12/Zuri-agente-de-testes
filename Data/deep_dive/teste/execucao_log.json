@@ -1,0 +1,242 @@
+[
+    {
+        "id": 1,
+        "timestamp": "2026-02-23T16:27:28.094112",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 997,
+            "y": 1047,
+            "tipo": "tap",
+            "timestamp": "2026-02-23T16:25:55.765172",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.5192708333333333,
+            "y_norm": 0.9694444444444444
+        },
+        "screenshot": "resultados\\resultado_01.png",
+        "frame_esperado": "frames\\frame_01.png",
+        "similaridade": 0.9978011893732055,
+        "status": "✅ OK",
+        "duracao": 3.13
+    },
+    {
+        "id": 2,
+        "timestamp": "2026-02-23T16:27:31.980759",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 696,
+            "y": 1023,
+            "tipo": "tap",
+            "timestamp": "2026-02-23T16:25:59.930277",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.3625,
+            "y_norm": 0.9472222222222222
+        },
+        "screenshot": "resultados\\resultado_02.png",
+        "frame_esperado": "frames\\frame_02.png",
+        "similaridade": 0.9978398664586591,
+        "status": "✅ OK",
+        "duracao": 2.88
+    },
+    {
+        "id": 3,
+        "timestamp": "2026-02-23T16:27:36.137138",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 1677,
+            "y": 707,
+            "tipo": "tap",
+            "timestamp": "2026-02-23T16:26:04.172008",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.8734375,
+            "y_norm": 0.6546296296296297
+        },
+        "screenshot": "resultados\\resultado_03.png",
+        "frame_esperado": "frames\\frame_03.png",
+        "similaridade": 0.7172831737648979,
+        "status": "❌ Divergente",
+        "duracao": 3.15
+    },
+    {
+        "id": 4,
+        "timestamp": "2026-02-23T16:27:40.563382",
+        "acao": "swipe_inicio",
+        "coordenadas": {
+            "x": 1383,
+            "y": 595,
+            "tipo": "swipe_inicio",
+            "timestamp": "2026-02-23T16:26:08.089859",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.7203125,
+            "y_norm": 0.5509259259259259
+        },
+        "screenshot": "resultados\\resultado_04.png",
+        "frame_esperado": "frames\\frame_04.png",
+        "similaridade": 0.9984823019778211,
+        "status": "✅ OK",
+        "duracao": 3.42
+    },
+    {
+        "id": 6,
+        "timestamp": "2026-02-23T16:27:44.378628",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 1165,
+            "y": 416,
+            "tipo": "tap",
+            "timestamp": "2026-02-23T16:26:16.581662",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.6067708333333334,
+            "y_norm": 0.3851851851851852
+        },
+        "screenshot": "resultados\\resultado_05.png",
+        "frame_esperado": "frames\\frame_05.png",
+        "similaridade": 0.9984823019778211,
+        "status": "✅ OK",
+        "duracao": 2.81
+    },
+    {
+        "id": 7,
+        "timestamp": "2026-02-23T16:27:48.484798",
+        "acao": "swipe_inicio",
+        "coordenadas": {
+            "x": 288,
+            "y": 448,
+            "tipo": "swipe_inicio",
+            "timestamp": "2026-02-23T16:26:21.063779",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.15,
+            "y_norm": 0.4148148148148148
+        },
+        "screenshot": "resultados\\resultado_06.png",
+        "frame_esperado": "frames\\frame_06.png",
+        "similaridade": 0.9652271736420879,
+        "status": "✅ OK",
+        "duracao": 3.1
+    },
+    {
+        "id": 9,
+        "timestamp": "2026-02-23T16:27:52.619643",
+        "acao": "swipe_inicio",
+        "coordenadas": {
+            "x": 284,
+            "y": 412,
+            "tipo": "swipe_inicio",
+            "timestamp": "2026-02-23T16:26:28.433067",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.1479166666666666,
+            "y_norm": 0.3814814814814815
+        },
+        "screenshot": "resultados\\resultado_07.png",
+        "frame_esperado": "frames\\frame_07.png",
+        "similaridade": 0.9984823019778211,
+        "status": "✅ OK",
+        "duracao": 3.13
+    },
+    {
+        "id": 11,
+        "timestamp": "2026-02-23T16:27:56.472662",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 650,
+            "y": 298,
+            "tipo": "tap",
+            "timestamp": "2026-02-23T16:26:36.353702",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.3385416666666667,
+            "y_norm": 0.2759259259259259
+        },
+        "screenshot": "resultados\\resultado_08.png",
+        "frame_esperado": "frames\\frame_08.png",
+        "similaridade": 0.9984823019778211,
+        "status": "✅ OK",
+        "duracao": 2.85
+    },
+    {
+        "id": 12,
+        "timestamp": "2026-02-23T16:28:00.230583",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 214,
+            "y": 845,
+            "tipo": "tap",
+            "timestamp": "2026-02-23T16:26:50.425465",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.1114583333333333,
+            "y_norm": 0.7824074074074074
+        },
+        "screenshot": "resultados\\resultado_09.png",
+        "frame_esperado": "frames\\frame_09.png",
+        "similaridade": 0.9984822535499001,
+        "status": "✅ OK",
+        "duracao": 2.75
+    },
+    {
+        "id": 13,
+        "timestamp": "2026-02-23T16:28:04.341375",
+        "acao": "swipe_inicio",
+        "coordenadas": {
+            "x": 246,
+            "y": 831,
+            "tipo": "swipe_inicio",
+            "timestamp": "2026-02-23T16:26:53.941332",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.128125,
+            "y_norm": 0.7694444444444445
+        },
+        "screenshot": "resultados\\resultado_10.png",
+        "frame_esperado": "frames\\frame_10.png",
+        "similaridade": 0.9584060513461855,
+        "status": "✅ OK",
+        "duracao": 3.11
+    },
+    {
+        "id": 15,
+        "timestamp": "2026-02-23T16:28:08.182280",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 218,
+            "y": 751,
+            "tipo": "tap",
+            "timestamp": "2026-02-23T16:26:56.712085",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.1135416666666666,
+            "y_norm": 0.6953703703703704
+        },
+        "screenshot": "resultados\\resultado_11.png",
+        "frame_esperado": "frames\\frame_11.png",
+        "similaridade": 0.8311597123121831,
+        "status": "❌ Divergente",
+        "duracao": 2.84
+    },
+    {
+        "id": 16,
+        "timestamp": "2026-02-23T16:28:12.178698",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 224,
+            "y": 867,
+            "tipo": "tap",
+            "timestamp": "2026-02-23T16:27:00.813796",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.1166666666666666,
+            "y_norm": 0.8027777777777778
+        },
+        "screenshot": "resultados\\resultado_12.png",
+        "frame_esperado": "frames\\frame_12.png",
+        "similaridade": 0.8028747290078675,
+        "status": "❌ Divergente",
+        "duracao": 2.99
+    }
+]

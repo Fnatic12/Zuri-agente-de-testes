@@ -3,6 +3,7 @@ import re
 import json
 import shutil
 import subprocess
+import platform
 from shutil import which
 import speech_recognition as sr
 try:
@@ -35,6 +36,11 @@ OLLAMA_TEMPERATURE = float(os.getenv("OLLAMA_TEMPERATURE", "0.2"))
 OLLAMA_TOP_P = float(os.getenv("OLLAMA_TOP_P", "0.9"))
 OLLAMA_NUM_CTX = int(os.getenv("OLLAMA_NUM_CTX", "256"))
 OLLAMA_KEEP_ALIVE = os.getenv("OLLAMA_KEEP_ALIVE", "10m")
+if platform.system() == "Windows":
+    ADB_PATH = r"C:\Users\Automation01\platform-tools\adb.exe"
+else:
+    ADB_PATH = "adb"
+
 
 
 def _resolve_ollama_cli() -> str:
@@ -168,6 +174,12 @@ if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 if "coletas_ativas" not in st.session_state:
     st.session_state.coletas_ativas = set()
+if "coleta_atual" not in st.session_state:
+    st.session_state.coleta_atual = None
+if "pending_gravacao" not in st.session_state:
+    st.session_state.pending_gravacao = None
+if "finalizacoes_pendentes" not in st.session_state:
+    st.session_state.finalizacoes_pendentes = []
 
 # =========================
 # === SUPORTE A BANCADAS ===
@@ -558,7 +570,7 @@ def executar_teste(categoria, nome_teste, bancada: str | None = None):
 
                     # Atualiza a interface automaticamente após finalização
                     try:
-                        st.experimental_rerun()
+                        st.rerun()
                     except Exception:
                         pass
 
@@ -597,11 +609,106 @@ def _registrar_log(caminho_log, nova_entrada):
         print(f"⚠️ Falha ao registrar log: {e}")
 
 
+def iniciar_fluxo_gravacao():
+    st.session_state.pending_gravacao = {"step": "categoria"}
+    return "Qual categoria voce quer gravar?"
+
+
+def continuar_fluxo_gravacao(resposta: str):
+    pg = st.session_state.pending_gravacao or {"step": "categoria"}
+    step = pg.get("step")
+
+    if step == "categoria":
+        categoria = resposta.strip().lower().replace(" ", "_")
+        if not categoria:
+            return "Informe a categoria do teste."
+        pg["categoria"] = categoria
+        pg["step"] = "nome"
+        st.session_state.pending_gravacao = pg
+        return "Qual nome do teste voce quer gravar?"
+
+    if step == "nome":
+        nome = resposta.strip().lower().replace(" ", "_")
+        if not nome:
+            return "Informe o nome do teste."
+        pg["nome"] = nome
+
+        bancadas = listar_bancadas()
+        if len(bancadas) > 1:
+            pg["step"] = "bancada"
+            st.session_state.pending_gravacao = pg
+            return "Qual bancada voce esta? (ex: 1, 2, 3)"
+
+        # executa direto (0 ou 1 bancada)
+        st.session_state.pending_gravacao = None
+        return gravar_teste(pg["categoria"], pg["nome"], None)
+
+    if step == "bancada":
+        b = _extrair_bancada(resposta)
+        if not b:
+            return "Informe a bancada (ex: 1, 2, 3)."
+        st.session_state.pending_gravacao = None
+        return gravar_teste(pg["categoria"], pg["nome"], b)
+
+    st.session_state.pending_gravacao = None
+    return "Nao entendi. Tente novamente."
+
+
+def checar_finalizacoes():
+    """Verifica se resultado_final.png foi gerado e avisa no chat."""
+    pend = list(st.session_state.finalizacoes_pendentes)
+    restantes = []
+    for item in pend:
+        cat, nome, serial = item
+        path_final = os.path.join(DATA_ROOT, cat, nome, "resultado_final.png")
+        if os.path.exists(path_final):
+            st.session_state.chat_history.append({
+                "role": "assistant",
+                "content": f"Coleta finalizada: {cat}/{nome} (bancada {serial})."
+            })
+        else:
+            restantes.append(item)
+    st.session_state.finalizacoes_pendentes = restantes
+
+
+def _adb_cmd(serial=None):
+    if serial:
+        return [ADB_PATH, "-s", serial]
+    return [ADB_PATH]
+
+
+def salvar_resultado_parcial(categoria, nome_teste, serial=None):
+    """Salva uma screenshot de resultado esperado sem parar a grava??o."""
+    base_dir = os.path.join(DATA_ROOT, categoria, nome_teste)
+    esperados_dir = os.path.join(base_dir, "esperados")
+    os.makedirs(esperados_dir, exist_ok=True)
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    img_name = f"esperado_{ts}.png"
+    img_path = os.path.join(esperados_dir, img_name)
+    try:
+        cmd = _adb_cmd(serial) + ["exec-out", "screencap", "-p"]
+        with open(img_path, "wb") as f:
+            subprocess.run(cmd, stdout=f, stderr=subprocess.PIPE)
+        if os.path.exists(img_path) and os.path.getsize(img_path) > 0:
+            return f"Resultado esperado salvo: {img_name}"
+        return "Falha ao salvar resultado esperado."
+    except Exception as e:
+        return f"Falha ao salvar resultado esperado: {e}"
+
+
 def gravar_teste(categoria, nome_teste, bancada: str | None = None):
     """
     Grava teste no host, encaminhando o serial como parâmetro para o coletor.
     Obs.: espera que Scripts/coletor_adb.py aceite '--serial <SERIAL>'.
     """
+    # limpa flags antigas para nao encerrar a coleta imediatamente
+    stop_path = os.path.join(PROJECT_ROOT, "stop.flag")
+    if os.path.exists(stop_path):
+        try:
+            os.remove(stop_path)
+        except Exception:
+            pass
+
     bancadas = listar_bancadas()
     seriais, erro = _selecionar_bancada(bancada, bancadas)
     if erro:
@@ -618,7 +725,7 @@ def gravar_teste(categoria, nome_teste, bancada: str | None = None):
     return "\n".join(respostas)
 
 
-def finalizar_gravacao():
+def finalizar_gravacao(categoria=None, nome_teste=None, serial=None):
     """Encerra coletas ativas criando stop.flag (igual ao menu_tester)."""
     stop_path = os.path.join(PROJECT_ROOT, "stop.flag")
     try:
@@ -634,10 +741,30 @@ def finalizar_gravacao():
                 pass
 
         threading.Thread(target=_cleanup, daemon=True).start()
+        if categoria and nome_teste and serial:
+            st.session_state.finalizacoes_pendentes.append((categoria, nome_teste, serial))
+        st.session_state.coleta_atual = None
         return "Finalizando gravacao... toque na tela do radio para capturar o print final."
     except Exception as e:
         return f"Falha ao finalizar gravacao: {e}"
-        return f"Falha ao finalizar gravacao: {e}"
+
+def cancelar_gravacao(categoria=None, nome_teste=None):
+    if categoria and nome_teste:
+        try:
+            caminho = os.path.join(DATA_ROOT, categoria, nome_teste)
+            if os.path.exists(caminho):
+                shutil.rmtree(caminho)
+        except Exception:
+            pass
+    stop_path = os.path.join(PROJECT_ROOT, "stop.flag")
+    try:
+        with open(stop_path, "w") as f:
+            f.write("stop")
+    except Exception:
+        pass
+    st.session_state.coleta_atual = None
+    return "Gravacao cancelada e teste removido."
+
 
 def processar_teste(categoria, nome_teste):
     cmd = ["python", PROCESSAR_SCRIPT, categoria, nome_teste]
@@ -771,7 +898,7 @@ def exibir_timeline(execucao):
     st.subheader("⏳ Timeline da Execução")
 
     # Extrai e normaliza dados
-    tempos = [float(a.get("duracao", 1)) for a in execucao]
+    tempos = [int(float(a.get("duracao", 1))) for a in execucao]
     ids = []
     for idx, a in enumerate(execucao):
         # Garante que o ID seja numérico
@@ -792,7 +919,8 @@ def exibir_timeline(execucao):
     ax.set_title("Tempo por Ação")
 
     # Deixa o eixo X limpo (sem notação científica)
-    ax.xaxis.get_major_formatter().set_useOffset(False)
+    # Evita warnings de stub: não usar set_useOffset diretamente
+    # (o formato padrão já é suficiente para o gráfico)
 
     st.pyplot(fig)
 
@@ -1192,6 +1320,10 @@ def responder_conversacional(comando: str):
 
     comando_norm = _norm(comando)
 
+    # fluxo guiado de gravacao
+    if st.session_state.pending_gravacao is not None:
+        return continuar_fluxo_gravacao(comando)
+
     # Expressões auxiliares para respostas naturais
     frases_iniciais = [
         "Entendido 💫",
@@ -1233,11 +1365,11 @@ def responder_conversacional(comando: str):
     ]
 
     respostas_rapidas = {
-        "oi": "Ol?! ?? Posso ajudar com testes ou explicar comandos. Ex.: `executar audio_1 na bancada 1`",
-        "ola": "Ol?! ?? Posso ajudar com testes ou explicar comandos. Ex.: `executar audio_1 na bancada 1`",
-        "ol?": "Ol?! ?? Posso ajudar com testes ou explicar comandos. Ex.: `executar audio_1 na bancada 1`",
-        "eai": "Fala! ?? Se quiser rodar algo: `executar audio_1 na bancada 1`",
-        "e a?": "Fala! ?? Se quiser rodar algo: `executar audio_1 na bancada 1`",
+        "oi": "Ol?!  Posso ajudar com testes ou explicar comandos. Ex.: `executar audio_1 na bancada 1`",
+        "ola": "Ol?!  Posso ajudar com testes ou explicar comandos. Ex.: `executar audio_1 na bancada 1`",
+        "ol?": "Ol?!  Posso ajudar com testes ou explicar comandos. Ex.: `executar audio_1 na bancada 1`",
+        "eai": "Fala!  Se quiser rodar algo: `executar audio_1 na bancada 1`",
+        "e a?": "Fala!  Se quiser rodar algo: `executar audio_1 na bancada 1`",
         "bom dia": "Bom dia! Posso ajudar com testes ou comandos.",
         "boa tarde": "Boa tarde! Posso ajudar com testes ou comandos.",
         "boa noite": "Boa noite! Posso ajudar com testes ou comandos.",
@@ -1252,7 +1384,7 @@ def responder_conversacional(comando: str):
         if comando_norm_limpo == s or comando_norm_limpo.startswith(s + " "):
             st.session_state.chat_history.append({
                 "role": "assistant",
-                "content": respostas_rapidas.get(s, "Ol?! ?? Posso ajudar com testes ou comandos.")
+                "content": respostas_rapidas.get(s, "Ol?!  Posso ajudar com testes ou comandos.")
             })
             return ""
 
@@ -1270,21 +1402,29 @@ def responder_conversacional(comando: str):
     if any(p in comando_norm for p in ["reset", "resetar", "reverter", "restaurar", "desfazer", "voltar estado inicial"]):
         resposta_pre = f"{random.choice(frases_iniciais)} ♻️ Restaurando estado inicial do teste..."
         st.session_state.chat_history.append({"role": "assistant", "content": resposta_pre})
+        if _extrair_token_teste(comando) is None and "gravar" in comando_norm:
+            return iniciar_fluxo_gravacao()
         return resolver_comando_com_llm_ou_fallback(comando)
 
     if any(p in comando_norm for p in ["executar", "rodar", "testar", "rodar o teste"]):
         resposta_pre = f"{random.choice(frases_iniciais)} {random.choice(frases_execucao)}"
         st.session_state.chat_history.append({"role": "assistant", "content": resposta_pre})
+        if _extrair_token_teste(comando) is None and "gravar" in comando_norm:
+            return iniciar_fluxo_gravacao()
         return resolver_comando_com_llm_ou_fallback(comando)
 
-    if any(p in comando_norm for p in ["gravar", "coletar", "capturar"]):
+    if any(p in comando_norm for p in ["gravar teste", "gravar", "coletar teste", "coletar", "capturar"]):
         resposta_pre = f"{random.choice(frases_iniciais)} {random.choice(frases_coleta)}"
         st.session_state.chat_history.append({"role": "assistant", "content": resposta_pre})
+        if _extrair_token_teste(comando) is None and "gravar" in comando_norm:
+            return iniciar_fluxo_gravacao()
         return resolver_comando_com_llm_ou_fallback(comando)
 
     if any(p in comando_norm for p in ["processar", "gerar dataset", "montar csv"]):
         resposta_pre = f"{random.choice(frases_iniciais)} {random.choice(frases_processamento)}"
         st.session_state.chat_history.append({"role": "assistant", "content": resposta_pre})
+        if _extrair_token_teste(comando) is None and "gravar" in comando_norm:
+            return iniciar_fluxo_gravacao()
         return resolver_comando_com_llm_ou_fallback(comando)
 
     if any(p in comando_norm for p in ["ajuda", "comandos", "socorro", "me ajuda"]):
@@ -1312,6 +1452,42 @@ def responder_conversacional(comando: str):
 # ==================
 st.sidebar.title("☰ VWAIT - Menu")
 pagina = st.sidebar.radio("Navegacao", ["Chat", "Dashboard", "Menu Tester"])
+
+# Botao de voz (sidebar)
+mic_clicked = st.sidebar.button("Falar comando")
+
+if mic_clicked:
+    recognizer = configurar_reconhecedor()
+    try:
+        mic = sr.Microphone()
+    except Exception as e:
+        st.session_state.chat_history.append({"role": "assistant", "content": f"Microfone indisponivel: {e}"})
+        st.rerun()
+
+    with mic as source:
+        st.toast("Ouvindo... fale seu comando completo.")
+        recognizer.adjust_for_ambient_noise(source, duration=1)
+        audio = recognizer.listen(source, phrase_time_limit=12)
+
+    try:
+        st.toast("Reconhecendo fala...")
+        command_text = recognizer.recognize_google(audio, language="pt-BR")  # type: ignore[attr-defined]
+        command_text = normalizar_pos_fala(command_text)
+        st.session_state.chat_history.append({"role": "user", "content": command_text})
+        with st.spinner("Processando comando..."):
+            if st.session_state.pending_gravacao is not None:
+                resposta = continuar_fluxo_gravacao(command_text)
+            elif MODO_CONVERSA:
+                resposta = responder_conversacional(command_text)
+            else:
+                resposta = resolver_comando_com_llm_ou_fallback(command_text)
+        if resposta:
+            st.session_state.chat_history.append({"role": "assistant", "content": resposta})
+        st.rerun()
+    except Exception:
+        st.session_state.chat_history.append({"role": "assistant", "content": "Falha ao reconhecer fala."})
+        st.rerun()
+
 
 # Side info: bancadas
 with st.sidebar.expander("📡 Bancadas (ADB)"):
@@ -1351,88 +1527,40 @@ if pagina == "Chat":
         unsafe_allow_html=True
     )
 
-    # === Exibi??o do hist?rico ===
-    for msg in st.session_state.chat_history:
+    checar_finalizacoes()
+    # === Exibio do hist?rico ===
+    for idx, msg in enumerate(st.session_state.chat_history):
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
             if msg["role"] == "assistant" and "Gravando" in msg["content"]:
-                if st.button("Finalizar gravacao", key=f"finalizar_{len(st.session_state.chat_history)}"):
-                    msg_resp = finalizar_gravacao()
+                m = re.search(r"Gravando\s+([a-z0-9_]+)/([a-z0-9_]+)\s+na bancada\s+([0-9A-Fa-f]+)", msg["content"])
+                cat = nome = serial = None
+                if m:
+                    cat, nome, serial = m.group(1), m.group(2), m.group(3)
+                if st.button("Salvar esperado", key=f"esperado_{idx}"):
+                    msg_resp = salvar_resultado_parcial(cat, nome, serial)
+                    st.session_state.chat_history.append({"role": "assistant", "content": msg_resp})
+                    st.rerun()
+                if st.button("Finalizar gravacao", key=f"finalizar_{idx}"):
+                    msg_resp = finalizar_gravacao(cat, nome, serial)
+                    st.session_state.chat_history.append({"role": "assistant", "content": msg_resp})
+                    st.rerun()
+                if st.button("Cancelar gravacao", key=f"cancelar_{idx}"):
+                    msg_resp = cancelar_gravacao(cat, nome)
                     st.session_state.chat_history.append({"role": "assistant", "content": msg_resp})
                     st.rerun()
 
-    processing_placeholder = st.empty()
+        processing_placeholder = st.empty()
     user_input = st.chat_input("Digite seu comando...")
 
-    # Botao de voz no sidebar (parte de baixo)
-    st.sidebar.markdown("<div style='height: 2rem;'></div>", unsafe_allow_html=True)
-    mic_clicked = st.sidebar.button("Falar comando")
-
-    if mic_clicked:
-        recognizer = configurar_reconhecedor()
-
-        try:
-            mic = sr.Microphone()
-        except Exception as e:
-            st.session_state.chat_history.append({
-                "role": "assistant",
-                "content": f"Microfone indisponivel: {e}"
-            })
-            st.rerun()
-
-        with mic as source:
-            st.toast("Ouvindo... fale seu comando completo.")
-            recognizer.adjust_for_ambient_noise(source, duration=0.8)
-            audio = recognizer.listen(source, phrase_time_limit=12)
-
-        try:
-            st.toast("Reconhecendo fala...")
-            command_text = recognizer.recognize_google(audio, language="pt-BR")
-            command_text = normalizar_pos_fala(command_text)
-
-            st.session_state.chat_history.append({"role": "user", "content": command_text})
-
-            with st.spinner("Processando comando..."):
-                if MODO_CONVERSA:
-                    resposta = responder_conversacional(command_text)
-                else:
-                    resposta = resolver_comando_com_llm_ou_fallback(command_text)
-
-            if resposta:
-                st.session_state.chat_history.append({"role": "assistant", "content": resposta})
-            st.rerun()
-
-        except sr.UnknownValueError:
-            st.session_state.chat_history.append({
-                "role": "assistant",
-                "content": "Nao consegui entender claramente. Pode repetir mais pausado?"
-            })
-            st.rerun()
-        except sr.RequestError as e:
-            st.session_state.chat_history.append({
-                "role": "assistant",
-                "content": f"Falha no servico de voz: {e}"
-            })
-            st.rerun()
-        except sr.UnknownValueError:
-            st.session_state.chat_history.append({
-                "role": "assistant",
-                "content": "Nao consegui entender o que voce disse."
-            })
-            st.rerun()
-        except sr.RequestError:
-            st.session_state.chat_history.append({
-                "role": "assistant",
-                "content": "Erro ao conectar ao servico de reconhecimento de voz."
-            })
-            st.rerun()
-
-    # ENTRADA MANUAL
+    #  ENTRADA MANUAL
     if user_input:
         st.session_state.chat_history.append({"role": "user", "content": user_input})
 
         with st.spinner("Processando comando..."):
-            if MODO_CONVERSA:
+            if st.session_state.pending_gravacao is not None:
+                resposta = continuar_fluxo_gravacao(user_input)
+            elif MODO_CONVERSA:
                 resposta = responder_conversacional(user_input)
             else:
                 resposta = resolver_comando_com_llm_ou_fallback(user_input)
