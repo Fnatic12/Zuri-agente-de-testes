@@ -1,4 +1,4 @@
-import os
+﻿import os
 import json
 import streamlit as st
 from datetime import datetime
@@ -8,9 +8,9 @@ import pandas as pd
 import statistics
 
 # ============ CONFIG ============ #
-st.set_page_config(page_title="Painel de Bancadas VWAIT", page_icon="🧠", layout="wide")
+st.set_page_config(page_title="Painel de Bancadas VWAIT", page_icon="", layout="wide")
 
-STATUS_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "Data", "status_bancadas.json")
+DATA_ROOT = os.path.join(os.path.dirname(os.path.dirname(__file__)), "Data")
 
 # ============ ESTILO GLOBAL ============ #
 st.markdown("""
@@ -63,12 +63,12 @@ body { background-color: #0B0C10; color: #E0E0E0; font-family: 'Inter', sans-ser
 """, unsafe_allow_html=True)
 
 # ============ HEADER ============ #
-st.markdown("<h1 class='main-title'>Painel de Execução VWAIT</h1>", unsafe_allow_html=True)
+st.markdown("<h1 class='main-title'>Painel de ExecuÃ§Ã£o VWAIT</h1>", unsafe_allow_html=True)
 st.markdown("<p class='subtitle'>Monitoramento em tempo real das bancadas Android conectadas</p>", unsafe_allow_html=True)
 
 st_autorefresh(interval=3000, limit=None, key="refresh_status")
 
-# ============ FUNÇÕES AUXILIARES ============ #
+# ============ FUNÃ‡Ã•ES AUXILIARES ============ #
 def tempo_formatado(segundos):
     if segundos < 60:
         return f"{int(segundos)}s"
@@ -86,30 +86,38 @@ def _atomic_overwrite(path, data):
     os.replace(tmp_path, path)
 
 def carregar_status_higienizado():
-    if not os.path.exists(STATUS_PATH):
+    """Coleta status_<serial>.json em Data/<categoria>/<teste>/."""
+    if not os.path.isdir(DATA_ROOT):
         return {}
-    try:
-        with open(STATUS_PATH, "r", encoding="utf-8") as f:
-            raw = json.load(f)
-    except Exception:
-        return {}
-
-    cleaned = {}
-    for k, v in raw.items():
-        serial = k.replace("bancada_", "")
-        cleaned[serial] = v
+    latest = {}
+    for root, _, files in os.walk(DATA_ROOT):
+        for name in files:
+            if not (name.startswith("status_") and name.endswith(".json")):
+                continue
+            path = os.path.join(root, name)
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+            except Exception:
+                continue
+            serial = data.get("serial") or name[len("status_"):-5]
+            ts = data.get("atualizado_em") or data.get("inicio") or os.path.getmtime(path)
+            prev = latest.get(serial)
+            if prev is None or str(ts) > str(prev.get("_ts", "")):
+                data["_ts"] = ts
+                latest[serial] = data
+    for v in latest.values():
         if "status" in v and isinstance(v["status"], str):
             v["status"] = v["status"].lower()
+    return latest
 
-    if cleaned != raw:
-        _atomic_overwrite(STATUS_PATH, cleaned)
-    return cleaned
-
-def extrair_kpis(serial):
-    """Busca execucao_log.json recente da bancada e extrai métricas básicas."""
-    logs_dir = os.path.join(os.path.dirname(STATUS_PATH), serial)
-    if not os.path.isdir(logs_dir):
+def extrair_kpis(serial, info):
+    """Busca execucao_log.json do teste associado e extrai metricas basicas."""
+    teste = str(info.get("teste", ""))
+    if "/" not in teste:
         return None
+    cat, nome = teste.split("/", 1)
+    logs_dir = os.path.join(DATA_ROOT, cat, nome)
     exec_log = os.path.join(logs_dir, "execucao_log.json")
     if not os.path.exists(exec_log):
         return None
@@ -118,7 +126,7 @@ def extrair_kpis(serial):
         with open(exec_log, "r", encoding="utf-8") as f:
             dados = json.load(f)
         total = len(dados)
-        acertos = sum(1 for a in dados if "✅" in a.get("status", ""))
+        acertos = sum(1 for a in dados if "OK" in a.get("status", "").upper())
         falhas = total - acertos
         similaridades = [a.get("similaridade", 0) for a in dados if "similaridade" in a]
         media_sim = sum(similaridades) / len(similaridades) if similaridades else 0
@@ -144,12 +152,12 @@ MAPEAMENTO_BANCADAS = {
 # ============ LEITURA DO STATUS ============ #
 bancadas = carregar_status_higienizado()
 if not bancadas:
-    st.info("🔌 Nenhuma bancada ativa no momento. Aguardando execução...")
+    st.info("ðŸ”Œ Nenhuma bancada ativa no momento. Aguardando execuÃ§Ã£o...")
     st.stop()
 
 # ============ RESUMO GERAL ============ #
 st.markdown("---")
-st.markdown("## 📊 Resumo das Bancadas")
+st.markdown("## ðŸ“Š Resumo das Bancadas")
 
 executando = [b for b, d in bancadas.items() if str(d.get("status","")).lower() == "executando"]
 finalizados = [b for b, d in bancadas.items() if str(d.get("status","")).lower() == "finalizado"]
@@ -157,16 +165,16 @@ ociosas = [b for b, d in bancadas.items() if str(d.get("status","")).lower() == 
 erros = [b for b, d in bancadas.items() if str(d.get("status","")).lower() == "erro"]
 
 col1, col2, col3, col4 = st.columns(4)
-col1.metric("⚙️ Em Execução", len(executando))
-col2.metric("✅ Finalizados", len(finalizados))
-col3.metric("💤 Ociosas", len(ociosas))
-col4.metric("❌ Com Erros", len(erros))
+col1.metric("âš™ï¸ Em ExecuÃ§Ã£o", len(executando))
+col2.metric("âœ… Finalizados", len(finalizados))
+col3.metric("ðŸ’¤ Ociosas", len(ociosas))
+col4.metric("âŒ Com Erros", len(erros))
 
-st.caption("🕒 Atualização automática a cada 3 segundos — dados provenientes de 'status_bancadas.json'")
+st.caption("Atualizacao automatica a cada 3 segundos.")
 
 # ============ TABELA DETALHADA ============ #
 st.markdown("---")
-st.markdown("## 🧠 Detalhamento Técnico das Bancadas")
+st.markdown("## ðŸ§  Detalhamento TÃ©cnico das Bancadas")
 
 dados_tabela = []
 for bancada, info in bancadas.items():
@@ -177,18 +185,18 @@ for bancada, info in bancadas.items():
     if "coleta" in str(info.get("teste", "")).lower():
         tipo_exec = "Coleta de Dados"
     elif "valida" in str(info.get("teste", "")).lower():
-        tipo_exec = "Validação"
+        tipo_exec = "ValidaÃ§Ã£o"
     elif "treino" in str(info.get("teste", "")).lower():
         tipo_exec = "Treinamento IA"
 
     dados_tabela.append({
-        "💻 Bancada": MAPEAMENTO_BANCADAS.get(bancada, bancada),
-        "🧩 Teste": info.get("teste", "-"),
-        "⚙️ Status": info.get("status", "-").capitalize(),
-        "⏱️ Tempo Decorrido": tempo_formatado(float(info.get("tempo_decorrido_s", 0))),
-        "🏁 Conclusão (%)": f"{progresso:.1f}",
-        "👆 Taps Executados": f"{execs}/{total}" if total > 0 else "-",
-        "🧠 Tipo Execução": tipo_exec
+        "ðŸ’» Bancada": MAPEAMENTO_BANCADAS.get(bancada, bancada),
+        "ðŸ§© Teste": info.get("teste", "-"),
+        "âš™ï¸ Status": info.get("status", "-").capitalize(),
+        "â±ï¸ Tempo Decorrido": tempo_formatado(float(info.get("tempo_decorrido_s", 0))),
+        "ðŸ ConclusÃ£o (%)": f"{progresso:.1f}",
+        "ðŸ‘† Taps Executados": f"{execs}/{total}" if total > 0 else "-",
+        "ðŸ§  Tipo ExecuÃ§Ã£o": tipo_exec
     })
 
 df = pd.DataFrame(dados_tabela)
@@ -209,7 +217,7 @@ def highlight_status(val):
 
 st.dataframe(
     df.style
-    .map(highlight_status, subset=["⚙️ Status"])
+    .map(highlight_status, subset=["âš™ï¸ Status"])
     .set_table_styles([
         {'selector': 'thead th', 'props': [
             ('background-color', '#242424'),
@@ -229,3 +237,6 @@ st.dataframe(
     use_container_width=True,
     hide_index=True,
 )
+
+
+

@@ -10,25 +10,26 @@
 [0m
 [0m▶️ Ação 1/7 (tap)[0m
 [92m👉 TAP em (952,1013)[0m
-[96m🔎 Similaridade: 0.996 → ✅ OK | ⏱️ 2.92s[0m
+[96m🔎 Similaridade: 0.878 → ✅ OK | ⏱️ 3.31s[0m
 [0m▶️ Ação 2/7 (tap)[0m
 [92m👉 TAP em (696,1021)[0m
-[96m🔎 Similaridade: 0.996 → ✅ OK | ⏱️ 2.78s[0m
+[96m🔎 Similaridade: 0.872 → ✅ OK | ⏱️ 3.15s[0m
 [0m▶️ Ação 3/7 (tap)[0m
 [92m👉 TAP em (1665,701)[0m
-[96m🔎 Similaridade: 0.996 → ✅ OK | ⏱️ 2.99s[0m
+[96m🔎 Similaridade: 0.890 → ✅ OK | ⏱️ 3.24s[0m
 [0m▶️ Ação 4/7 (tap)[0m
 [92m👉 TAP em (736,482)[0m
-[96m🔎 Similaridade: 0.996 → ✅ OK | ⏱️ 2.82s[0m
+[96m🔎 Similaridade: 0.810 → ❌ Divergente | ⏱️ 3.09s[0m
 [0m▶️ Ação 5/7 (tap)[0m
 [92m👉 TAP em (624,841)[0m
-[96m🔎 Similaridade: 0.996 → ✅ OK | ⏱️ 2.73s[0m
+[96m🔎 Similaridade: 0.821 → ❌ Divergente | ⏱️ 3.18s[0m
 [0m▶️ Ação 6/7 (tap)[0m
+[93m⚠️ Arquivo de pausa residual detectado — removendo para evitar travamento.[0m
 [92m👉 TAP em (298,645)[0m
-[96m🔎 Similaridade: 0.996 → ✅ OK | ⏱️ 2.84s[0m
+[96m🔎 Similaridade: 0.805 → ❌ Divergente | ⏱️ 3.23s[0m
 [0m▶️ Ação 7/7 (tap)[0m
 [92m👉 TAP em (314,569)[0m
-[96m🔎 Similaridade: 0.995 → ✅ OK | ⏱️ 2.80s[0m
+[96m🔎 Similaridade: 0.822 → ❌ Divergente | ⏱️ 3.16s[0m
 [92m
 ✅ Execução finalizada. Log salvo em: C:\Users\Automation01\Desktop\zuri_agente\Data\deep_dive\teste_2\execucao_log.json[0m
-[96m📊 Status atualizado em: Data/status_0000f28500000000.json[0m
+[96m📊 Status atualizado em: Data/status_2801780c52320038.json[0m

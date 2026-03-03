@@ -113,15 +113,23 @@ def exibir_metricas(metricas):
     else:
         st.error("REPROVADO")
 
-    # === GRAFICO DE PIZZA ===
-    fig, ax = plt.subplots()
+    # === GRAFICO DE PIZZA (dark/flat) ===
     labels = ["Acertos", "Falhas"]
     sizes = [metricas["acertos"], metricas["falhas"]]
-    colors = ["#4CAF50", "#F44336"]
-    explode = (0.05, 0)
-    ax.pie(sizes, explode=explode, labels=labels, colors=colors,
-           autopct="%1.1f%%", shadow=True, startangle=90)
-    ax.axis("equal")
+    colors = ["#22c55e", "#ef4444"]
+    fig, ax = plt.subplots(facecolor="none", figsize=(4, 3))
+    wedges, texts, autotexts = ax.pie(
+        sizes,
+        labels=labels,
+        colors=colors,
+        autopct="%1.1f%%",
+        startangle=90,
+        wedgeprops=dict(width=0.45, edgecolor="none"),
+        textprops=dict(color="#E5E7EB"),
+    )
+    ax.set_aspect("equal")
+    for t in texts + autotexts:
+        t.set_color("#E5E7EB")
     st.pyplot(fig)
 
 def exibir_timeline(execucao):
@@ -130,11 +138,17 @@ def exibir_timeline(execucao):
     ids = [a["id"] for a in execucao]
     status = ["green" if "OK" in str(a.get("status", "")).upper() else "red" for a in execucao]
 
-    fig, ax = plt.subplots()
-    ax.bar(ids, tempos, color=status)
-    ax.set_xlabel("Acao")
-    ax.set_ylabel("Duracao (s)")
-    ax.set_title("Tempo por acao")
+    fig, ax = plt.subplots(facecolor="none", figsize=(6, 3))
+    ax.bar(ids, tempos, color=status, edgecolor="none")
+    ax.set_xlabel("Acao", color="#E5E7EB")
+    ax.set_ylabel("Duracao (s)", color="#E5E7EB")
+    ax.set_title("Tempo por acao", color="#E5E7EB")
+    ax.tick_params(colors="#E5E7EB")
+    ax.set_facecolor("none")
+    ax.grid(axis="y", color="white", alpha=0.08)
+    for spine in ax.spines.values():
+        spine.set_color("white")
+        spine.set_alpha(0.08)
     st.pyplot(fig)
 
 def exibir_mapa_calor(execucao):
@@ -143,9 +157,14 @@ def exibir_mapa_calor(execucao):
     ys = [a["coordenadas"]["y"] for a in execucao if "coordenadas" in a]
 
     if xs and ys:
-        fig, ax = plt.subplots()
-        sns.kdeplot(x=xs, y=ys, cmap="Reds", fill=True, ax=ax, thresh=0.05)
+        fig, ax = plt.subplots(facecolor="none", figsize=(6, 3))
+        sns.kdeplot(x=xs, y=ys, cmap="mako", fill=True, ax=ax, thresh=0.05)
         ax.invert_yaxis()
+        ax.set_facecolor("none")
+        ax.tick_params(colors="#E5E7EB")
+        for spine in ax.spines.values():
+            spine.set_color("white")
+            spine.set_alpha(0.08)
         st.pyplot(fig)
     else:
         st.warning("Sem coordenadas para gerar mapa de calor.")
@@ -405,19 +424,22 @@ def exibir_comparacao_esperados(base_dir):
                 cv2.rectangle(exp_box, (x, y), (x + w, y + h), color, 2)
                 cv2.rectangle(fin_box, (x, y), (x + w, y + h), color, 2)
 
+            st.markdown("### Comparacao de toggle")
+
             o1, o2, o3 = st.columns([2, 2, 2])
             o1.image(cv2.cvtColor(exp_box, cv2.COLOR_BGR2RGB), caption="Esperado (com boxes)", use_container_width=True)
             o2.image(cv2.cvtColor(fin_box, cv2.COLOR_BGR2RGB), caption="Final (com boxes)", use_container_width=True)
             o3.image(diff_res["diff_mask"], caption="Mascara de diferencas", use_container_width=True)
 
-            if diff_res["toggle_changes"]:
-                st.write("Toggles detectados (esperado -> final):")
-                for t in diff_res["toggle_changes"]:
-                    st.write(f"- {t['stateA']} -> {t['stateB']} | conf={t['confidence']} | bbox={t['bbox']}")
-                st.error("Resultado reprovado: divergencia de toggle detectada.")
-            else:
-                st.write("Nenhum toggle detectado automaticamente.")
-                st.success("Resultado aprovado: nenhum toggle divergente detectado.")
+            with st.container():
+                if diff_res["toggle_changes"]:
+                    st.write("Toggles detectados (esperado -> final):")
+                    for t in diff_res["toggle_changes"]:
+                        st.write(f"- {t['stateA']} -> {t['stateB']} | conf={t['confidence']} | bbox={t['bbox']}")
+                    st.error("Resultado reprovado: divergencia de toggle detectada.")
+                else:
+                    st.write("Nenhum toggle detectado automaticamente.")
+                    st.success("Resultado aprovado: nenhum toggle divergente detectado.")
         except Exception:
             st.warning("Falha ao executar comparacao robusta (cv).")
 

@@ -1,4 +1,4 @@
-import os
+﻿import os
 import platform
 import subprocess
 import pandas as pd
@@ -33,16 +33,16 @@ if platform.system() == "Windows":
 else:
     ADB_PATH = "adb"
 
-PAUSA_ENTRE_ACOES = 1              # segundos entre cada ação (mais lento)
-ESPERA_POS_ACAO_S = 1.7              # espera apos cada acao antes do screenshot
-SIMILARIDADE_HOME_OK = 0.85        # limite mínimo para considerar OK
-ADB_TIMEOUT = 25                   # timeout padrão para chamadas ADB (seg)
+PAUSA_ENTRE_ACOES = 1.7              # segundos entre cada aÃ§Ã£o (mais lento)
+ESPERA_POS_ACAO_S = 1.9              # espera apos cada acao antes do screenshot
+SIMILARIDADE_HOME_OK = 0.85        # limite mÃ­nimo para considerar OK
+ADB_TIMEOUT = 25                   # timeout padrÃ£o para chamadas ADB (seg)
 
-# Caminho absoluto da raiz do projeto (este arquivo está em /Run)
+# Caminho absoluto da raiz do projeto (este arquivo estÃ¡ em /Run)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_ROOT = os.path.join(BASE_DIR, "Data")
 
-# Dicionário local de controle do tempo (por processo)
+# DicionÃ¡rio local de controle do tempo (por processo)
 INICIO_EXECUCAO = {}
 
 # =========================
@@ -64,7 +64,7 @@ class LockedFile:
             elif fcntl:
                 fcntl.flock(self.f, fcntl.LOCK_EX)
         except Exception:
-            # Em último caso segue sem lock (melhor do que travar)
+            # Em Ãºltimo caso segue sem lock (melhor do que travar)
             pass
         return self.f
 
@@ -86,7 +86,7 @@ class LockedFile:
 
 
 def atomic_write_json(path, data):
-    """Escrita atômica de JSON (evita arquivo corrompido)."""
+    """Escrita atÃ´mica de JSON (evita arquivo corrompido)."""
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with tempfile.NamedTemporaryFile("w", delete=False, encoding="utf-8", dir=os.path.dirname(path)) as tmp:
         json.dump(data, tmp, ensure_ascii=False, indent=2)
@@ -95,7 +95,7 @@ def atomic_write_json(path, data):
 
 
 # =========================
-# FUNÇÕES AUXILIARES
+# FUNÃ‡Ã•ES AUXILIARES
 # =========================
 def adb_cmd(serial=None):
     """Retorna o comando adb com ou sem -s <serial>"""
@@ -117,7 +117,7 @@ def print_color(msg, color="white"):
 
 
 def run_subprocess(cmd, timeout=ADB_TIMEOUT, quiet=False):
-    """Wrapper com timeout e verificação de falhas ADB."""
+    """Wrapper com timeout e verificaÃ§Ã£o de falhas ADB."""
     try:
         result = subprocess.run(
             cmd,
@@ -128,34 +128,34 @@ def run_subprocess(cmd, timeout=ADB_TIMEOUT, quiet=False):
         )
 
         if "device '" in result.stderr and "not found" in result.stderr:
-            print_color(f"❌ Dispositivo ADB não encontrado: {cmd}", "red")
+            print_color(f"âŒ Dispositivo ADB nÃ£o encontrado: {cmd}", "red")
             return None
 
         if result.returncode != 0 and not quiet:
-            print_color(f"⚠️ Erro ADB: {result.stderr.strip()}", "yellow")
+            print_color(f"âš ï¸ Erro ADB: {result.stderr.strip()}", "yellow")
 
         return result
     except subprocess.TimeoutExpired:
-        print_color(f"⏳ Timeout ao executar: {' '.join(cmd)}", "yellow")
+        print_color(f"â³ Timeout ao executar: {' '.join(cmd)}", "yellow")
     except FileNotFoundError:
-        print_color(f"❌ Comando não encontrado: {cmd[0]}", "red")
+        print_color(f"âŒ Comando nÃ£o encontrado: {cmd[0]}", "red")
     except Exception as e:
-        print_color(f"⚠️ Erro inesperado: {e}", "red")
+        print_color(f"âš ï¸ Erro inesperado: {e}", "red")
     return None
 
 
 def ensure_adb():
-    """Verifica ADB antes de iniciar; falha amigável se não encontrado."""
+    """Verifica ADB antes de iniciar; falha amigÃ¡vel se nÃ£o encontrado."""
     if not ADB_PATH:
-        print_color("❌ ADB_PATH não configurado.", "red")
+        print_color("âŒ ADB_PATH nÃ£o configurado.", "red")
         sys.exit(2)
     if not shutil_which(ADB_PATH):
-        print_color(f"❌ ADB não encontrado em: {ADB_PATH}", "red")
+        print_color(f"âŒ ADB nÃ£o encontrado em: {ADB_PATH}", "red")
         sys.exit(2)
 
 
 def shutil_which(path):
-    """Compatível com caminho absoluto no Windows; retorna path se existir."""
+    """CompatÃ­vel com caminho absoluto no Windows; retorna path se existir."""
     if os.path.isabs(path) and os.path.exists(path):
         return path
     from shutil import which
@@ -167,7 +167,7 @@ def executar_tap(x, y, serial=None):
     comando = adb_cmd(serial) + ["shell", "input", "tap", str(x), str(y)]
     result = run_subprocess(comando)
     if result:
-        print_color(f"👉 TAP em ({x},{y})", "green")
+        print_color(f"ðŸ‘‰ TAP em ({x},{y})", "green")
     return result
 
 
@@ -178,7 +178,7 @@ def executar_long_press(x, y, duracao_ms=1000, serial=None):
     ]
     result = run_subprocess(comando)
     if result:
-        print_color(f"🖐️ LONG PRESS em ({x},{y}) por {duracao_ms/1000:.2f}s", "green")
+        print_color(f"ðŸ–ï¸ LONG PRESS em ({x},{y}) por {duracao_ms/1000:.2f}s", "green")
     return result
 
 
@@ -189,7 +189,7 @@ def executar_swipe(x1, y1, x2, y2, duracao=300, serial=None):
     ]
     result = run_subprocess(comando)
     if result:
-        print_color(f"👉 SWIPE ({x1},{y1}) → ({x2},{y2}) [{duracao}ms]", "green")
+        print_color(f"ðŸ‘‰ SWIPE ({x1},{y1}) â†’ ({x2},{y2}) [{duracao}ms]", "green")
     return result
 
 
@@ -201,25 +201,25 @@ def capturar_screenshot(pasta, nome, serial=None):
 
     res1 = run_subprocess(adb_cmd(serial) + ["shell", "screencap", "-p", caminho_tmp])
     if res1 is None:
-        print_color("❌ Falha ao capturar screenshot no dispositivo.", "red")
+        print_color("âŒ Falha ao capturar screenshot no dispositivo.", "red")
         return None
 
     res2 = run_subprocess(adb_cmd(serial) + ["pull", caminho_tmp, caminho_local], quiet=True)
     if res2 is None:
-        print_color("⚠️ Falha ao transferir screenshot para o PC.", "yellow")
+        print_color("âš ï¸ Falha ao transferir screenshot para o PC.", "yellow")
         return None
 
     run_subprocess(adb_cmd(serial) + ["shell", "rm", caminho_tmp], quiet=True)
 
     if not os.path.exists(caminho_local):
-        print_color(f"⚠️ Screenshot não encontrada em {caminho_local}", "yellow")
+        print_color(f"âš ï¸ Screenshot nÃ£o encontrada em {caminho_local}", "yellow")
         return None
 
     return caminho_local
 
 
 def comparar_imagens(img1_path, img2_path):
-    """Compara duas imagens e retorna o índice de similaridade (SSIM)"""
+    """Compara duas imagens e retorna o Ã­ndice de similaridade (SSIM)"""
     try:
         img1 = cv2.imread(img1_path)
         img2 = cv2.imread(img2_path)
@@ -243,17 +243,20 @@ STATUS_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), "Data", "
 INICIO_EXECUCAO = {}
 
 def _bancada_key_from_serial(serial):
-    """Retorna a chave de identificação da bancada."""
+    """Retorna a chave de identificaÃ§Ã£o da bancada."""
     if not serial or str(serial).strip() == "":
         return "2801761952320038"  # fallback seguro
     return str(serial)
 
-def carregar_status(serial=None):
-    """Carrega status da bancada específica (ou global, se serial for None)."""
+def _status_dir(categoria, nome_teste):
+    return os.path.join(DATA_ROOT, categoria, nome_teste)
+
+def carregar_status(categoria, nome_teste, serial=None):
+    """Carrega status da bancada (por teste)."""
     if serial:
-        status_file = os.path.join(DATA_ROOT, f"status_{serial}.json")
+        status_file = os.path.join(_status_dir(categoria, nome_teste), f"status_{serial}.json")
     else:
-        status_file = os.path.join(DATA_ROOT, "status_bancadas.json")
+        status_file = os.path.join(_status_dir(categoria, nome_teste), "status_bancadas.json")
 
     if not os.path.exists(status_file):
         return {}
@@ -266,27 +269,28 @@ def carregar_status(serial=None):
 
 status_lock = threading.Lock()  # adiciona lock global
 
-def salvar_status(status, serial=None):
+def salvar_status(status, categoria, nome_teste, serial=None):
     """
-    Salva status da execução de forma segura e isolada por bancada.
-    Se 'serial' for fornecido, cria um arquivo status_<serial>.json.
+    Salva status da execucao de forma segura e isolada por bancada.
+    Se serial for fornecido, cria um arquivo status_<serial>.json.
     """
     try:
         with status_lock:
+            os.makedirs(_status_dir(categoria, nome_teste), exist_ok=True)
             if serial:
-                status_file = os.path.join(DATA_ROOT, f"status_{serial}.json")
+                status_file = os.path.join(_status_dir(categoria, nome_teste), f"status_{serial}.json")
             else:
-                status_file = os.path.join(DATA_ROOT, "status_bancadas.json")
+                status_file = os.path.join(_status_dir(categoria, nome_teste), "status_bancadas.json")
 
             tmp_path = status_file + ".tmp"
             with open(tmp_path, "w", encoding="utf-8") as f:
                 json.dump(status, f, ensure_ascii=False, indent=2)
             os.replace(tmp_path, status_file)
     except Exception as e:
-        print(f"⚠️ Erro ao salvar status: {e}")
+        print(f"ERRO: falha ao salvar status: {e}")
 
-def inicializar_status_bancada(bancada_key, teste_nome, total_acoes):
-    status = carregar_status()
+def inicializar_status_bancada(bancada_key, categoria, teste_nome, total_acoes):
+    status = carregar_status(categoria, teste_nome)
     INICIO_EXECUCAO[bancada_key] = time.time()
     status[bancada_key] = {
         "teste": teste_nome,
@@ -298,10 +302,10 @@ def inicializar_status_bancada(bancada_key, teste_nome, total_acoes):
         "tempo_decorrido_s": 0.0,
         "inicio": datetime.now().isoformat()
     }
-    salvar_status(status, serial=bancada_key)
+    salvar_status(status, categoria, teste_nome, serial=bancada_key)
 
-def atualizar_status_bancada(bancada_key, teste_nome, total_acoes, executadas, ultima_acao):
-    status = carregar_status()
+def atualizar_status_bancada(bancada_key, categoria, teste_nome, total_acoes, executadas, ultima_acao):
+    status = carregar_status(categoria, teste_nome)
     inicio = INICIO_EXECUCAO.get(bancada_key, time.time())
     tempo_decorrido = time.time() - inicio
     progresso = round(((executadas or 0) / max(total_acoes, 1)) * 100, 1)
@@ -315,31 +319,31 @@ def atualizar_status_bancada(bancada_key, teste_nome, total_acoes, executadas, u
         "tempo_decorrido_s": float(tempo_decorrido),
         "inicio": status.get(bancada_key, {}).get("inicio")
     }
-    salvar_status(status, serial=bancada_key)
+    salvar_status(status, categoria, teste_nome, serial=bancada_key)
 
-def finalizar_status_bancada(bancada_key, resultado="finalizado"):
-    status = carregar_status()
+def finalizar_status_bancada(bancada_key, categoria, teste_nome, resultado="finalizado"):
+    status = carregar_status(categoria, teste_nome)
     if bancada_key in status:
         status[bancada_key]["status"] = resultado
         status[bancada_key]["fim"] = datetime.now().isoformat()
     else:
         status[bancada_key] = {"status": resultado, "fim": datetime.now().isoformat()}
-    salvar_status(status, serial=bancada_key)
+    salvar_status(status, categoria, teste_nome, serial=bancada_key)
 
 # =========================
 # MAIN
 # =========================
 def main():
-    print("📁 Execução Automática de Testes no Rádio via ADB")
+    print("ðŸ“ ExecuÃ§Ã£o AutomÃ¡tica de Testes no RÃ¡dio via ADB")
 
-    # 🔹 Argumentos ou modo interativo
+    # ðŸ”¹ Argumentos ou modo interativo
     if len(sys.argv) >= 3:
         categoria = sys.argv[1].strip().lower().replace(" ", "_")
         nome_teste = sys.argv[2].strip().lower().replace(" ", "_")
     else:
-        print_color("⚠️ Nenhum argumento fornecido. Entrando em modo interativo...\n", "yellow")
-        categoria = input("📂 Categoria do teste: ").strip().lower().replace(" ", "_")
-        nome_teste = input("📝 Nome do teste: ").strip().lower().replace(" ", "_")
+        print_color("âš ï¸ Nenhum argumento fornecido. Entrando em modo interativo...\n", "yellow")
+        categoria = input("ðŸ“‚ Categoria do teste: ").strip().lower().replace(" ", "_")
+        nome_teste = input("ðŸ“ Nome do teste: ").strip().lower().replace(" ", "_")
 
     serial = None
     if "--serial" in sys.argv:
@@ -347,25 +351,25 @@ def main():
         if idx + 1 < len(sys.argv):
             serial = sys.argv[idx + 1]
 
-    # 🔹 Garante que sempre exista uma bancada_key
+    # ðŸ”¹ Garante que sempre exista uma bancada_key
     if not serial or serial.strip() == "":
-        print_color("⚠️ Nenhum serial ADB detectado — atribuindo Bancada 1 (2801761952320038)", "yellow")
+        print_color("âš ï¸ Nenhum serial ADB detectado â€” atribuindo Bancada 1 (2801761952320038)", "yellow")
         serial = "2801761952320038"
 
-    # ✅ Define identificador único da bancada (corrige o NameError)
+    # âœ… Define identificador Ãºnico da bancada (corrige o NameError)
     bancada_key = _bancada_key_from_serial(serial)
 
-    # 🔍 Verifica se o dispositivo está conectado
-    print_color("🔍 Verificando dispositivos ADB conectados...", "cyan")
+    # ðŸ” Verifica se o dispositivo estÃ¡ conectado
+    print_color("ðŸ” Verificando dispositivos ADB conectados...", "cyan")
     try:
         devices = subprocess.check_output([ADB_PATH, "devices"], text=True)
         if serial not in devices:
-            print_color(f"❌ Dispositivo {serial} não encontrado. Conecte o rádio e tente novamente.", "red")
-            finalizar_status_bancada(serial, "erro_adb")
+            print_color(f"âŒ Dispositivo {serial} nÃ£o encontrado. Conecte o rÃ¡dio e tente novamente.", "red")
+            finalizar_status_bancada(serial, categoria, nome_teste, "erro_adb")
             return
     except Exception as e:
-        print_color(f"⚠️ Falha ao verificar dispositivos ADB: {e}", "red")
-        finalizar_status_bancada(serial, "erro_adb")
+        print_color(f"âš ï¸ Falha ao verificar dispositivos ADB: {e}", "red")
+        finalizar_status_bancada(serial, categoria, nome_teste, "erro_adb")
         return
 
     teste_dir = os.path.join(DATA_ROOT, categoria, nome_teste)
@@ -374,15 +378,15 @@ def main():
     resultados_dir = os.path.join(teste_dir, "resultados")
     log_path = os.path.join(teste_dir, "execucao_log.json")
 
-    print_color(f"\n🗂️ Dataset: {dataset_path}", "cyan")
-    print_color(f"🗂️ Frames:  {frames_dir}", "cyan")
-    print_color(f"🗂️ Result.: {resultados_dir}\n", "cyan")
+    print_color(f"\nðŸ—‚ï¸ Dataset: {dataset_path}", "cyan")
+    print_color(f"ðŸ—‚ï¸ Frames:  {frames_dir}", "cyan")
+    print_color(f"ðŸ—‚ï¸ Result.: {resultados_dir}\n", "cyan")
 
     if not os.path.exists(dataset_path):
         print_color(
-            f"❌ Arquivo dataset.csv não encontrado.\n"
+            f"âŒ Arquivo dataset.csv nÃ£o encontrado.\n"
             f"   Esperado em: {dataset_path}\n"
-            f"   Dica: rode a opção 'Processar Dataset' no menu.",
+            f"   Dica: rode a opÃ§Ã£o 'Processar Dataset' no menu.",
             "red"
         )
         return
@@ -391,15 +395,15 @@ def main():
     try:
         df = pd.read_csv(dataset_path)
     except Exception as e:
-        print_color(f"❌ Falha ao ler dataset.csv: {e}", "red")
+        print_color(f"âŒ Falha ao ler dataset.csv: {e}", "red")
         return
 
     total_acoes = sum(1 for _, r in df.iterrows() if str(r.get("tipo", "")).lower() != "swipe_fim")
-    print_color(f"\n🎬 Executando {total_acoes} ações do dataset...\n", "cyan")
+    print_color(f"\nðŸŽ¬ Executando {total_acoes} aÃ§Ãµes do dataset...\n", "cyan")
     log = []
 
-    # 🔹 Inicializa status
-    inicializar_status_bancada(bancada_key, nome_teste, len(df))
+    # ðŸ”¹ Inicializa status
+    inicializar_status_bancada(bancada_key, categoria, nome_teste, len(df))
 
     action_idx = 0
     for i, row in df.iterrows():
@@ -409,33 +413,33 @@ def main():
             tipo = "tap"
 
         if tipo == "swipe_fim":
-            # swipe_fim é consumido pelo swipe_inicio e não deve gerar ação/screenshot
+            # swipe_fim Ã© consumido pelo swipe_inicio e nÃ£o deve gerar aÃ§Ã£o/screenshot
             continue
 
-        print_color(f"▶️ Ação {action_idx+1}/{total_acoes} ({tipo})", "white")
+        print_color(f"â–¶ï¸ AÃ§Ã£o {action_idx+1}/{total_acoes} ({tipo})", "white")
 
-        # Pausa se necessário (auto-limpa se sobrou de execução anterior)
+        # Pausa se necessÃ¡rio (auto-limpa se sobrou de execuÃ§Ã£o anterior)
         pause_path = os.path.join(BASE_DIR, "pause.flag")
         if os.path.exists(pause_path):
-            print_color("⚠️ Arquivo de pausa residual detectado — removendo para evitar travamento.", "yellow")
+            print_color("âš ï¸ Arquivo de pausa residual detectado â€” removendo para evitar travamento.", "yellow")
             try:
                 os.remove(pause_path)
             except Exception as e:
-                print_color(f"⚠️ Não foi possível remover pause.flag: {e}", "red")
+                print_color(f"âš ï¸ NÃ£o foi possÃ­vel remover pause.flag: {e}", "red")
 
         while os.path.exists(pause_path):
-            print_color("⏸️ Execução pausada... aguardando retomada.", "yellow")
+            print_color("â¸ï¸ ExecuÃ§Ã£o pausada... aguardando retomada.", "yellow")
             time.sleep(2)
 
         inicio = time.time()
 
-        # ===== Executa ação =====
+        # ===== Executa aÃ§Ã£o =====
         try:
             if tipo == "tap":
                 res = executar_tap(int(row["x"]), int(row["y"]), serial)
                 if res is None:
-                    print_color("❌ Falha na execução do TAP — interrompendo teste.", "red")
-                    finalizar_status_bancada(bancada_key, "erro_adb")
+                    print_color("âŒ Falha na execuÃ§Ã£o do TAP â€” interrompendo teste.", "red")
+                    finalizar_status_bancada(bancada_key, categoria, nome_teste, "erro_adb")
                     return
 
 
@@ -450,7 +454,7 @@ def main():
                     x2 = int(row.get("x2", row.get("x", 0)))
                     y2 = int(row.get("y2", row.get("y", 0)))
                 else:
-                    # Busca próximo registro com término do swipe
+                    # Busca prÃ³ximo registro com tÃ©rmino do swipe
                     if i + 1 < len(df):
                         proxima = df.iloc[i + 1]
                         prox_tipo = str(proxima.get("tipo", "")).lower()
@@ -461,19 +465,19 @@ def main():
                 if x2 is not None and y2 is not None:
                     executar_swipe(x1, y1, x2, y2, duracao=dur, serial=serial)
                 else:
-                    print_color("⚠️ swipe sem fim válido — ignorado.", "yellow")
+                    print_color("âš ï¸ swipe sem fim vÃ¡lido â€” ignorado.", "yellow")
 
             elif tipo == "long_press":
                 duracao_press_ms = float(row.get("duracao_s", 1.0)) * 1000
                 executar_long_press(int(row["x"]), int(row["y"]), duracao_press_ms, serial)
 
             else:
-                print_color(f"⚠️ Tipo de ação '{tipo}' não reconhecido — ignorado.", "yellow")
+                print_color(f"âš ï¸ Tipo de aÃ§Ã£o '{tipo}' nÃ£o reconhecido â€” ignorado.", "yellow")
 
         except Exception as e:
-            print_color(f"⚠️ Erro ao executar ação {i+1}: {e}", "red")
+            print_color(f"âš ï¸ Erro ao executar aÃ§Ã£o {i+1}: {e}", "red")
 
-        # Aguarda a UI estabilizar após a ação antes de capturar o screenshot.
+        # Aguarda a UI estabilizar apÃ³s a aÃ§Ã£o antes de capturar o screenshot.
         time.sleep(ESPERA_POS_ACAO_S)
         # ===== Screenshot e Similaridade =====
         action_idx += 1
@@ -484,14 +488,14 @@ def main():
         esperado_abs = os.path.join(teste_dir, esperado_rel)
 
         similaridade = comparar_imagens(screenshot_path, esperado_abs)
-        status_txt = "✅ OK" if similaridade >= SIMILARIDADE_HOME_OK else "❌ Divergente"
+        status_txt = "âœ… OK" if similaridade >= SIMILARIDADE_HOME_OK else "âŒ Divergente"
 
         fim = time.time()
         duracao = round(fim - inicio, 2)
 
-        print_color(f"🔎 Similaridade: {similaridade:.3f} → {status_txt} | ⏱️ {duracao:.2f}s", "cyan")
+        print_color(f"ðŸ”Ž Similaridade: {similaridade:.3f} â†’ {status_txt} | â±ï¸ {duracao:.2f}s", "cyan")
 
-        # Monta registro de log da ação
+        # Monta registro de log da aÃ§Ã£o
         registro = {
             "id": i + 1,
             "timestamp": datetime.now().isoformat(),
@@ -505,26 +509,27 @@ def main():
         }
         log.append(registro)
 
-        # 🔹 Atualiza status da bancada
-        atualizar_status_bancada(bancada_key, nome_teste, total_acoes, i + 1, tipo)
+        # ðŸ”¹ Atualiza status da bancada
+        atualizar_status_bancada(bancada_key, categoria, nome_teste, total_acoes, i + 1, tipo)
 
         time.sleep(PAUSA_ENTRE_ACOES)
 
-    # 🔹 Finaliza status
+    # ðŸ”¹ Finaliza status
     try:
-        finalizar_status_bancada(bancada_key, resultado="finalizado")
+        finalizar_status_bancada(bancada_key, categoria, nome_teste, resultado="finalizado")
     except Exception as e:
-        print_color(f"⚠️ Falha ao atualizar status final: {e}", "yellow")
+        print_color(f"âš ï¸ Falha ao atualizar status final: {e}", "yellow")
 
 
     # === SALVAR LOG FINAL ===
     try:
         with open(log_path, "w", encoding="utf-8") as f:
             json.dump(log, f, indent=4, ensure_ascii=False)
-        print_color(f"\n✅ Execução finalizada. Log salvo em: {log_path}", "green")
-        print_color(f"📊 Status atualizado em: Data/status_{bancada_key}.json", "cyan")
+        print_color(f"\nâœ… ExecuÃ§Ã£o finalizada. Log salvo em: {log_path}", "green")
+        print_color(f"Status atualizado em: Data/{categoria}/{nome_teste}/status_{bancada_key}.json", "cyan")
     except Exception as e:
-        print_color(f"❌ Falha ao salvar log final: {e}", "red")
+        print_color(f"âŒ Falha ao salvar log final: {e}", "red")
 
 if __name__ == "__main__":
     main()
+
