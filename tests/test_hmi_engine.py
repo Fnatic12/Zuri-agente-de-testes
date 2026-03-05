@@ -49,6 +49,8 @@ def test_hmi_validation_matches_best_reference(tmp_path):
     assert result["summary"]["total_screens"] == 1
     assert result["items"][0]["screen_id"] == "audio_screen"
     assert result["items"][0]["status"] in {"PASS", "PASS_WITH_WARNINGS"}
+    assert result["items"][0]["stage1"]["predicted_screen_type"] is not None
+    assert len(result["items"][0]["stage1"]["top_matches"]) >= 1
 
 
 def test_hmi_validation_handles_small_shift_with_alignment(tmp_path):
