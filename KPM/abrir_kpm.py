@@ -11,8 +11,8 @@ from datetime import datetime
 # CONFIGURAÇÕES
 # ==========================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-RELATORIOS_DIR = os.path.join(BASE_DIR, "Relatorios_Falhas")
-CSV_LOG_PATH = os.path.join(BASE_DIR, "tickets_gerados.csv")
+RELATORIOS_DIR = os.path.join(BASE_DIR, "reports")
+CSV_LOG_PATH = os.path.join(BASE_DIR, "reports", "tickets_gerados.csv")
 
 KPM_URL = "https://kpmweb.vw.vwg/kpmweb/f5Login.do"
 
@@ -20,7 +20,7 @@ KPM_URL = "https://kpmweb.vw.vwg/kpmweb/f5Login.do"
 PART_NUMBER = "1234567890"
 MODULE = "Electrical"
 COUNTRY = "Brazil"
-REPRODUCIBLE = "Yes"w
+REPRODUCIBLE = "Yes"
 FREQUENCY = "100%"
 HW_VERSION = "HW_1.0"
 SW_VERSION = "SW_1.0"

@@ -6,17 +6,17 @@
 - `Run/run_noia.py`
   - Main execution runner that performs action-by-action screenshot comparison against expected frames.
   - Typically called from:
-    - `main.py` (menu option "Executar testes")
-    - `menu_tester.py` (buttons "Executar Teste Unico" / "Executar Todos da Categoria")
-    - `menu_chat.py` (command interpreter for `executar ...`)
+    - `app/cli/main.py` (menu option "Executar testes")
+    - `app/streamlit/menu_tester.py` (buttons "Executar Teste Unico" / "Executar Todos da Categoria")
+    - `app/streamlit/menu_chat.py` (command interpreter for `executar ...`)
 - `HMI/validacao_hmi.py`
   - Streamlit UI entrypoint for HMI visual validation (loads references and validates execution screenshots).
-  - Called from `menu_chat.py` page "Validacao HMI".
+  - Called from `app/streamlit/menu_chat.py` page "Validação HMI".
 - `Dashboard/diff_tool.py`
   - Direct CLI utility for pairwise image diff using `Dashboard/diff_engine.py`.
 
 ### New wrapper entrypoints (added layer, still reusing existing pixel engine)
-- `validate_cli.py` -> `visual_qa/interfaces/cli/validate_cli.py`
+- `app/cli/validate.py` -> `visual_qa/interfaces/cli/validate_cli.py`
   - Runs Stage 1 classification + Stage 2 pixel compare adapter + Stage 3 report.
   - Stage 2 calls existing validator code (no replacement of core comparator).
 
@@ -115,3 +115,4 @@
 - No change required in existing comparator internals (`compare_images`, `evaluate_single_screenshot`, `validate_execution_images`).
 - Reuses existing output semantics (scores, issues, debug images).
 - Keeps backward compatibility with current HMI and dashboard flows.
+

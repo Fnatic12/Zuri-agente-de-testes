@@ -4,7 +4,7 @@ import os
 import cv2
 import numpy as np
 
-from HMI.hmi_engine import ValidationConfig, validate_execution_images
+from HMI.hmi_engine import ValidationConfig, collect_result_screens, validate_execution_images
 from HMI.hmi_indexer import build_library_index
 
 
@@ -97,3 +97,45 @@ def test_hmi_validation_fails_toggle_component_change(tmp_path):
     )
 
     assert result["items"][0]["status"] == "FAIL_COMPONENT_STATE"
+
+
+def test_hmi_context_stage_routes_by_feature_folder(tmp_path):
+    figma_dir = tmp_path / "figma"
+    results_dir = tmp_path / "exec" / "resultados"
+    (figma_dir / "BT").mkdir(parents=True)
+    (figma_dir / "Carplay").mkdir(parents=True)
+    results_dir.mkdir(parents=True)
+
+    bt_ref = _make_screen((25, 120, 35), toggle_on=True)
+    cp_ref = _make_screen((130, 40, 140), toggle_on=False)
+    shot = _make_screen((25, 120, 35), toggle_on=True)
+
+    cv2.imwrite(str(figma_dir / "BT" / "bt_menu.png"), bt_ref)
+    cv2.imwrite(str(figma_dir / "Carplay" / "cp_menu.png"), cp_ref)
+    cv2.imwrite(str(results_dir / "resultado_01.png"), shot)
+
+    index = build_library_index(str(figma_dir))
+    result = validate_execution_images(
+        [str(results_dir / "resultado_01.png")],
+        index,
+        ValidationConfig(top_k=1, context_top_k=4, enable_context_routing=True, pass_threshold=0.70, warning_threshold=0.60),
+    )
+
+    item = result["items"][0]
+    assert item["stage1"]["predicted_screen_type"] == "BT"
+    assert item["feature_context"] == "BT"
+    assert "BT" in item["reference_path"]
+
+
+def test_collect_result_screens_auto_falls_back_to_frames(tmp_path):
+    test_dir = tmp_path / "exec"
+    frames_dir = test_dir / "frames"
+    frames_dir.mkdir(parents=True)
+    frame = _make_screen((90, 30, 20), toggle_on=False)
+    cv2.imwrite(str(frames_dir / "frame_01.png"), frame)
+
+    auto_files = collect_result_screens(str(test_dir), source="auto")
+    frame_files = collect_result_screens(str(test_dir), source="frames")
+
+    assert len(auto_files) == 1
+    assert auto_files == frame_files

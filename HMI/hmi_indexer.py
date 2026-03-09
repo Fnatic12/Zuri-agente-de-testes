@@ -6,6 +6,8 @@ from typing import Dict, List, Optional
 import cv2
 import numpy as np
 
+from HMI.hmi_ai import embedding_to_list, extract_ocr_text, extract_semantic_embedding, get_backend_status
+
 
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".webp"}
 
@@ -22,6 +24,14 @@ def iter_image_files(root_dir: str) -> List[str]:
             if ext in IMAGE_EXTENSIONS:
                 files.append(os.path.join(current_root, name))
     return sorted(files)
+
+
+def _infer_feature_context(relative_path: str) -> str:
+    normalized = str(relative_path or "").replace("\\", "/").strip("/")
+    if not normalized:
+        return "geral"
+    head = normalized.split("/", 1)[0].strip()
+    return head or "geral"
 
 
 def _average_hash(img_bgr: np.ndarray, hash_size: int = 8) -> str:
@@ -63,11 +73,17 @@ def _load_sidecar_meta(image_path: str) -> Dict:
         return {}
 
 
-def build_library_index(figma_dir: str, output_path: Optional[str] = None) -> Dict:
+def build_library_index(
+    figma_dir: str,
+    output_path: Optional[str] = None,
+    enable_semantic: bool = False,
+    enable_ocr: bool = False,
+) -> Dict:
     figma_dir = _normalize_path(figma_dir)
     if not os.path.isdir(figma_dir):
         raise FileNotFoundError(f"Pasta Figma nao encontrada: {figma_dir}")
 
+    backends = get_backend_status()
     screens = []
     for image_path in iter_image_files(figma_dir):
         img = cv2.imread(image_path)
@@ -77,7 +93,13 @@ def build_library_index(figma_dir: str, output_path: Optional[str] = None) -> Di
         rel_path = os.path.relpath(image_path, figma_dir)
         height, width = img.shape[:2]
         meta = _load_sidecar_meta(image_path)
+        feature_context = str(meta.get("feature_context") or _infer_feature_context(rel_path))
         screen_id = meta.get("screen_id") or os.path.splitext(rel_path)[0].replace("\\", "/")
+        semantic_embedding = embedding_to_list(extract_semantic_embedding(img)) if enable_semantic and backends.semantic_available else None
+        ocr_text = extract_ocr_text(img) if enable_ocr and backends.ocr_available else ""
+        tags = list(meta.get("tags", []))
+        if feature_context and feature_context not in tags:
+            tags.append(feature_context)
 
         screens.append(
             {
@@ -92,9 +114,12 @@ def build_library_index(figma_dir: str, output_path: Optional[str] = None) -> Di
                 "difference_hash": _difference_hash(img),
                 "color_histogram": _color_histogram(img),
                 "edge_density": _edge_density(img),
+                "semantic_embedding": semantic_embedding,
+                "ocr_text": ocr_text,
+                "feature_context": feature_context,
                 "ignore_regions": meta.get("ignore_regions", []),
                 "critical_regions": meta.get("critical_regions", []),
-                "tags": meta.get("tags", []),
+                "tags": tags,
             }
         )
 
@@ -102,6 +127,13 @@ def build_library_index(figma_dir: str, output_path: Optional[str] = None) -> Di
         "figma_dir": figma_dir,
         "generated_at": datetime.now().isoformat(),
         "screen_count": len(screens),
+        "backends": {
+            "semantic_enabled": bool(enable_semantic and backends.semantic_available),
+            "semantic_engine": backends.semantic_engine,
+            "ocr_enabled": bool(enable_ocr and backends.ocr_available),
+            "ocr_engine": backends.ocr_engine,
+            "details": backends.details,
+        },
         "screens": screens,
     }
 

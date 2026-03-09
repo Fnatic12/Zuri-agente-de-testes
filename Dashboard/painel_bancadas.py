@@ -6,9 +6,11 @@ from streamlit_autorefresh import st_autorefresh
 import tempfile
 import pandas as pd
 import statistics
+from app.shared.ui_theme import apply_dark_background
 
 # ============ CONFIG ============ #
 st.set_page_config(page_title="Painel de Bancadas VWAIT", page_icon="", layout="wide")
+apply_dark_background(hide_header=True)
 
 DATA_ROOT = os.path.join(os.path.dirname(os.path.dirname(__file__)), "Data")
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import shutil
 import tempfile
+import inspect
 from pathlib import Path
 from typing import Any, Optional
 
@@ -61,7 +62,7 @@ def _capture_debug_artifacts(item: dict[str, Any], output_dir: Optional[str]) ->
     for key in ("overlay", "diff_mask", "heatmap", "aligned"):
         value = debug_images.get(key)
         if isinstance(value, (str, Path)):
-            paths[key] = str(Path(value))
+            paths[key] = str(value)
 
     # Persist in-memory debug images when an output directory is provided.
     if output_dir:
@@ -83,6 +84,22 @@ def _capture_debug_artifacts(item: dict[str, Any], output_dir: Optional[str]) ->
     return paths
 
 
+def _sanitize_for_json(value: Any) -> Any:
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, Path):
+        return str(value)
+    if isinstance(value, dict):
+        return {str(k): _sanitize_for_json(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_sanitize_for_json(v) for v in value]
+    shape = getattr(value, "shape", None)
+    dtype = getattr(value, "dtype", None)
+    if shape is not None and dtype is not None:
+        return {"type": type(value).__name__, "shape": list(shape), "dtype": str(dtype)}
+    return str(value)
+
+
 class ExistingPixelAdapter(PixelComparator):
     """Adapter over the current legacy pixel validator (unchanged code path)."""
 
@@ -102,13 +119,23 @@ class ExistingPixelAdapter(PixelComparator):
 
         ValidationConfig, validate_execution_images, build_library_index = _load_legacy_pixel_api()
 
+        cfg_kwargs = {"top_k": 1}
+        try:
+            params = inspect.signature(ValidationConfig).parameters
+            if "stage1_enabled" in params:
+                cfg_kwargs["stage1_enabled"] = False
+        except Exception:
+            fields = getattr(ValidationConfig, "__dataclass_fields__", {}) or {}
+            if "stage1_enabled" in fields:
+                cfg_kwargs["stage1_enabled"] = False
+
         with tempfile.TemporaryDirectory(prefix="visual_qa_pixel_adapter_") as tmp_dir:
             tmp_root = Path(tmp_dir)
             staged_baseline = tmp_root / expected.name
             shutil.copy2(expected, staged_baseline)
 
             library_index = build_library_index(str(tmp_root))
-            cfg = ValidationConfig(top_k=1, stage1_enabled=False)
+            cfg = ValidationConfig(**cfg_kwargs)
             legacy_result = validate_execution_images([str(actual)], library_index, cfg) or {}
             if not isinstance(legacy_result, dict):
                 legacy_result = {"value": legacy_result}
@@ -153,10 +180,10 @@ class ExistingPixelAdapter(PixelComparator):
             issues=_extract_issues(item, status),
             diff_image_path=diff_image_path,
             raw={
-                "legacy_result": legacy_result,
-                "item": item,
+                "legacy_result": _sanitize_for_json(legacy_result),
+                "item": _sanitize_for_json(item),
                 "artifact_paths": artifact_paths,
-                "scores": scores,
-                "diff_summary": diff_summary,
+                "scores": _sanitize_for_json(scores),
+                "diff_summary": _sanitize_for_json(diff_summary),
             },
         )

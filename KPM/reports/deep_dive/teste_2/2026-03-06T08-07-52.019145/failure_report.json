@@ -1,0 +1,151 @@
+{
+  "schema_version": "1.0",
+  "report_type": "failure_report",
+  "generated_at": "2026-03-06T08:07:52.019145",
+  "test": {
+    "category": "deep_dive",
+    "name": "teste_2",
+    "test_dir": "C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2",
+    "execution_log": "C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\execucao_log.json"
+  },
+  "summary": {
+    "status": "FAIL",
+    "total_actions": 7,
+    "failed_actions": 4,
+    "first_failed_action_id": 4,
+    "first_failed_similarity": 0.8096680101652233
+  },
+  "precondition": "Teste automatizado `deep_dive/teste_2` iniciado em bancada `desconhecido` com dataset previamente gravado e baseline visual disponivel.",
+  "short_text": "DEEP_DIVE - falha visual na acao 4 (tap) do teste teste_2 com similaridade 0.81",
+  "operation_steps": [
+    "Acao 1: tap em (952, 1013)",
+    "Acao 2: tap em (696, 1021)",
+    "Acao 3: tap em (1665, 701)",
+    "Acao 4: tap em (736, 482)",
+    "Acao 5: tap em (624, 841)",
+    "Acao 6: tap em (298, 645)",
+    "Acao 7: tap em (314, 569)"
+  ],
+  "actual_results": "Acao 4 retornou '❌ Divergente' com similaridade 0.810. Screenshot atual: C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\resultados\\resultado_04.png | esperado: C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\frames\\frame_04.png.\nAcao 5 retornou '❌ Divergente' com similaridade 0.821. Screenshot atual: C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\resultados\\resultado_05.png | esperado: C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\frames\\frame_05.png.\nAcao 6 retornou '❌ Divergente' com similaridade 0.805. Screenshot atual: C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\resultados\\resultado_06.png | esperado: C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\frames\\frame_06.png.\nAcao 7 retornou '❌ Divergente' com similaridade 0.822. Screenshot atual: C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\resultados\\resultado_07.png | esperado: C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\frames\\frame_07.png.",
+  "occurrence_rate": {
+    "label": "1/1 execucao falhou",
+    "failed_runs": 1,
+    "total_runs": 1,
+    "rerun_policy": "nao configurada"
+  },
+  "recovery_conditions": "Nenhuma rotina formal de recuperacao registrada. A execucao seguiu apos detectar a divergencia.",
+  "bug_occurrence_time": {
+    "first_failure_timestamp": "2026-02-24T11:00:54.353328",
+    "elapsed_seconds_from_start": 12.79
+  },
+  "version_information": {
+    "adb_serial": "desconhecido",
+    "device_name": "nao coletado",
+    "system_build": "nao coletado",
+    "sw_version": "nao coletado",
+    "hw_version": "nao coletado",
+    "app_version": "nao coletado"
+  },
+  "attachments": {
+    "failed_screenshots": [
+      "C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\resultados\\resultado_04.png",
+      "C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\resultados\\resultado_05.png",
+      "C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\resultados\\resultado_06.png",
+      "C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\resultados\\resultado_07.png"
+    ],
+    "expected_screenshots": [
+      "C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\frames\\frame_04.png",
+      "C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\frames\\frame_05.png",
+      "C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\frames\\frame_06.png",
+      "C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\frames\\frame_07.png"
+    ],
+    "result_image": "C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\resultado_final.png"
+  },
+  "failed_steps": [
+    {
+      "action_id": 4,
+      "action_type": "tap",
+      "timestamp": "2026-02-24T11:00:54.353328",
+      "coordinates": {
+        "x": 736,
+        "y": 482,
+        "tipo": "tap",
+        "timestamp": "2026-02-24T08:55:29.612655",
+        "resolucao_largura": 1920,
+        "resolucao_altura": 1080,
+        "x_norm": 0.3833333333333333,
+        "y_norm": 0.4462962962962963
+      },
+      "actual_screenshot": "C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\resultados\\resultado_04.png",
+      "expected_screenshot": "C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\frames\\frame_04.png",
+      "similarity": 0.8096680101652233,
+      "status": "❌ Divergente",
+      "duration_s": 3.09
+    },
+    {
+      "action_id": 5,
+      "action_type": "tap",
+      "timestamp": "2026-02-24T11:00:59.236697",
+      "coordinates": {
+        "x": 624,
+        "y": 841,
+        "tipo": "tap",
+        "timestamp": "2026-02-24T08:55:34.297712",
+        "resolucao_largura": 1920,
+        "resolucao_altura": 1080,
+        "x_norm": 0.325,
+        "y_norm": 0.7787037037037037
+      },
+      "actual_screenshot": "C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\resultados\\resultado_05.png",
+      "expected_screenshot": "C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\frames\\frame_05.png",
+      "similarity": 0.8212741177536101,
+      "status": "❌ Divergente",
+      "duration_s": 3.18
+    },
+    {
+      "action_id": 6,
+      "action_type": "tap",
+      "timestamp": "2026-02-24T11:01:04.170585",
+      "coordinates": {
+        "x": 298,
+        "y": 645,
+        "tipo": "tap",
+        "timestamp": "2026-02-24T08:55:41.805917",
+        "resolucao_largura": 1920,
+        "resolucao_altura": 1080,
+        "x_norm": 0.1552083333333333,
+        "y_norm": 0.5972222222222222
+      },
+      "actual_screenshot": "C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\resultados\\resultado_06.png",
+      "expected_screenshot": "C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\frames\\frame_06.png",
+      "similarity": 0.8045123415575716,
+      "status": "❌ Divergente",
+      "duration_s": 3.23
+    },
+    {
+      "action_id": 7,
+      "action_type": "tap",
+      "timestamp": "2026-02-24T11:01:09.037247",
+      "coordinates": {
+        "x": 314,
+        "y": 569,
+        "tipo": "tap",
+        "timestamp": "2026-02-24T08:55:45.406343",
+        "resolucao_largura": 1920,
+        "resolucao_altura": 1080,
+        "x_norm": 0.1635416666666666,
+        "y_norm": 0.5268518518518519
+      },
+      "actual_screenshot": "C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\resultados\\resultado_07.png",
+      "expected_screenshot": "C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\frames\\frame_07.png",
+      "similarity": 0.8219461827134491,
+      "status": "❌ Divergente",
+      "duration_s": 3.16
+    }
+  ],
+  "source_files": {
+    "test_meta": "C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\test_meta.json",
+    "execution_context": "C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\deep_dive\\teste_2\\execution_context.json",
+    "status_file": ""
+  }
+}
