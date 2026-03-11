@@ -1,0 +1,25 @@
+{
+  "0001840600000000": {
+    "serial": "0001840600000000",
+    "categoria": "teste",
+    "teste": "teste/teste5",
+    "status": "finalizado",
+    "acoes_totais": 29,
+    "acoes_executadas": 29,
+    "progresso": 100.0,
+    "ultima_acao": "tap",
+    "ultima_acao_idx": 29,
+    "ultima_acao_status": "OK",
+    "tempo_decorrido_s": 135.9390480518341,
+    "inicio": "2026-03-10T13:17:06.440711",
+    "fim": "2026-03-10T13:46:47.383730",
+    "atualizado_em": "2026-03-10T13:46:47.383730",
+    "resultados_ok": 24,
+    "resultados_divergentes": 5,
+    "similaridade_media": 0.9118,
+    "ultima_similaridade": 0.9906,
+    "ultimo_screenshot": "resultados\\resultado_29.png",
+    "velocidade_acoes_min": 12.8,
+    "erro_motivo": null
+  }
+}

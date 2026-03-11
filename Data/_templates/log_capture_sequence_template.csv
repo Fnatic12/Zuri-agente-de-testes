@@ -1,0 +1,7 @@
+tipo,label,x,y,x1,y1,x2,y2,duracao_ms,duracao_s,espera_s,texto,keyevent,device_path,output_name
+wait,aguardar_app,,,,,,, ,1.5,0.0,,,,
+tap,abrir_menu_radio,120,220,,,,,, ,1.0,,,,
+tap,entrar_em_diagnostico,240,360,,,,,, ,1.0,,,,
+tap,abrir_tela_de_logs,320,540,,,,,, ,1.0,,,,
+screenshot,tela_logs,,,,,,,,0.5,,,,logs_screen.png
+pull_file,baixar_arquivo_exportado,,,,,,,,0.0,,,/sdcard/Download/peca_log.txt,peca_log.txt

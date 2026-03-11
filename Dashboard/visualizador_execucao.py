@@ -2,17 +2,26 @@ import os
 import json
 from datetime import datetime, timedelta
 import subprocess
+import re
 
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import streamlit as st
 from PIL import Image
+from app.shared.adb_utils import candidate_adb_paths
 
 try:
     from streamlit_autorefresh import st_autorefresh
 except Exception:  # pragma: no cover
     st_autorefresh = None
+
+
+def _identity_decorator(func):
+    return func
+
+
+_REALTIME_FRAGMENT = st.fragment(run_every="3s") if hasattr(st, "fragment") else _identity_decorator
 
 
 def titulo_painel(titulo: str, subtitulo: str = ""):
@@ -86,6 +95,35 @@ def titulo_painel(titulo: str, subtitulo: str = ""):
             margin-bottom: 0.65rem;
             box-shadow: 0 6px 18px rgba(2, 6, 23, 0.45);
         }}
+        .executive-banner {{
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.88), rgba(17, 24, 39, 0.82));
+            border: 1px solid rgba(56, 189, 248, 0.22);
+            border-radius: 16px;
+            padding: 0.95rem 1rem;
+            margin: 0.5rem 0 0.85rem 0;
+            box-shadow: 0 10px 30px rgba(2, 6, 23, 0.28);
+        }}
+        .executive-banner-title {{
+            color: #f8fafc;
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            margin-bottom: 0.2rem;
+        }}
+        .executive-banner-body {{
+            color: #cbd5e1;
+            font-size: 0.88rem;
+            line-height: 1.45;
+        }}
+        .signal-badge {{
+            display: inline-block;
+            padding: 0.22rem 0.55rem;
+            border-radius: 999px;
+            margin: 0.18rem 0.28rem 0 0;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: 1px solid transparent;
+        }}
         .card-kpi-label {{
             color: #94a3b8;
             font-size: 0.78rem;
@@ -145,6 +183,8 @@ BANCADA_LABELS = {
 }
 BANCADA_LABELS_NORM = {str(k).lower(): v for k, v in BANCADA_LABELS.items()}
 
+ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
+
 
 # === FUNCOES AUXILIARES ===
 def carregar_logs(data_root=DATA_ROOT):
@@ -185,22 +225,67 @@ def _parse_datetime(value) -> datetime | None:
         return None
 
 
+def _clean_display_text(value) -> str:
+    text = value if isinstance(value, str) else str(value)
+    text = ANSI_ESCAPE_RE.sub("", text)
+
+    for _ in range(3):
+        try:
+            if any(mark in text for mark in ("Ã", "Â", "â", "т", "�")):
+                text = text.encode("latin1", "ignore").decode("utf-8", "ignore")
+                continue
+        except Exception:
+            pass
+        try:
+            if any(mark in text for mark in ("Ã", "Â", "â", "т", "�")):
+                text = text.encode("cp1252", "ignore").decode("utf-8", "ignore")
+                continue
+        except Exception:
+            pass
+        break
+
+    text = text.replace("\x00", "")
+    text = "".join(ch for ch in text if ch == "\n" or ch == "\t" or ord(ch) >= 32)
+    return text.strip()
+
+
+def _clean_status_text(value) -> str:
+    text = _clean_display_text(value)
+    upper = text.upper()
+    if "DIVERG" in upper:
+        return "Divergente"
+    if "OK" in upper:
+        return "OK"
+    return text
+
+
+def _sanitize_value(value):
+    if isinstance(value, dict):
+        return {str(k): _sanitize_value(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_sanitize_value(v) for v in value]
+    if isinstance(value, str):
+        return _clean_display_text(value)
+    return value
+
+
+def _normalizar_execucao(execucao: list[dict]) -> list[dict]:
+    normalizada = []
+    for idx, acao in enumerate(execucao, start=1):
+        if not isinstance(acao, dict):
+            continue
+        item = dict(acao)
+        item = _sanitize_value(item)
+        item["id"] = item.get("id") or idx
+        item["acao"] = _clean_display_text(item.get("acao", "")).lower() or "acao"
+        item["status"] = _clean_status_text(item.get("status", ""))
+        item["coordenadas"] = _sanitize_value(item.get("coordenadas", {}))
+        normalizada.append(item)
+    return normalizada
+
+
 def _candidate_adb_commands() -> list[str]:
-    candidates = []
-    env_cmd = os.environ.get("ADB_PATH", "").strip()
-    if env_cmd:
-        candidates.append(env_cmd)
-    if os.name == "nt":
-        candidates.append(r"C:\Users\Automation01\platform-tools\adb.exe")
-    candidates.append("adb")
-    seen = set()
-    ordered = []
-    for cmd in candidates:
-        norm = cmd.lower().strip()
-        if norm and norm not in seen:
-            seen.add(norm)
-            ordered.append(cmd)
-    return ordered
+    return candidate_adb_paths()
 
 
 def _listar_dispositivos_adb() -> set[str]:
@@ -243,7 +328,22 @@ def _extract_status_payload(serial: str, raw: dict) -> dict:
         "inicio",
         "fim",
         "atualizado_em",
+        "categoria",
         "ultima_acao",
+        "ultima_acao_idx",
+        "ultima_acao_status",
+        "resultados_ok",
+        "resultados_divergentes",
+        "similaridade_media",
+        "ultima_similaridade",
+        "ultimo_screenshot",
+        "velocidade_acoes_min",
+        "resultado_final",
+        "log_capture_status",
+        "log_capture_dir",
+        "log_capture_error",
+        "log_capture_sequence",
+        "erro_motivo",
     ):
         if key in raw and raw.get(key) is not None:
             payload[key] = raw.get(key)
@@ -290,9 +390,10 @@ def _carregar_status_bancadas(data_root=DATA_ROOT):
 
 
 def _status_human(status: str) -> str:
-    normalized = str(status or "").strip().lower()
+    normalized = _status_normalized(status)
     mapping = {
         "executando": "Executando",
+        "coletando_logs": "Coletando logs",
         "finalizado": "Finalizado",
         "erro": "Erro",
         "ociosa": "Ociosa",
@@ -301,9 +402,11 @@ def _status_human(status: str) -> str:
 
 
 def _status_chip_html(status: str) -> str:
-    normalized = str(status or "").strip().lower()
+    normalized = _status_normalized(status)
     if normalized == "executando":
         color = "#f59e0b"
+    elif normalized == "coletando_logs":
+        color = "#38bdf8"
     elif normalized == "finalizado":
         color = "#22c55e"
     elif normalized == "erro":
@@ -335,7 +438,7 @@ def _status_age_seconds(info: dict, now: datetime) -> float:
 
 
 def _is_live_status(info: dict, now: datetime) -> bool:
-    status = str(info.get("status", "")).strip().lower()
+    status = _status_normalized(info.get("status", ""))
     teste = str(info.get("teste", "")).strip()
     total = int(info.get("acoes_totais", 0) or 0)
     executadas = int(info.get("acoes_executadas", 0) or 0)
@@ -343,6 +446,8 @@ def _is_live_status(info: dict, now: datetime) -> bool:
 
     if status == "executando":
         return bool(teste) and total > 0 and executadas <= total and age_s <= 60.0
+    if status == "coletando_logs":
+        return bool(teste) and age_s <= 120.0
     if status == "finalizado":
         return bool(teste) and total > 0 and age_s <= 45.0
     if status == "erro":
@@ -367,6 +472,13 @@ def _nome_bancada(serial: str) -> str:
     return BANCADA_LABELS.get(serial) or BANCADA_LABELS_NORM.get(str(serial).lower()) or serial
 
 
+def _status_normalized(status: str) -> str:
+    normalized = str(status or "").strip().lower()
+    if normalized.startswith("erro"):
+        return "erro"
+    return normalized
+
+
 def _resolver_diretorio_teste(info: dict) -> str | None:
     status_path = str(info.get("_status_path") or "").strip()
     if status_path:
@@ -388,6 +500,12 @@ def _ultima_screenshot_bancada(info: dict) -> str | None:
     if not test_dir:
         return None
 
+    hinted = str(info.get("ultimo_screenshot") or "").strip()
+    if hinted:
+        hinted_path = os.path.join(test_dir, hinted)
+        if os.path.exists(hinted_path):
+            return hinted_path
+
     candidates: list[str] = []
     for folder in ("resultados", "frames"):
         img_dir = os.path.join(test_dir, folder)
@@ -407,25 +525,187 @@ def _ultima_screenshot_bancada(info: dict) -> str | None:
     return max(candidates, key=lambda p: os.path.getmtime(p))
 
 
+def _contar_arquivos_imagem(dir_path: str | None) -> int:
+    if not dir_path or not os.path.isdir(dir_path):
+        return 0
+    return sum(
+        1
+        for name in os.listdir(dir_path)
+        if os.path.splitext(name)[1].lower() in {".png", ".jpg", ".jpeg", ".bmp", ".webp"}
+    )
+
+
+def _carregar_execucao_parcial(info: dict) -> list[dict]:
+    test_dir = _resolver_diretorio_teste(info)
+    if not test_dir:
+        return []
+    exec_path = os.path.join(test_dir, "execucao_log.json")
+    if not os.path.exists(exec_path):
+        return []
+    try:
+        with open(exec_path, "r", encoding="utf-8") as f:
+            raw = json.load(f)
+    except Exception:
+        return []
+    execucao = raw.get("execucao") if isinstance(raw, dict) else raw
+    if not isinstance(execucao, list):
+        return []
+    return _normalizar_execucao(execucao)
+
+
+def _quality_snapshot(info: dict, execucao: list[dict]) -> dict:
+    executadas = int(info.get("acoes_executadas", 0) or 0)
+    ok_count = int(info.get("resultados_ok", 0) or 0)
+    divergente_count = int(info.get("resultados_divergentes", 0) or 0)
+
+    if execucao:
+        ok_count = sum(1 for item in execucao if "OK" in str(item.get("status", "")).upper())
+        divergente_count = sum(1 for item in execucao if "DIVERG" in str(item.get("status", "")).upper())
+
+    amostra = ok_count + divergente_count
+    if amostra <= 0:
+        amostra = executadas if executadas > 0 else 0
+
+    aprovacao = (ok_count / amostra) * 100.0 if amostra > 0 else None
+    return {
+        "ok": ok_count,
+        "divergente": divergente_count,
+        "amostra": amostra,
+        "aprovacao": aprovacao,
+    }
+
+
+def _velocidade_live(info: dict) -> float | None:
+    velocidade = info.get("velocidade_acoes_min")
+    if velocidade is not None:
+        try:
+            parsed = float(velocidade)
+            if parsed > 0:
+                return parsed
+        except Exception:
+            pass
+    executadas = int(info.get("acoes_executadas", 0) or 0)
+    tempo = float(info.get("tempo_decorrido_s", 0.0) or 0.0)
+    if executadas <= 0 or tempo <= 0:
+        return None
+    return round((executadas / tempo) * 60.0, 2)
+
+
+def _percent_text(value: float | None, digits: int = 1) -> str:
+    if value is None:
+        return "-"
+    return f"{float(value):.{digits}f}%"
+
+
+def _age_text(age_s: float) -> str:
+    if age_s < 1:
+        return "agora"
+    if age_s < 60:
+        return f"{int(age_s)}s"
+    return _tempo_formatado(age_s)
+
+
+def _saude_execucao(info: dict, now: datetime, quality: dict) -> dict:
+    status = _status_normalized(info.get("status", ""))
+    age_s = _status_age_seconds(info, now)
+    progresso = float(info.get("progresso", 0.0) or 0.0)
+    divergente = int(quality.get("divergente", 0) or 0)
+    aprovacao = quality.get("aprovacao")
+
+    if status == "erro":
+        return {"label": "Critico", "color": "#ef4444", "reason": "Execucao interrompida"}
+    if status == "coletando_logs":
+        return {"label": "Atencao", "color": "#38bdf8", "reason": "Coletando logs da peca apos a falha"}
+    if age_s > 20:
+        return {"label": "Critico", "color": "#ef4444", "reason": "Sem heartbeat recente"}
+    if divergente >= 2 or (aprovacao is not None and quality.get("amostra", 0) >= 3 and aprovacao < 80):
+        return {"label": "Critico", "color": "#ef4444", "reason": "Qualidade parcial abaixo do esperado"}
+    if divergente >= 1 or age_s > 10:
+        return {"label": "Atencao", "color": "#f59e0b", "reason": "Ha sinal de risco nesta rodada"}
+    if progresso >= 90:
+        return {"label": "Saudavel", "color": "#22c55e", "reason": "Execucao perto do fechamento"}
+    return {"label": "Saudavel", "color": "#38bdf8", "reason": "Fluxo estavel"}
+
+
+def _saude_chip_html(saude: dict) -> str:
+    color = saude.get("color", "#38bdf8")
+    label = saude.get("label", "Saudavel")
+    return (
+        "<span style='display:inline-block;padding:0.22rem 0.6rem;border-radius:999px;"
+        f"font-size:0.76rem;font-weight:700;background:{color}20;color:{color};border:1px solid {color}66;'>"
+        f"Saude: {label}</span>"
+    )
+
+
+def _portfolio_live_summary(executando_rows: dict, finalizado_rows: dict, erro_rows: dict, conectadas: set[str]) -> dict:
+    now = datetime.now()
+    quality_rows = []
+    for serial, info in executando_rows.items():
+        execucao = _carregar_execucao_parcial(info)
+        quality = _quality_snapshot(info, execucao)
+        saude = _saude_execucao(info, now, quality)
+        quality_rows.append((serial, info, quality, saude))
+
+    progressos = [float(info.get("progresso", 0.0) or 0.0) for _, info, _, _ in quality_rows]
+    velocidades = [value for _, info, _, _ in quality_rows if (value := _velocidade_live(info)) is not None]
+    ok_total = sum(int(quality.get("ok", 0) or 0) for _, _, quality, _ in quality_rows)
+    divergente_total = sum(int(quality.get("divergente", 0) or 0) for _, _, quality, _ in quality_rows)
+    amostra_total = sum(int(quality.get("amostra", 0) or 0) for _, _, quality, _ in quality_rows)
+    aprovacao = (ok_total / amostra_total) * 100.0 if amostra_total > 0 else None
+    criticos = [item for item in quality_rows if item[3].get("label") == "Critico"]
+    atencao = [item for item in quality_rows if item[3].get("label") == "Atencao"]
+
+    foco = None
+    prioridades = {"Critico": 2, "Atencao": 1, "Saudavel": 0}
+    if quality_rows:
+        foco = max(
+            quality_rows,
+            key=lambda item: (
+                prioridades.get(item[3].get("label"), 0),
+                int(item[2].get("divergente", 0) or 0),
+                float(_estimativa_restante(item[1]) or 0.0),
+            ),
+        )
+
+    return {
+        "conectadas": len(conectadas),
+        "executando": len(executando_rows),
+        "finalizadas": len(finalizado_rows),
+        "erros": len(erro_rows),
+        "progresso_medio": (sum(progressos) / len(progressos)) if progressos else None,
+        "aprovacao": aprovacao,
+        "divergencias": divergente_total,
+        "velocidade_total": sum(velocidades) if velocidades else None,
+        "criticos": len(criticos),
+        "atencao": len(atencao),
+        "foco": foco,
+    }
+
+
+@_REALTIME_FRAGMENT
 def exibir_bancadas_tempo_real():
     st.subheader("Bancadas em tempo real")
     st.caption("Somente execucoes reais: bancada conectada + status recente.")
 
-    if st_autorefresh is not None:
+    if st_autorefresh is not None and not hasattr(st, "fragment"):
         st_autorefresh(interval=3000, limit=None, key="dash_realtime_refresh")
 
     conectadas = _listar_dispositivos_adb()
     status_raw = _carregar_status_bancadas(DATA_ROOT)
     bancadas = _filtrar_bancadas_reais(status_raw, conectadas)
 
-    executando_rows = {s: v for s, v in bancadas.items() if str(v.get("status", "")).lower() == "executando"}
-    finalizado_rows = {s: v for s, v in bancadas.items() if str(v.get("status", "")).lower() == "finalizado"}
-    erro_rows = {s: v for s, v in bancadas.items() if str(v.get("status", "")).lower() == "erro"}
+    executando_rows = {
+        s: v
+        for s, v in bancadas.items()
+        if _status_normalized(v.get("status", "")) in {"executando", "coletando_logs"}
+    }
+    finalizado_rows = {s: v for s, v in bancadas.items() if _status_normalized(v.get("status", "")) == "finalizado"}
+    erro_rows = {s: v for s, v in bancadas.items() if _status_normalized(v.get("status", "")) == "erro"}
 
     restantes = [
         _estimativa_restante(v)
         for v in executando_rows.values()
-        if str(v.get("status", "")).lower() == "executando"
+        if _status_normalized(v.get("status", "")) == "executando"
     ]
     restantes = [value for value in restantes if value is not None]
     eta_global_s = max(restantes) if restantes else None
@@ -435,12 +715,15 @@ def exibir_bancadas_tempo_real():
         else "-"
     )
 
-    c1, c2, c3, c4, c5 = st.columns(5)
+    summary = _portfolio_live_summary(executando_rows, finalizado_rows, erro_rows, conectadas)
+
+    c1, c2, c3, c4, c5, c6 = st.columns(6)
     c1.metric("Bancadas conectadas", len(conectadas))
     c2.metric("Executando agora", len(executando_rows))
-    c3.metric("Finalizadas (45s)", len(finalizado_rows))
-    c4.metric("Erro (90s)", len(erro_rows))
-    c5.metric("ETA global", _tempo_formatado(eta_global_s) if eta_global_s is not None else "-")
+    c3.metric("Progresso medio", _percent_text(summary.get("progresso_medio")))
+    c4.metric("Aprovacao parcial", _percent_text(summary.get("aprovacao")))
+    c5.metric("Divergencias abertas", str(summary.get("divergencias", 0)))
+    c6.metric("ETA global", _tempo_formatado(eta_global_s) if eta_global_s is not None else "-")
     st.caption(f"Previsao de termino global: {final_previsto}")
 
     if not conectadas:
@@ -449,6 +732,51 @@ def exibir_bancadas_tempo_real():
     if not executando_rows:
         st.info("Nenhum teste em execucao neste momento.")
         return
+
+    foco = summary.get("foco")
+    if foco:
+        serial_foco, info_foco, quality_foco, saude_foco = foco
+        texto_foco = (
+            f"{_nome_bancada(serial_foco)} em {_clean_display_text(info_foco.get('teste', '-'))}: "
+            f"{saude_foco.get('reason', '').lower()}, "
+            f"{int(quality_foco.get('divergente', 0) or 0)} divergencias, "
+            f"ETA {_tempo_formatado(_estimativa_restante(info_foco) or 0.0) if _estimativa_restante(info_foco) is not None else '-'}."
+        )
+    else:
+        texto_foco = "Nenhuma bancada ativa com dados suficientes para destaque."
+
+    badges = []
+    if summary.get("criticos", 0):
+        badges.append(
+            "<span class='signal-badge' style='background:#ef444420;border-color:#ef444466;color:#fecaca;'>"
+            f"{summary.get('criticos', 0)} critico(s)</span>"
+        )
+    if summary.get("atencao", 0):
+        badges.append(
+            "<span class='signal-badge' style='background:#f59e0b20;border-color:#f59e0b66;color:#fde68a;'>"
+            f"{summary.get('atencao', 0)} em atencao</span>"
+        )
+    if summary.get("finalizadas", 0):
+        badges.append(
+            "<span class='signal-badge' style='background:#22c55e20;border-color:#22c55e66;color:#bbf7d0;'>"
+            f"{summary.get('finalizadas', 0)} finalizada(s) agora</span>"
+        )
+    if summary.get("erros", 0):
+        badges.append(
+            "<span class='signal-badge' style='background:#ef444420;border-color:#ef444466;color:#fecaca;'>"
+            f"{summary.get('erros', 0)} erro(s) recentes</span>"
+        )
+
+    st.markdown(
+        (
+            "<div class='executive-banner'>"
+            "<div class='executive-banner-title'>Leitura Executiva</div>"
+            f"<div class='executive-banner-body'>{texto_foco}</div>"
+            f"<div>{''.join(badges)}</div>"
+            "</div>"
+        ),
+        unsafe_allow_html=True,
+    )
 
     layout_mode = st.radio(
         "Layout dos cards",
@@ -462,7 +790,10 @@ def exibir_bancadas_tempo_real():
     rows = sorted(
         executando_rows.items(),
         key=lambda item: (
-            0 if str(item[1].get("status", "")).lower() == "executando" else 1,
+            {"Critico": 0, "Atencao": 1, "Saudavel": 2}.get(
+                _saude_execucao(item[1], datetime.now(), _quality_snapshot(item[1], _carregar_execucao_parcial(item[1]))).get("label"),
+                2,
+            ),
             item[0],
         ),
     )
@@ -483,7 +814,19 @@ def exibir_bancadas_tempo_real():
             tempo = float(info.get("tempo_decorrido_s", 0.0) or 0.0)
             restante = _estimativa_restante(info)
             atualizado = str(info.get("atualizado_em") or info.get("inicio") or "-")
+            age_s = _status_age_seconds(info, datetime.now())
             thumb = _ultima_screenshot_bancada(info)
+            execucao = _carregar_execucao_parcial(info)
+            quality = _quality_snapshot(info, execucao)
+            saude = _saude_execucao(info, datetime.now(), quality)
+            similaridade_media = info.get("similaridade_media")
+            similaridade_media_txt = (
+                f"{float(similaridade_media) * 100:.1f}%"
+                if similaridade_media is not None and str(similaridade_media).strip() != ""
+                else "-"
+            )
+            test_dir = _resolver_diretorio_teste(info)
+            capturas = _contar_arquivos_imagem(os.path.join(test_dir, "resultados")) if test_dir else 0
 
             with col:
                 st.markdown(
@@ -491,7 +834,9 @@ def exibir_bancadas_tempo_real():
                         "<div class='clean-card'>"
                         f"<div style='display:flex;justify-content:space-between;align-items:center;gap:0.5rem;'>"
                         f"<div style='font-size:1rem;font-weight:700;color:#e2e8f0;'>{nome}</div>"
-                        f"{_status_chip_html(status)}"
+                        f"<div style='display:flex;gap:0.35rem;flex-wrap:wrap;justify-content:flex-end;'>"
+                        f"{_status_chip_html(status)}{_saude_chip_html(saude)}"
+                        "</div>"
                         "</div>"
                         f"<div style='margin-top:0.35rem;color:#a8b3c5;font-size:0.84rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>"
                         f"Teste: {teste}"
@@ -501,12 +846,20 @@ def exibir_bancadas_tempo_real():
                     unsafe_allow_html=True,
                 )
                 st.progress(min(1.0, max(0.0, progresso / 100.0)), text=f"{progresso:.1f}%")
+                st.caption(saude.get("reason", "Sem leitura executiva"))
                 d1, d2 = st.columns(2)
                 d1.metric("Acoes", f"{executadas}/{total}" if total > 0 else str(executadas))
                 d2.metric("ETA", _tempo_formatado(restante) if restante is not None else "-")
-                d3, d4 = st.columns(2)
-                d3.metric("Tempo", _tempo_formatado(tempo))
-                d4.metric("Atualizado", atualizado.split("T")[1][:8] if "T" in atualizado else atualizado)
+                d4, d5 = st.columns(2)
+                d4.metric("Aprovacao", _percent_text(quality.get("aprovacao")))
+                d5.metric("Divergencias", str(quality.get("divergente", 0)))
+                d7, d8, d9 = st.columns(3)
+                d7.metric("Tempo", _tempo_formatado(tempo))
+                d8.metric("Capturas", str(capturas))
+                d9.metric("Similaridade media", similaridade_media_txt)
+                st.caption(
+                    f"Atualizado em {atualizado.split('T')[1][:8] if 'T' in atualizado else atualizado}"
+                )
 
                 if thumb and os.path.exists(thumb):
                     st.image(thumb, caption=f"Ultima tela: {os.path.basename(thumb)}", use_container_width=True)
@@ -647,29 +1000,65 @@ def exibir_timeline(execucao):
 
 def exibir_acoes(execucao, base_dir):
     st.subheader("Detalhes das acoes")
-    for acao in execucao:
-        with st.expander(f"Acao {acao['id']} - {acao['acao'].upper()} | {acao['status']}"):
-            col1, col2 = st.columns(2)
+    if not execucao:
+        st.info("Nenhuma acao encontrada.")
+        return
 
-            frame_path = os.path.join(base_dir, acao["frame_esperado"])
-            resultado_path = os.path.join(base_dir, acao["screenshot"])
+    st.caption(f"{len(execucao)} acoes carregadas.")
 
-            if os.path.exists(frame_path):
-                col1.image(Image.open(frame_path), caption=f"Esperado: {acao['frame_esperado']}", use_container_width=True)
-            else:
-                col1.warning("Frame esperado nao encontrado")
+    resumo = []
+    for idx, acao in enumerate(execucao, start=1):
+        resumo.append(
+            {
+                "Acao": idx,
+                "ID": acao.get("id", idx),
+                "Tipo": str(acao.get("acao", "")).upper(),
+                "Status": acao.get("status", "-"),
+                "Similaridade": round(float(acao.get("similaridade", 0.0) or 0.0), 3),
+                "Duracao (s)": round(float(acao.get("duracao", 0.0) or 0.0), 2),
+            }
+        )
 
-            if os.path.exists(resultado_path):
-                col2.image(Image.open(resultado_path), caption=f"Obtido: {acao['screenshot']}", use_container_width=True)
-            else:
-                col2.warning("Screenshot nao encontrado")
+    st.dataframe(resumo, use_container_width=True, hide_index=True)
 
-            st.write(f"Similaridade: **{acao['similaridade']:.2f}**")
-            st.write(f"Duracao: **{acao.get('duracao', 0)}s**")
-            st.json(acao.get("coordenadas", {}))
-            if "log" in acao:
-                st.code(acao["log"], language="bash")
+    indice_acao = st.selectbox(
+        "Selecione a acao para ver os detalhes",
+        options=list(range(len(execucao))),
+        format_func=lambda i: (
+            f"Acao {i + 1} - {str(execucao[i].get('acao', '')).upper()} | {execucao[i].get('status', '-')}"
+        ),
+        key="dashboard_acao_detalhe",
+    )
 
+    acao = execucao[indice_acao]
+
+    frame_path = os.path.join(base_dir, str(acao.get("frame_esperado", "")))
+    resultado_path = os.path.join(base_dir, str(acao.get("screenshot", "")))
+
+    col_meta_1, col_meta_2, col_meta_3 = st.columns(3)
+    col_meta_1.metric("Status", acao.get("status", "-"))
+    col_meta_2.metric("Similaridade", f"{float(acao.get('similaridade', 0.0) or 0.0):.2f}")
+    col_meta_3.metric("Duracao", f"{float(acao.get('duracao', 0.0) or 0.0):.2f}s")
+
+    col1, col2 = st.columns(2)
+
+    if frame_path and os.path.exists(frame_path):
+        col1.image(
+            Image.open(frame_path),
+            caption=f"Esperado: {acao.get('frame_esperado', '-')}",
+            use_container_width=True,
+        )
+    else:
+        col1.warning("Frame esperado nao encontrado")
+
+    if resultado_path and os.path.exists(resultado_path):
+        col2.image(
+            Image.open(resultado_path),
+            caption=f"Obtido: {acao.get('screenshot', '-')}",
+            use_container_width=True,
+        )
+    else:
+        col2.warning("Screenshot nao encontrado")
 
 def _simples_similarity(img_a: Image.Image, img_b: Image.Image) -> float:
     """Similaridade simples baseada em diferenca media normalizada (0..1)."""
@@ -987,6 +1376,8 @@ def main():
     if not isinstance(execucao, list):
         st.error("Formato invalido de execucao_log.json (esperado lista ou {'execucao': []}).")
         return
+
+    execucao = _normalizar_execucao(execucao)
 
     base_dir = os.path.dirname(log_path)
     metricas = calcular_metricas(execucao)

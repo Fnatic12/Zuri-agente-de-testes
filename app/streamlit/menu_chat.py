@@ -1,6 +1,7 @@
 ﻿import os
 import re
 import json
+import csv
 import shutil
 import subprocess
 import platform
@@ -17,7 +18,7 @@ except Exception:
     st_autorefresh = None
 import streamlit as st
 import streamlit.components.v1 as components
-from unicodedata import normalize
+import unicodedata
 from PIL import Image
 import matplotlib.pyplot as plt
 import time
@@ -35,6 +36,7 @@ from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
 from typing import TypedDict, cast
 from colorama import Fore, Style
 from app.shared.project_paths import project_root, root_path
+from app.shared.adb_utils import resolve_adb_path
 from app.shared.ui_theme import apply_dark_background
 
 def _sanitize_text(s: str) -> str:
@@ -46,7 +48,7 @@ def _sanitize_text(s: str) -> str:
             s = s.encode("latin1", "ignore").decode("utf-8", "ignore")
     except Exception:
         pass
-    s = normalize("NFKD", s)
+    s = unicodedata.normalize("NFKD", s)
     return s.encode("ascii", "ignore").decode("ascii")
 colorama.init(autoreset=True)
 
@@ -60,10 +62,7 @@ OLLAMA_TEMPERATURE = float(os.getenv("OLLAMA_TEMPERATURE", "0.2"))
 OLLAMA_TOP_P = float(os.getenv("OLLAMA_TOP_P", "0.9"))
 OLLAMA_NUM_CTX = int(os.getenv("OLLAMA_NUM_CTX", "256"))
 OLLAMA_KEEP_ALIVE = os.getenv("OLLAMA_KEEP_ALIVE", "10m")
-if platform.system() == "Windows":
-    ADB_PATH = r"C:\Users\Automation01\platform-tools\adb.exe"
-else:
-    ADB_PATH = "adb"
+ADB_PATH = resolve_adb_path()
 
 STT_CAPTURE_TIMEOUT_S = float(os.getenv("STT_CAPTURE_TIMEOUT_S", "8"))
 STT_PHRASE_LIMIT_S = float(os.getenv("STT_PHRASE_LIMIT_S", "12"))
@@ -336,6 +335,10 @@ def normalizar_pos_fala(txt: str) -> str:
         s = s.replace(k, v)
 
     t = _replace_number_words(_norm(s))
+
+    if len(re.findall(r"\b(executar|rodar|testar)\b", t)) >= 2 and len(re.findall(r"\bbancada\s+\d+\b", t)) >= 2:
+        return s
+
     token = _extrair_token_teste(t)
     bancada = _extrair_bancada(t)
 
@@ -429,6 +432,8 @@ if "coletas_ativas" not in st.session_state:
     st.session_state.coletas_ativas = set()
 if "coleta_atual" not in st.session_state:
     st.session_state.coleta_atual = None
+if "log_sequence_recording" not in st.session_state:
+    st.session_state.log_sequence_recording = None
 if "pending_gravacao" not in st.session_state:
     st.session_state.pending_gravacao = None
 if "finalizacoes_pendentes" not in st.session_state:
@@ -442,6 +447,13 @@ if "stt_whisper_warmup_started" not in st.session_state:
 # =========================
 # === SUPORTE A BANCADAS ===
 # =========================
+GLOBAL_LOG_SEQUENCE_CATEGORY = "__system__"
+GLOBAL_LOG_SEQUENCE_TEST = "failure_log_sequence_global"
+GLOBAL_LOG_SEQUENCE_CSV = os.path.join(DATA_ROOT, "failure_log_sequence.csv")
+GLOBAL_LOG_SEQUENCE_RAW_JSON = os.path.join(DATA_ROOT, "failure_log_sequence.raw.json")
+GLOBAL_LOG_SEQUENCE_META_JSON = os.path.join(DATA_ROOT, "failure_log_sequence.meta.json")
+
+
 def _parse_adb_devices(raw_lines):
     """
     Converte a saÃ­da do 'adb devices' em lista de seriais vÃ¡lidos.
@@ -551,6 +563,112 @@ def _popen_host_python(cmd):
         return True, None
     except Exception as e:
         return False, f"Falha ao executar comando: {e}"
+
+
+def _linhas_csv_sequencia_log(acoes: list[dict]) -> list[dict[str, str]]:
+    linhas = []
+    for idx, item in enumerate(acoes, start=1):
+        acao = item.get("acao") or {}
+        tipo = str(acao.get("tipo", "")).strip().lower()
+        if not tipo:
+            continue
+
+        linha = {
+            "tipo": tipo,
+            "label": f"passo_{idx:02d}_{tipo}",
+            "x": "",
+            "y": "",
+            "x1": "",
+            "y1": "",
+            "x2": "",
+            "y2": "",
+            "duracao_ms": "",
+            "duracao_s": "",
+            "espera_s": "1.0",
+            "texto": "",
+            "keyevent": "",
+            "device_path": "",
+            "output_name": "",
+        }
+
+        if tipo in {"tap", "long_press"}:
+            linha["x"] = str(acao.get("x", ""))
+            linha["y"] = str(acao.get("y", ""))
+            if tipo == "long_press":
+                linha["duracao_s"] = str(acao.get("duracao_s", "1.0"))
+        elif tipo == "swipe":
+            linha["x1"] = str(acao.get("x1", ""))
+            linha["y1"] = str(acao.get("y1", ""))
+            linha["x2"] = str(acao.get("x2", ""))
+            linha["y2"] = str(acao.get("y2", ""))
+            linha["duracao_ms"] = str(acao.get("duracao_ms", "300"))
+        else:
+            continue
+
+        linhas.append(linha)
+    return linhas
+
+
+def _exportar_sequencia_global_logs(categoria: str, nome_teste: str, serial: str) -> tuple[bool, str]:
+    acoes_path = os.path.join(DATA_ROOT, categoria, nome_teste, "json", "acoes.json")
+    if not os.path.exists(acoes_path):
+        return False, "acoes.json da sequencia de logs ainda nao foi gerado."
+
+    try:
+        with open(acoes_path, "r", encoding="utf-8") as handle:
+            raw = json.load(handle)
+    except Exception as exc:
+        return False, f"Falha ao ler acoes.json da sequencia de logs: {exc}"
+
+    acoes = raw.get("acoes") if isinstance(raw, dict) else None
+    if not isinstance(acoes, list) or not acoes:
+        return False, "Nenhuma acao valida encontrada na sequencia gravada."
+
+    linhas = _linhas_csv_sequencia_log(acoes)
+    if not linhas:
+        return False, "A sequencia gravada nao gerou taps/swipes/long press exportaveis."
+
+    os.makedirs(os.path.dirname(GLOBAL_LOG_SEQUENCE_CSV), exist_ok=True)
+    fieldnames = [
+        "tipo",
+        "label",
+        "x",
+        "y",
+        "x1",
+        "y1",
+        "x2",
+        "y2",
+        "duracao_ms",
+        "duracao_s",
+        "espera_s",
+        "texto",
+        "keyevent",
+        "device_path",
+        "output_name",
+    ]
+
+    try:
+        with open(GLOBAL_LOG_SEQUENCE_CSV, "w", encoding="utf-8", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(linhas)
+
+        with open(GLOBAL_LOG_SEQUENCE_RAW_JSON, "w", encoding="utf-8") as handle:
+            json.dump(raw, handle, ensure_ascii=False, indent=2)
+
+        meta = {
+            "categoria_origem": categoria,
+            "teste_origem": nome_teste,
+            "serial": serial,
+            "exportado_em": datetime.now().isoformat(),
+            "total_passos": len(linhas),
+        }
+        with open(GLOBAL_LOG_SEQUENCE_META_JSON, "w", encoding="utf-8") as handle:
+            json.dump(meta, handle, ensure_ascii=False, indent=2)
+    except Exception as exc:
+        return False, f"Falha ao salvar a sequencia global de logs: {exc}"
+
+    return True, f"Sequencia global de coleta de logs salva em `{GLOBAL_LOG_SEQUENCE_CSV}`."
 
 def atualizar_status_bancada(serial, status, categoria=None, nome_teste=None):
     """Atualiza o status atual de cada bancada (executando, ociosa, etc.) de forma isolada e thread-safe."""
@@ -763,128 +881,140 @@ def resolver_comando_com_llm_ou_fallback(texto: str) -> str:
     return interpretar_comando(texto)
 
 
-def executar_teste(categoria, nome_teste, bancada: str | None = None):
+def _garantir_dataset_execucao_chat(categoria: str, nome_teste: str) -> tuple[bool, str]:
+    caminho_teste = os.path.join(DATA_ROOT, categoria, nome_teste)
+    dataset_path = os.path.join(caminho_teste, "dataset.csv")
+
+    os.makedirs(caminho_teste, exist_ok=True)
+
+    if not os.path.exists(dataset_path):
+        printc(f"âš™ï¸ Dataset nÃ£o encontrado para {categoria}/{nome_teste}, gerando automaticamente...", "yellow")
+        try:
+            proc_dataset = subprocess.run(
+                [sys.executable, PROCESSAR_SCRIPT, categoria, nome_teste],
+                cwd=BASE_DIR,
+                capture_output=True,
+                text=True,
+            )
+        except Exception as e:
+            return False, f"ERRO: falha ao processar dataset de {categoria}/{nome_teste}: {e}"
+
+        if proc_dataset.returncode != 0 or not os.path.exists(dataset_path):
+            detalhes = "\n".join(
+                parte.strip()
+                for parte in [proc_dataset.stdout, proc_dataset.stderr]
+                if parte and parte.strip()
+            )
+            if detalhes:
+                return False, f"ERRO: falha ao gerar dataset de {categoria}/{nome_teste}.\n{detalhes}"
+            return False, f"ERRO: o dataset de {categoria}/{nome_teste} nao foi gerado."
+
+        printc("âœ… Dataset gerado com sucesso.", "green")
+
+    return True, ""
+
+
+def _iniciar_execucao_no_serial(
+    categoria: str, nome_teste: str, serial: str, bancada_label: str | None = None
+) -> str:
+    caminho_teste = os.path.join(DATA_ROOT, categoria, nome_teste)
+    log_path = os.path.join(caminho_teste, "execucao_log.json")
+
+    status_atual = _ler_status_serial(serial) or {}
+    if str(status_atual.get("status", "")).lower() == "executando":
+        return f"Aviso: a bancada `{serial}` ja esta executando outro teste."
+
+    atualizar_status_bancada(serial, "executando", categoria, nome_teste)
+
+    inicio = datetime.now().isoformat()
+    log_entry = {
+        "acao": "execucao_iniciada",
+        "categoria": categoria,
+        "teste": nome_teste,
+        "serial": serial,
+        "inicio": inicio
+    }
+    _registrar_log(log_path, log_entry)
+
+    cmd = [sys.executable, RUN_SCRIPT, categoria, nome_teste, "--serial", serial]
+    try:
+        proc = subprocess.Popen(
+            cmd,
+            cwd=BASE_DIR,
+            start_new_session=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+
+        def _monitor_processo(p, serial, categoria, nome_teste):
+            stdout, stderr = p.communicate()
+            if p.returncode != 0:
+                atualizar_status_bancada(serial, "erro", categoria, nome_teste)
+                printc(f"ERRO: execucao do teste {categoria}/{nome_teste} falhou na bancada {serial}.", "red")
+                print(stdout.decode(errors="ignore"))
+                print(stderr.decode(errors="ignore"))
+
+                if MODO_CONVERSA and "chat_history" in st.session_state:
+                    st.session_state.chat_history.append({
+                        "role": "assistant",
+                        "content": f"ERRO: o teste **{categoria}/{nome_teste}** falhou na bancada `{serial}`."
+                    })
+            else:
+                atualizar_status_bancada(serial, "finalizado", categoria, nome_teste)
+                printc(f"OK: teste {categoria}/{nome_teste} finalizado na bancada {serial}.", "green")
+
+                if MODO_CONVERSA and "chat_history" in st.session_state:
+                    st.session_state.chat_history.append({
+                        "role": "assistant",
+                        "content": f"OK: teste **{categoria}/{nome_teste}** finalizado na bancada `{serial}`."
+                    })
+
+                try:
+                    st.rerun()
+                except Exception:
+                    pass
+
+        threading.Thread(
+            target=_monitor_processo,
+            args=(proc, serial, categoria, nome_teste),
+            daemon=True
+        ).start()
+
+        st.session_state.execucoes_ativas.append({
+            "serial": serial,
+            "categoria": categoria,
+            "nome_teste": nome_teste,
+            "status_file": os.path.join(DATA_ROOT, categoria, nome_teste, f"status_{serial}.json"),
+            "proc": proc,
+        })
+
+        prefixo = f"{bancada_label}: " if bancada_label else ""
+        printc(f"ðŸš€ Teste {categoria}/{nome_teste} iniciado em {serial} (PID={proc.pid})", "cyan")
+        return f"{prefixo}Executando **{categoria}/{nome_teste}** na bancada `{serial}` em background..."
+
+    except Exception as e:
+        atualizar_status_bancada(serial, "erro", categoria, nome_teste)
+        return f"ERRO: falha ao iniciar execucao na bancada `{serial}`: {e}"
+
+
+def executar_teste(categoria: str, nome_teste: str, bancada: str | None = None) -> str:
     """
     Executa teste no host em background, permitindo paralelismo entre bancadas.
     Cada processo Ã© isolado e atualizado em status_bancadas.json.
     """
-    caminho_teste = os.path.join(DATA_ROOT, categoria, nome_teste)
-    dataset_path = os.path.join(caminho_teste, "dataset.csv")
-    log_path = os.path.join(caminho_teste, "execucao_log.json")
+    ok_dataset, erro_dataset = _garantir_dataset_execucao_chat(categoria, nome_teste)
+    if not ok_dataset:
+        return erro_dataset or f"ERRO: falha ao preparar dataset de {categoria}/{nome_teste}."
 
-    os.makedirs(caminho_teste, exist_ok=True)
-
-    # 1ï¸âƒ£ Garante que o dataset existe antes da execuÃ§Ã£o
-    if not os.path.exists(dataset_path):
-        printc(f"âš™ï¸ Dataset nÃ£o encontrado para {categoria}/{nome_teste}, gerando automaticamente...", "yellow")
-        processar_teste(categoria, nome_teste)
-
-        # ðŸ•’ Aguarda dataset ser realmente criado (timeout 60s)
-        for _ in range(60):
-            if os.path.exists(dataset_path):
-                printc("âœ… Dataset gerado com sucesso.", "green")
-                break
-            time.sleep(1)
-        else:
-            return f"ERRO: o dataset de {categoria}/{nome_teste} nao foi gerado em tempo habil."
-
-    # 2ï¸âƒ£ Mapeia bancadas ADB
     bancadas = listar_bancadas()
     seriais, erro = _selecionar_bancada(bancada, bancadas)
     if erro:
-        return erro
+        return str(erro)
 
     respostas = []
 
     for serial in seriais:
-        # Evita executar 2 vezes na mesma bancada
-        status_atual = _ler_status_serial(serial) or {}
-
-        if str(status_atual.get("status", "")).lower() == "executando":
-            respostas.append(f"Aviso: a bancada `{serial}` ja esta executando outro teste.")
-            continue
-
-        atualizar_status_bancada(serial, "executando", categoria, nome_teste)
-
-        # Log inicial
-        inicio = datetime.now().isoformat()
-        log_entry = {
-            "acao": "execucao_iniciada",
-            "categoria": categoria,
-            "teste": nome_teste,
-            "serial": serial,
-            "inicio": inicio
-        }
-        _registrar_log(log_path, log_entry)
-
-        # ðŸš€ Executa em background isolado
-        cmd = ["python", RUN_SCRIPT, categoria, nome_teste, "--serial", serial]
-        try:
-            proc = subprocess.Popen(
-                cmd,
-                cwd=BASE_DIR,
-                start_new_session=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
-            )
-
-            # =============================
-            # ðŸ§  MONITOR DE EXECUÃ‡ÃƒO (THREAD)
-            # =============================
-            def _monitor_processo(p, serial, categoria, nome_teste):
-                stdout, stderr = p.communicate()
-                if p.returncode != 0:
-                    atualizar_status_bancada(serial, "erro", categoria, nome_teste)
-                    printc(f"ERRO: execucao do teste {categoria}/{nome_teste} falhou na bancada {serial}.", "red")
-                    print(stdout.decode(errors="ignore"))
-                    print(stderr.decode(errors="ignore"))
-
-                    # Envia mensagem para o chat (modo conversa)
-                    if MODO_CONVERSA and "chat_history" in st.session_state:
-                        st.session_state.chat_history.append({
-                            "role": "assistant",
-                            "content": f"ERRO: o teste **{categoria}/{nome_teste}** falhou na bancada `{serial}`."
-                        })
-                else:
-                    atualizar_status_bancada(serial, "finalizado", categoria, nome_teste)
-                    printc(f"OK: teste {categoria}/{nome_teste} finalizado na bancada {serial}.", "green")
-
-                    # Envia mensagem para o chat (modo conversa)
-                    if MODO_CONVERSA and "chat_history" in st.session_state:
-                        st.session_state.chat_history.append({
-                            "role": "assistant",
-                            "content": f"OK: teste **{categoria}/{nome_teste}** finalizado na bancada `{serial}`."
-                        })
-
-                    # Atualiza a interface automaticamente apÃ³s finalizaÃ§Ã£o
-                    try:
-                        st.rerun()
-                    except Exception:
-                        pass
-
-            # ðŸ”¹ Inicia o monitoramento do processo (thread em background)
-            threading.Thread(
-                target=_monitor_processo,
-                args=(proc, serial, categoria, nome_teste),
-                daemon=True
-            ).start()
-
-            # Registra execucao para notificar no chat quando finalizar.
-            st.session_state.execucoes_ativas.append({
-                "serial": serial,
-                "categoria": categoria,
-                "nome_teste": nome_teste,
-                "status_file": os.path.join(DATA_ROOT, categoria, nome_teste, f"status_{serial}.json"),
-                "proc": proc,
-            })
-
-            # Mensagem inicial
-            respostas.append(f"Executando **{categoria}/{nome_teste}** na bancada `{serial}` em background...")
-            printc(f"ðŸš€ Teste {categoria}/{nome_teste} iniciado em {serial} (PID={proc.pid})", "cyan")
-
-        except Exception as e:
-            respostas.append(f"ERRO: falha ao iniciar execucao na bancada `{serial}`: {e}")
-            atualizar_status_bancada(serial, "erro", categoria, nome_teste)
+        respostas.append(_iniciar_execucao_no_serial(categoria, nome_teste, serial))
 
     return "\n".join(respostas)
 
@@ -909,6 +1039,58 @@ def _registrar_log(caminho_log, nova_entrada):
 def iniciar_fluxo_gravacao():
     st.session_state.pending_gravacao = {"step": "categoria"}
     return "Qual categoria voce quer gravar?"
+
+
+def _eh_comando_gravar_sequencia_logs(texto: str) -> bool:
+    texto_norm = _norm(texto)
+    return (
+        any(p in texto_norm for p in ["gravar", "grave", "coletar", "colete", "capturar"])
+        and "sequencia" in texto_norm
+        and "log" in texto_norm
+        and any(p in texto_norm for p in ["padrao", "global", "coleta"])
+    )
+
+
+def gravar_sequencia_global_logs(bancada: str | None = None):
+    resposta = gravar_teste(GLOBAL_LOG_SEQUENCE_CATEGORY, GLOBAL_LOG_SEQUENCE_TEST, bancada)
+    if resposta.startswith("ERRO:"):
+        return resposta
+
+    serial_resolvido: str | None = None
+    bancadas = listar_bancadas()
+    seriais, erro = _selecionar_bancada(bancada, bancadas)
+    if not erro and seriais:
+        serial_resolvido = seriais[0]
+
+    st.session_state.log_sequence_recording = {
+        "categoria": GLOBAL_LOG_SEQUENCE_CATEGORY,
+        "nome": GLOBAL_LOG_SEQUENCE_TEST,
+        "bancada": serial_resolvido or bancada,
+        "iniciado_em": datetime.now().isoformat(),
+    }
+    return (
+        "Gravando **sequencia padrao de coleta de logs**. "
+        "Quando terminar, use **finalizar gravacao da sequencia de log** ou clique em **Finalizar gravacao**. "
+        f"O arquivo global sera salvo em `{GLOBAL_LOG_SEQUENCE_CSV}`."
+    )
+
+
+def finalizar_gravacao_sequencia_logs():
+    recording = st.session_state.log_sequence_recording
+    if not isinstance(recording, dict):
+        return "Aviso: nao existe gravacao da sequencia de log em andamento."
+
+    categoria = recording.get("categoria")
+    nome = recording.get("nome")
+    bancada = recording.get("bancada")
+    if not isinstance(categoria, str) or not isinstance(nome, str) or not isinstance(bancada, str):
+        return "Aviso: a gravacao da sequencia de log nao possui contexto suficiente para finalizar."
+
+    return finalizar_gravacao(
+        categoria,
+        nome,
+        bancada,
+    )
 
 
 def continuar_fluxo_gravacao(resposta: str):
@@ -956,13 +1138,52 @@ def checar_finalizacoes():
     pend = list(st.session_state.finalizacoes_pendentes)
     restantes = []
     for item in pend:
-        cat, nome, serial = item
+        modo: str | None = None
+        cat: str | None = None
+        nome: str | None = None
+        serial: str | None = None
+        if isinstance(item, dict):
+            cat_raw = item.get("categoria")
+            nome_raw = item.get("nome")
+            serial_raw = item.get("serial")
+            modo_raw = item.get("mode")
+            cat = cat_raw if isinstance(cat_raw, str) and cat_raw else None
+            nome = nome_raw if isinstance(nome_raw, str) and nome_raw else None
+            serial = serial_raw if isinstance(serial_raw, str) and serial_raw else None
+            modo = modo_raw if isinstance(modo_raw, str) and modo_raw else None
+        else:
+            try:
+                cat_raw, nome_raw, serial_raw = item
+            except Exception:
+                continue
+            cat = cat_raw if isinstance(cat_raw, str) and cat_raw else None
+            nome = nome_raw if isinstance(nome_raw, str) and nome_raw else None
+            serial = serial_raw if isinstance(serial_raw, str) and serial_raw else None
+
+        if not cat or not nome:
+            continue
+
         path_final = os.path.join(DATA_ROOT, cat, nome, "resultado_final.png")
         if os.path.exists(path_final):
-            st.session_state.chat_history.append({
-                "role": "assistant",
-                "content": f"Coleta finalizada: {cat}/{nome} (bancada {serial})."
-            })
+            if modo == "global_log_sequence":
+                if not serial:
+                    st.session_state.chat_history.append({
+                        "role": "assistant",
+                        "content": "Coleta finalizada, mas o serial da gravacao da sequencia global nao foi encontrado.",
+                    })
+                    st.session_state.log_sequence_recording = None
+                    continue
+                ok, msg = _exportar_sequencia_global_logs(cat, nome, serial)
+                st.session_state.log_sequence_recording = None
+                st.session_state.chat_history.append({
+                    "role": "assistant",
+                    "content": msg if ok else f"Coleta finalizada, mas nao consegui exportar a sequencia global: {msg}",
+                })
+            else:
+                st.session_state.chat_history.append({
+                    "role": "assistant",
+                    "content": f"Coleta finalizada: {cat}/{nome} (bancada {serial})."
+                })
         else:
             restantes.append(item)
     st.session_state.finalizacoes_pendentes = restantes
@@ -1094,8 +1315,23 @@ def finalizar_gravacao(categoria=None, nome_teste=None, serial=None):
 
         threading.Thread(target=_cleanup, daemon=True).start()
         if categoria and nome_teste and serial:
-            st.session_state.finalizacoes_pendentes.append((categoria, nome_teste, serial))
+            if categoria == GLOBAL_LOG_SEQUENCE_CATEGORY and nome_teste == GLOBAL_LOG_SEQUENCE_TEST:
+                st.session_state.finalizacoes_pendentes.append(
+                    {
+                        "categoria": categoria,
+                        "nome": nome_teste,
+                        "serial": serial,
+                        "mode": "global_log_sequence",
+                    }
+                )
+            else:
+                st.session_state.finalizacoes_pendentes.append((categoria, nome_teste, serial))
         st.session_state.coleta_atual = None
+        if categoria == GLOBAL_LOG_SEQUENCE_CATEGORY and nome_teste == GLOBAL_LOG_SEQUENCE_TEST:
+            return (
+                "Finalizando gravacao da sequencia de log... "
+                "apos o print final, vou exportar automaticamente para o arquivo global."
+            )
         return "Finalizando gravacao... toque na tela do radio para capturar o print final."
     except Exception as e:
         return f"Falha ao finalizar gravacao: {e}"
@@ -1115,6 +1351,8 @@ def cancelar_gravacao(categoria=None, nome_teste=None):
     except Exception:
         pass
     st.session_state.coleta_atual = None
+    if categoria == GLOBAL_LOG_SEQUENCE_CATEGORY and nome_teste == GLOBAL_LOG_SEQUENCE_TEST:
+        st.session_state.log_sequence_recording = None
     return "Gravacao cancelada e teste removido."
 
 
@@ -1428,7 +1666,7 @@ def _normalize_token(s: str) -> str:
 def _norm(s: str) -> str:
     """Lower + remove acentos para matching robusto."""
     s = s.strip().lower()
-    return normalize("NFKD", s).encode("ASCII", "ignore").decode("ASCII")
+    return unicodedata.normalize("NFKD", s).encode("ASCII", "ignore").decode("ASCII")
 
 from difflib import SequenceMatcher
 
@@ -1502,7 +1740,112 @@ def _extrair_categoria(texto: str) -> str | None:
             return cat
     return None
 
-def interpretar_comando(comando: str):
+
+def _resolver_execucao_de_trecho(texto: str) -> tuple[str | None, str | None, str | None]:
+    token = _extrair_token_teste(texto)
+    if token:
+        cat, nome = _resolver_teste(token)
+        if cat and nome:
+            return cat, nome, None
+
+        for cat_try in listar_categorias():
+            if token in listar_testes(cat_try):
+                return cat_try, token, None
+
+        return None, None, f"ERRO: teste **{token}** nao encontrado em `Data/*/`."
+
+    return None, None, "Aviso: nao encontrei o nome do teste em um dos comandos paralelos."
+
+
+def _extrair_execucoes_paralelas(texto: str) -> tuple[list[dict[str, str]] | None, str | None]:
+    texto_norm = _replace_number_words(_norm(texto))
+    partes = [
+        parte.strip(" ,.;")
+        for parte in re.split(r"\s+e\s+(?=(?:executar|rodar|testar)\b)", texto_norm)
+        if parte.strip(" ,.;")
+    ]
+
+    partes_execucao = [parte for parte in partes if re.search(r"\b(executar|rodar|testar)\b", parte)]
+
+    if len(partes_execucao) < 2:
+        return None, None
+
+    execucoes: list[dict[str, str]] = []
+    for idx, parte in enumerate(partes_execucao, start=1):
+        bancada = _extrair_bancada(parte)
+        if not bancada or bancada == "todas":
+            return [], f"Aviso: informe uma bancada numerada para cada execução paralela. Falha em Bancada {idx}."
+
+        cat, nome, erro = _resolver_execucao_de_trecho(parte)
+        if erro:
+            return [], erro
+
+        if cat is None or nome is None:
+            return [], "Aviso: nao foi possivel resolver categoria e nome do teste em um dos comandos paralelos."
+
+        execucoes.append(
+            {
+                "categoria": cat,
+                "teste": nome,
+                "bancada": bancada,
+                "label": f"Bancada {bancada}",
+            }
+        )
+
+    return execucoes, None
+
+
+def executar_testes_em_paralelo(execucoes: list[dict[str, str]]) -> str:
+    if len(execucoes) < 2:
+        return "Aviso: informe pelo menos duas execucoes para rodar em paralelo."
+
+    bancadas = listar_bancadas()
+    if len(bancadas) < 2:
+        return "ERRO: conecte pelo menos duas bancadas para executar testes em paralelo."
+
+    seriais_usados = set()
+    execucoes_resolvidas: list[dict[str, str]] = []
+
+    for execucao in execucoes:
+        bancada_num = str(execucao.get("bancada", "")).strip()
+        if bancada_num not in bancadas:
+            return f"ERRO: bancada '{bancada_num}' nao encontrada. Use **listar bancadas**."
+
+        if bancada_num in seriais_usados:
+            return "ERRO: nao e permitido usar a mesma bancada em duas execucoes paralelas."
+
+        seriais_usados.add(bancada_num)
+
+        categoria = str(execucao.get("categoria", "")).strip()
+        nome_teste = str(execucao.get("teste", "")).strip()
+
+        ok_dataset, erro_dataset = _garantir_dataset_execucao_chat(categoria, nome_teste)
+        if not ok_dataset:
+            return erro_dataset or f"ERRO: falha ao preparar dataset de {categoria}/{nome_teste}."
+
+        execucoes_resolvidas.append(
+            {
+                "categoria": categoria,
+                "teste": nome_teste,
+                "serial": bancadas[bancada_num],
+                "label": str(execucao.get("label", f"Bancada {bancada_num}")),
+            }
+        )
+
+    respostas = ["Executando testes em paralelo:"]
+    for execucao in execucoes_resolvidas:
+        respostas.append(
+            _iniciar_execucao_no_serial(
+                execucao["categoria"],
+                execucao["teste"],
+                execucao["serial"],
+                bancada_label=execucao["label"],
+            )
+        )
+
+    return "\n".join(respostas)
+
+def interpretar_comando(comando: str) -> str:
     texto = comando.strip()
     texto_norm = _norm(texto)
 
@@ -1511,13 +1854,27 @@ def interpretar_comando(comando: str):
         return (
             "**Comandos suportados**\n"
             "- **executar/rodar** `<teste>` [na bancada N|todas]\n"
+            "- **executar em paralelo** `executar teste_x na bancada 1 e executar teste_y na bancada 2`\n"
             "- **gravar/coletar** `<teste>` [na bancada N|todas]\n"
+            "- **gravar sequencia padrao de coleta de logs** [na bancada N]\n"
             "- **processar** `<teste>`\n"
             "- **apagar/deletar/remover** `<teste>`\n"
             "- **listar/mostrar** categorias | testes [de <categoria>]\n"
             "- **listar bancadas**\n"
             "Ex.: `execute o teste audio_1 na bancada 2`"
         )
+
+    if st.session_state.log_sequence_recording and any(
+        p in texto_norm
+        for p in [
+            "finalizar gravacao da sequencia de log",
+            "finalizar sequencia de log",
+            "salvar sequencia de log",
+            "encerrar sequencia de log",
+            "parar gravacao da sequencia de log",
+        ]
+    ):
+        return finalizar_gravacao_sequencia_logs()
 
     # 2) LISTAR BANCADAS
     if _has_any(texto_norm, ["listar bancadas", "mostrar bancadas", "listar devices", "mostrar devices"]) \
@@ -1526,6 +1883,12 @@ def interpretar_comando(comando: str):
 
     # 3) EXECUTAR (rodar testes)
     if _has_any(texto_norm, KW_EXECUTAR):
+        execucoes_paralelas, erro_paralelo = _extrair_execucoes_paralelas(texto)
+        if erro_paralelo:
+            return erro_paralelo
+        if execucoes_paralelas:
+            return executar_testes_em_paralelo(execucoes_paralelas)
+
         # Caso especial: "todos os testes da categoria X"
         if re.search(r"todos\s+os\s+testes\s+da\s+categoria", texto_norm):
             cat = _extrair_categoria(texto)
@@ -1563,6 +1926,9 @@ def interpretar_comando(comando: str):
 
     # 4) GRAVAR / COLETAR
     if _has_any(texto_norm, KW_GRAVAR):
+        if _eh_comando_gravar_sequencia_logs(texto):
+            bancada = _extrair_bancada(texto)
+            return gravar_sequencia_global_logs(bancada)
         token = _extrair_token_teste(texto)
         if token:
             if "_" in token:
@@ -1744,6 +2110,20 @@ def responder_conversacional(comando: str):
     if comando_norm.startswith("zuri"):
         comando_norm = comando_norm.replace("zuri", "", 1).strip()
 
+    if st.session_state.log_sequence_recording and any(
+        p in comando_norm
+        for p in [
+            "finalizar gravacao da sequencia de log",
+            "finalizar sequencia de log",
+            "salvar sequencia de log",
+            "encerrar sequencia de log",
+            "parar gravacao da sequencia de log",
+        ]
+    ):
+        resposta_pre = "Encerrando a gravacao da sequencia padrao de logs."
+        st.session_state.chat_history.append({"role": "assistant", "content": resposta_pre})
+        return finalizar_gravacao_sequencia_logs()
+
     # === ROTEAMENTO ===
     if any(p in comando_norm for p in ["listar bancadas", "ver bancadas", "bancadas conectadas"]):
         resposta_pre = random.choice(frases_bancadas)
@@ -1766,6 +2146,10 @@ def responder_conversacional(comando: str):
         return resolver_comando_com_llm_ou_fallback(comando)
 
     if any(p in comando_norm for p in ["gravar teste", "gravar", "coletar teste", "coletar", "capturar"]):
+        if _eh_comando_gravar_sequencia_logs(comando):
+            resposta_pre = "Iniciando a gravacao da sequencia padrao de coleta de logs."
+            st.session_state.chat_history.append({"role": "assistant", "content": resposta_pre})
+            return resolver_comando_com_llm_ou_fallback(comando)
         resposta_pre = f"{random.choice(frases_iniciais)} {random.choice(frases_coleta)}"
         st.session_state.chat_history.append({"role": "assistant", "content": resposta_pre})
         if _extrair_token_teste(comando) is None and "gravar" in comando_norm:
@@ -1895,6 +2279,7 @@ if pagina == "Chat":
                 <li><code>gravar audio_1 na bancada 1</code> - inicia gravacao do teste de audio na bancada 1</li>
                 <li><code>processar audio_1</code> - processa o dataset coletado</li>
                 <li><code>executar audio_1 na bancada 1</code> - roda o teste gravado</li>
+                <li><code>executar audio_1 na bancada 1 e executar video_2 na bancada 2</code> - roda testes em paralelo nas bancadas informadas</li>
                 <li><code>rodar todos os testes da categoria video</code> - executa todos os testes de uma categoria</li>
                 <li><code>listar bancadas</code> - mostra bancadas ADB conectadas</li>
                 <li><code>ajuda</code> - exibe a lista completa de comandos</li>
@@ -1946,13 +2331,30 @@ if pagina == "Chat":
     for idx, msg in enumerate(st.session_state.chat_history):
         with st.chat_message(msg["role"]):
             st.markdown(_sanitize_text(msg["content"]))
-            if msg["role"] == "assistant" and "Gravando" in msg["content"]:
-                m = re.search(r"Gravando\s+([a-z0-9_]+)/([a-z0-9_]+)\s+na bancada\s+([0-9A-Fa-f]+)", msg["content"])
+            if msg["role"] == "assistant" and (
+                "Gravando" in msg["content"] or "sequencia padrao de coleta de logs" in msg["content"]
+            ):
+                m = re.search(
+                    r"Gravando\s+\**([a-z0-9_]+)/([a-z0-9_]+)\**\s+na bancada\s+`?([0-9A-Za-z._:-]+)`?",
+                    msg["content"],
+                )
                 cat = nome = serial = None
                 if m:
                     cat, nome, serial = m.group(1), m.group(2), m.group(3)
+                elif "sequencia padrao de coleta de logs" in msg["content"] and st.session_state.log_sequence_recording:
+                    recording = st.session_state.log_sequence_recording
+                    if isinstance(recording, dict):
+                        cat_raw = recording.get("categoria")
+                        nome_raw = recording.get("nome")
+                        serial_raw = recording.get("bancada")
+                        cat = cat_raw if isinstance(cat_raw, str) else None
+                        nome = nome_raw if isinstance(nome_raw, str) else None
+                        serial = serial_raw if isinstance(serial_raw, str) else None
                 if st.button("Salvar esperado", key=f"esperado_{idx}"):
-                    msg_resp = salvar_resultado_parcial(cat, nome, serial)
+                    if cat and nome:
+                        msg_resp = salvar_resultado_parcial(cat, nome, serial)
+                    else:
+                        msg_resp = "Aviso: nao consegui identificar categoria e nome da gravacao para salvar o esperado."
                     st.session_state.chat_history.append({"role": "assistant", "content": msg_resp})
                     st.rerun()
                 if st.button("Finalizar gravacao", key=f"finalizar_{idx}"):
@@ -1960,7 +2362,7 @@ if pagina == "Chat":
                     st.session_state.chat_history.append({"role": "assistant", "content": msg_resp})
                     st.rerun()
                 if st.button("Cancelar gravacao", key=f"cancelar_{idx}"):
-                    msg_resp = cancelar_gravacao(cat, nome)
+                    msg_resp = cancelar_gravacao(cat, nome) if cat and nome else "Aviso: nao consegui identificar a gravacao para cancelar."
                     st.session_state.chat_history.append({"role": "assistant", "content": msg_resp})
                     st.rerun()
 
@@ -2053,24 +2455,32 @@ elif pagina == "Menu Tester":
     if st.button("Abrir Menu Tester"):
         try:
             import webbrowser
-            cmd = [
-                "python",
-                "-m",
-                "streamlit",
-                "run",
-                root_path("app", "streamlit", "menu_tester.py"),
-                "--server.port",
-                "8503",
-                "--server.headless",
-                "false",
-                "--server.fileWatcherType",
-                "none",
-                "--server.runOnSave",
-                "false",
-            ]
-            subprocess.Popen(cmd, cwd=BASE_DIR)
+            tester_url = "http://localhost:8503"
+            tester_ativo = False
+            try:
+                with urllib.request.urlopen(tester_url, timeout=1.5):
+                    tester_ativo = True
+            except Exception:
+                tester_ativo = False
+            if not tester_ativo:
+                cmd = [
+                    sys.executable,
+                    "-m",
+                    "streamlit",
+                    "run",
+                    root_path("app", "streamlit", "menu_tester.py"),
+                    "--server.port",
+                    "8503",
+                    "--server.headless",
+                    "false",
+                    "--server.fileWatcherType",
+                    "none",
+                    "--server.runOnSave",
+                    "false",
+                ]
+                subprocess.Popen(cmd, cwd=BASE_DIR)
             webbrowser.open_new_tab("http://localhost:8503")
-            st.success("Menu Tester iniciado em http://localhost:8503")
+            st.success("Menu Tester disponivel em http://localhost:8503")
         except Exception as e:
             st.error(f"Falha ao abrir Menu Tester: {e}")
 

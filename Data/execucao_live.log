@@ -1,35 +1,40 @@
-📁 Execução Automática de Testes no Rádio via ADB
-[96m🔍 Verificando dispositivos ADB conectados...[0m
+ðŸ“ ExecuÃ§Ã£o AutomÃ¡tica de Testes no RÃ¡dio via ADB
+[96mðŸ” Verificando dispositivos ADB conectados...[0m
 [96m
-🗂️ Dataset: C:\Users\Automation01\Desktop\zuri_agente\Data\deep_dive\teste_2\dataset.csv[0m
-[96m🗂️ Frames:  C:\Users\Automation01\Desktop\zuri_agente\Data\deep_dive\teste_2\frames[0m
-[96m🗂️ Result.: C:\Users\Automation01\Desktop\zuri_agente\Data\deep_dive\teste_2\resultados
+ðŸ—‚ï¸ Dataset: C:\Users\Automation01\Desktop\zuri_agente\Data\teste\teste1\dataset.csv[0m
+[96mðŸ—‚ï¸ Frames:  C:\Users\Automation01\Desktop\zuri_agente\Data\teste\teste1\frames[0m
+[96mðŸ—‚ï¸ Result.: C:\Users\Automation01\Desktop\zuri_agente\Data\teste\teste1\resultados
 [0m
 [96m
-🎬 Executando 7 ações do dataset...
+ðŸŽ¬ Executando 9 aÃ§Ãµes do dataset...
 [0m
-[0m▶️ Ação 1/7 (tap)[0m
-[92m👉 TAP em (952,1013)[0m
-[96m🔎 Similaridade: 0.878 → ✅ OK | ⏱️ 3.31s[0m
-[0m▶️ Ação 2/7 (tap)[0m
-[92m👉 TAP em (696,1021)[0m
-[96m🔎 Similaridade: 0.872 → ✅ OK | ⏱️ 3.15s[0m
-[0m▶️ Ação 3/7 (tap)[0m
-[92m👉 TAP em (1665,701)[0m
-[96m🔎 Similaridade: 0.890 → ✅ OK | ⏱️ 3.24s[0m
-[0m▶️ Ação 4/7 (tap)[0m
-[92m👉 TAP em (736,482)[0m
-[96m🔎 Similaridade: 0.810 → ❌ Divergente | ⏱️ 3.09s[0m
-[0m▶️ Ação 5/7 (tap)[0m
-[92m👉 TAP em (624,841)[0m
-[96m🔎 Similaridade: 0.821 → ❌ Divergente | ⏱️ 3.18s[0m
-[0m▶️ Ação 6/7 (tap)[0m
-[93m⚠️ Arquivo de pausa residual detectado — removendo para evitar travamento.[0m
-[92m👉 TAP em (298,645)[0m
-[96m🔎 Similaridade: 0.805 → ❌ Divergente | ⏱️ 3.23s[0m
-[0m▶️ Ação 7/7 (tap)[0m
-[92m👉 TAP em (314,569)[0m
-[96m🔎 Similaridade: 0.822 → ❌ Divergente | ⏱️ 3.16s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 1/9 (tap)[0m
+[92mðŸ‘‰ TAP em (971,1001)[0m
+[96mðŸ”Ž Similaridade: 0.997 â†’ âœ… OK | â±ï¸ 3.01s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 2/9 (tap)[0m
+[92mðŸ‘‰ TAP em (692,1021)[0m
+[96mðŸ”Ž Similaridade: 0.998 â†’ âœ… OK | â±ï¸ 2.89s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 3/9 (tap)[0m
+[92mðŸ‘‰ TAP em (672,1009)[0m
+[96mðŸ”Ž Similaridade: 0.764 â†’ âŒ Divergente | â±ï¸ 3.01s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 4/9 (tap)[0m
+[92mðŸ‘‰ TAP em (692,1017)[0m
+[96mðŸ”Ž Similaridade: 0.998 â†’ âœ… OK | â±ï¸ 2.89s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 5/9 (tap)[0m
+[92mðŸ‘‰ TAP em (1719,675)[0m
+[96mðŸ”Ž Similaridade: 0.999 â†’ âœ… OK | â±ï¸ 3.16s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 6/9 (tap)[0m
+[92mðŸ‘‰ TAP em (1253,749)[0m
+[96mðŸ”Ž Similaridade: 1.000 â†’ âœ… OK | â±ï¸ 3.01s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 7/9 (tap)[0m
+[92mðŸ‘‰ TAP em (1553,198)[0m
+[96mðŸ”Ž Similaridade: 1.000 â†’ âœ… OK | â±ï¸ 2.96s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 8/9 (tap)[0m
+[92mðŸ‘‰ TAP em (1527,210)[0m
+[96mðŸ”Ž Similaridade: 0.999 â†’ âœ… OK | â±ï¸ 2.99s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 9/9 (tap)[0m
+[92mðŸ‘‰ TAP em (360,847)[0m
+[96mðŸ”Ž Similaridade: 0.815 â†’ âŒ Divergente | â±ï¸ 2.89s[0m
 [92m
-✅ Execução finalizada. Log salvo em: C:\Users\Automation01\Desktop\zuri_agente\Data\deep_dive\teste_2\execucao_log.json[0m
-[96m📊 Status atualizado em: Data/status_2801780c52320038.json[0m
+âœ… ExecuÃ§Ã£o finalizada. Log salvo em: C:\Users\Automation01\Desktop\zuri_agente\Data\teste\teste1\execucao_log.json[0m
+[96mStatus atualizado em: Data/teste/teste1/status_000123c900000000.json[0m

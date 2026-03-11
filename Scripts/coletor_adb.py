@@ -12,16 +12,14 @@ from colorama import Fore, Style
 from termcolor import colored
 import subprocess
 from datetime import datetime
+from app.shared.adb_utils import resolve_adb_path
 colorama.init()
 
 # =========================
 # CONFIG
 # =========================
 BUILD_TAG = "ZURI Coletor v2 (event2)"
-if platform.system() == "Windows":
-    ADB_PATH = r"C:\Users\Automation01\platform-tools\adb.exe"
-else:
-    ADB_PATH = "adb"
+ADB_PATH = resolve_adb_path()
 
 REMOTE_TMP = "/sdcard/tmp_shot.png"
 MOV_THRESH_PX = 25            # distância p/ classificar SWIPE (senão é TAP)

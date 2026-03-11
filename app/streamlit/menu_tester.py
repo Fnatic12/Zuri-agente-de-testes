@@ -3,7 +3,6 @@ import streamlit as st
 import subprocess
 
 import os
-
 import platform
 
 import sys
@@ -11,23 +10,19 @@ import sys
 import shutil
 
 import time
+import re
+import json
+import urllib.request
 import webbrowser
 from streamlit_autorefresh import st_autorefresh
 from datetime import datetime
 from app.shared.project_paths import project_root, root_path
+from app.shared.adb_utils import resolve_adb_path
 from app.shared.ui_theme import apply_dark_background
 
 
 # === Caminho do ADB ===
-
-if platform.system() == "Windows":
-
-    ADB_PATH = r"C:\Users\Automation01\platform-tools\adb.exe"
-
-else:
-
-    ADB_PATH = "adb"
-
+ADB_PATH = resolve_adb_path()
 
 
 def _parse_adb_devices(raw_lines):
@@ -165,6 +160,23 @@ def titulo_painel(titulo: str, subtitulo: str = ""):
     )
 
 
+ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
+
+
+def _clean_display_text(value: str) -> str:
+    text = value if isinstance(value, str) else str(value)
+    text = ANSI_ESCAPE_RE.sub("", text)
+    for _ in range(2):
+        try:
+            if any(mark in text for mark in ("Ã", "Â", "â", "�")):
+                text = text.encode("latin1", "ignore").decode("utf-8", "ignore")
+        except Exception:
+            break
+    text = text.replace("\x00", "")
+    text = "".join(ch for ch in text if ch == "\n" or ch == "\t" or ord(ch) >= 32)
+    return text.strip()
+
+
 
 # === CONFIG ===
 
@@ -220,6 +232,301 @@ if "execucao_log_path" not in st.session_state:
 
 
 
+
+
+
+if "execucao_unica_processos" not in st.session_state:
+
+    st.session_state["execucao_unica_processos"] = []
+
+
+
+def _execucao_log_path_por_serial(serial):
+
+    serial_seguro = re.sub(r"[^0-9A-Za-z_.-]", "_", str(serial or "sem_serial"))
+
+    return os.path.join(BASE_DIR, "Data", f"execucao_live_{serial_seguro}.log")
+
+
+def _status_file_path(categoria, teste, serial):
+    return os.path.join(BASE_DIR, "Data", str(categoria), str(teste), f"status_{serial}.json")
+
+
+def _carregar_status_execucao(categoria, teste, serial):
+    status_path = _status_file_path(categoria, teste, serial)
+    if not os.path.exists(status_path):
+        return {}
+    try:
+        with open(status_path, "r", encoding="utf-8") as handle:
+            data = json.load(handle)
+    except Exception:
+        return {}
+    if isinstance(data, dict):
+        nested = data.get(str(serial))
+        if isinstance(nested, dict):
+            return nested
+        return data
+    return {}
+
+
+def _formatar_resumo_execucao(payload, fallback_returncode=None):
+    status = str(payload.get("status", "")).strip().lower()
+    resultado_final = str(payload.get("resultado_final", "")).strip().lower()
+    log_capture_status = str(payload.get("log_capture_status", "")).strip().lower()
+    log_capture_dir = str(payload.get("log_capture_dir", "") or "").strip()
+
+    if status == "executando":
+        return "Executando"
+    if status == "coletando_logs":
+        return "Coletando logs da peca"
+    if status == "erro":
+        detalhe = str(payload.get("erro_motivo", "") or "").strip()
+        return f"Erro tecnico ({detalhe})" if detalhe else "Erro tecnico"
+    if resultado_final == "aprovado":
+        return "Finalizado aprovado"
+    if resultado_final == "reprovado":
+        if log_capture_status == "capturado":
+            return f"Finalizado reprovado | logs capturados em {log_capture_dir}"
+        if log_capture_status == "executando":
+            return "Finalizado reprovado | capturando logs"
+        if log_capture_status == "sem_roteiro":
+            return "Finalizado reprovado | sem roteiro de logs"
+        if log_capture_status == "falha":
+            return "Finalizado reprovado | falha ao capturar logs"
+        return "Finalizado reprovado"
+    if fallback_returncode is not None:
+        return "Finalizado com sucesso" if fallback_returncode == 0 else f"Erro ({fallback_returncode})"
+    return "Sem status"
+
+
+
+def _tem_execucao_unica_ativa():
+
+    for item in st.session_state.get("execucao_unica_processos", []):
+
+        proc = item.get("proc")
+
+        if proc is not None and proc.poll() is None:
+
+            return True
+
+    return False
+
+
+
+def _garantir_dataset_execucao(categoria_exec, nome_teste_exec):
+
+    teste_path = os.path.join(BASE_DIR, "Data", categoria_exec, nome_teste_exec)
+
+    dataset_path = os.path.join(teste_path, "dataset.csv")
+
+    if os.path.exists(dataset_path):
+
+        return True, ""
+
+    st.warning("Dataset nao encontrado. Gerando automaticamente...")
+
+    proc_dataset = subprocess.run(
+
+        [sys.executable, SCRIPTS["Processar Dataset"], categoria_exec, nome_teste_exec],
+
+        cwd=BASE_DIR
+
+    )
+
+    if proc_dataset.returncode == 0:
+
+        st.success("Dataset processado com sucesso.")
+
+        return True, ""
+
+    return False, "Falha ao processar dataset."
+
+
+
+def _iniciar_execucoes_configuradas(execucoes):
+
+    if not execucoes:
+
+        return False, "Nenhuma execucao informada.", []
+
+    if _tem_execucao_unica_ativa():
+
+        return False, "Ja existe teste em execucao. Aguarde finalizar antes de iniciar outro.", []
+
+    execucoes_validas = []
+
+    seriais_usados = set()
+
+    for idx, execucao in enumerate(execucoes, start=1):
+
+        categoria_exec = str(execucao.get("categoria", "")).strip()
+
+        nome_teste_exec = str(execucao.get("teste", "")).strip()
+
+        serial = str(execucao.get("serial", "")).strip()
+
+        label = str(execucao.get("label", f"Bancada {idx}")).strip() or f"Bancada {idx}"
+
+        if not categoria_exec or not nome_teste_exec:
+
+            return False, f"Informe categoria e nome do teste para {label}.", []
+
+        if not serial:
+
+            return False, f"Nenhum dispositivo ADB definido para {label}.", []
+
+        if serial in seriais_usados:
+
+            return False, "Selecione bancadas diferentes para executar em paralelo.", []
+
+        seriais_usados.add(serial)
+
+        ok_dataset, msg_dataset = _garantir_dataset_execucao(categoria_exec, nome_teste_exec)
+
+        if not ok_dataset:
+
+            return False, f"{label}: {msg_dataset}", []
+
+        execucoes_validas.append(
+
+            {
+
+                "categoria": categoria_exec,
+
+                "teste": nome_teste_exec,
+
+                "serial": serial,
+
+                "label": label,
+
+            }
+
+        )
+
+    processos_iniciados = []
+
+    try:
+
+        for execucao in execucoes_validas:
+
+            categoria_exec = execucao["categoria"]
+
+            nome_teste_exec = execucao["teste"]
+
+            serial = execucao["serial"]
+
+            label = execucao["label"]
+
+            log_path = _execucao_log_path_por_serial(serial)
+
+            log_file = open(log_path, "w", encoding="utf-8", errors="ignore", buffering=1)
+
+            proc_exec = subprocess.Popen(
+
+                [sys.executable, SCRIPTS["Executar Teste"], categoria_exec, nome_teste_exec, "--serial", serial],
+
+                cwd=BASE_DIR,
+
+                stdout=log_file,
+
+                stderr=subprocess.STDOUT,
+
+                text=True
+
+            )
+
+            processos_iniciados.append(
+
+                {
+
+                    "proc": proc_exec,
+
+                    "serial": serial,
+
+                    "categoria": categoria_exec,
+
+                    "teste": nome_teste_exec,
+
+                    "label": label,
+
+                    "status_text": f"{label}: executando {categoria_exec}/{nome_teste_exec} na bancada {serial}...",
+
+                    "log_path": log_path,
+
+                    "log_file": log_file,
+
+                    "log_closed": False,
+
+                }
+
+            )
+
+    except Exception as e:
+
+        for item in processos_iniciados:
+
+            try:
+
+                if item["proc"].poll() is None:
+
+                    item["proc"].terminate()
+
+            except Exception:
+
+                pass
+
+            try:
+
+                item["log_file"].close()
+
+            except Exception:
+
+                pass
+
+        return False, f"Falha ao iniciar execucao: {e}", []
+
+    st.session_state["execucao_unica_processos"] = processos_iniciados
+
+    st.session_state["proc_execucao_unica"] = processos_iniciados[0]["proc"] if len(processos_iniciados) == 1 else None
+
+    st.session_state["execucao_unica_status"] = " | ".join(item["status_text"] for item in processos_iniciados)
+
+    st.session_state["execucao_log_path"] = processos_iniciados[0]["log_path"]
+
+    st.session_state["teste_em_execucao"] = True
+
+    st.session_state["teste_pausado"] = False
+
+    return True, "", processos_iniciados
+
+
+
+def _iniciar_execucoes_teste_unico(categoria_exec, nome_teste_exec, seriais):
+
+    seriais_validos = [str(serial).strip() for serial in seriais if str(serial).strip()]
+
+    return _iniciar_execucoes_configuradas(
+
+        [
+
+            {
+
+                "categoria": categoria_exec,
+
+                "teste": nome_teste_exec,
+
+                "serial": serial,
+
+                "label": "Bancada selecionada" if len(seriais_validos) == 1 else f"Bancada {idx}",
+
+            }
+
+            for idx, serial in enumerate(seriais_validos, start=1)
+
+        ]
+
+    )
 
 
 
@@ -458,7 +765,7 @@ if log_path and os.path.exists(log_path):
 
             lines = f.readlines()
 
-        logs_txt = "".join(lines[-200:])
+        logs_txt = _clean_display_text("".join(lines[-200:]))
 
     except Exception:
 
@@ -530,15 +837,45 @@ if st.button("Processar Dataset"):
 
     if categoria_ds and nome_teste_ds:
 
-        subprocess.Popen(
+        with st.spinner(f"Processando dataset de {categoria_ds}/{nome_teste_ds}..."):
 
-            ["python", SCRIPTS["Processar Dataset"], categoria_ds, nome_teste_ds],
+            proc_dataset = subprocess.run(
 
-            cwd=BASE_DIR
+                [sys.executable, SCRIPTS["Processar Dataset"], categoria_ds, nome_teste_ds],
+
+                cwd=BASE_DIR,
+
+                capture_output=True,
+
+                text=True
+
+            )
+
+        saida_dataset = _clean_display_text(
+
+            "\n".join(
+
+                parte for parte in [proc_dataset.stdout, proc_dataset.stderr] if parte and parte.strip()
+
+            )
 
         )
 
-        st.info(f"Processando dataset de {categoria_ds}/{nome_teste_ds}...")
+        if proc_dataset.returncode == 0:
+
+            st.success(f"Dataset de {categoria_ds}/{nome_teste_ds} processado com sucesso.")
+
+            if saida_dataset:
+
+                st.caption(saida_dataset)
+
+        else:
+
+            st.error(f"Falha ao processar dataset de {categoria_ds}/{nome_teste_ds}.")
+
+            if saida_dataset:
+
+                st.text_area("Detalhes do processamento", value=saida_dataset, height=180, disabled=True)
 
     else:
 
@@ -559,6 +896,49 @@ categoria_exec = st.text_input("Categoria do Teste", key="cat_exec")
 nome_teste_exec = st.text_input("Nome do Teste (deixe vazio para rodar todos)", key="nome_exec")
 
 
+st.markdown("**Execucao paralela por bancada**")
+
+execucoes_paralelas_config = []
+
+if bancadas:
+
+    colunas_paralelas = st.columns(2)
+
+    for idx, serial_bancada in enumerate(bancadas, start=1):
+
+        with colunas_paralelas[(idx - 1) % 2]:
+
+            st.caption(f"Bancada {idx}")
+
+            st.caption(f"Serial: {serial_bancada}")
+
+            categoria_exec_b = st.text_input(f"Categoria Bancada {idx}", key=f"cat_exec_b{idx}")
+
+            nome_teste_exec_b = st.text_input(f"Teste Bancada {idx}", key=f"nome_exec_b{idx}")
+
+            if categoria_exec_b.strip() and nome_teste_exec_b.strip():
+
+                execucoes_paralelas_config.append(
+
+                    {
+
+                        "categoria": categoria_exec_b.strip(),
+
+                        "teste": nome_teste_exec_b.strip(),
+
+                        "serial": serial_bancada,
+
+                        "label": f"Bancada {idx}",
+
+                    }
+
+                )
+
+else:
+
+    st.info("Nenhuma bancada conectada para execucao paralela.")
+
+
 
 st.markdown("<div class='exec-row'>", unsafe_allow_html=True)
 
@@ -572,163 +952,75 @@ with col_a:
 
     st.markdown("<h4>Executar teste unico</h4>", unsafe_allow_html=True)
 
-    if st.button("Executar Teste Unico"):
+    btn_unico_col, btn_duplo_col = st.columns(2)
 
-        if categoria_exec and nome_teste_exec:
+    with btn_unico_col:
 
-            teste_path = os.path.join(BASE_DIR, "Data", categoria_exec, nome_teste_exec)
+        executar_teste_unico = st.button("Executar Teste Unico")
 
-            dataset_path = os.path.join(teste_path, "dataset.csv")
+    with btn_duplo_col:
 
+        executar_duplo = st.button("Rodar Testes em Paralelo", key="executar_teste_duplo")
 
+    if executar_teste_unico:
 
-            if not os.path.exists(dataset_path):
+        serial_exec = serial_sel or (bancadas[0] if bancadas else None)
 
-                st.warning("Dataset nao encontrado. Gerando automaticamente...")
+        ok_exec, msg_exec, processos = _iniciar_execucoes_teste_unico(
 
-                proc = subprocess.run(
+            categoria_exec,
 
-                    ["python", SCRIPTS["Processar Dataset"], categoria_exec, nome_teste_exec],
+            nome_teste_exec,
 
-                    cwd=BASE_DIR
+            [serial_exec] if serial_exec else []
 
-                )
+        )
 
-                if proc.returncode == 0:
+        if ok_exec and processos:
 
-                    st.success("Dataset processado com sucesso.")
+            serial = processos[0]["serial"]
 
-                else:
-
-                    st.error("Falha ao processar dataset.")
-
-                    st.stop()
-
-
-
-            try:
-
-                result = subprocess.run([ADB_PATH, "devices"], capture_output=True, text=True, timeout=5)
-
-                lines = result.stdout.strip().split("\n")[1:]
-
-                dispositivos = [l.split("\t")[0] for l in lines if "\tdevice" in l]
-
-
-
-                if not dispositivos:
-
-                    st.error("Nenhum dispositivo ADB conectado.")
-
-                    st.stop()
-
-
-
-                serial = dispositivos[0]
-
-
-
-                log_path = os.path.join(BASE_DIR, "Data", "execucao_live.log")
-
-                st.session_state["execucao_log_path"] = log_path
-
-                log_file = open(log_path, "w", encoding="utf-8", errors="ignore", buffering=1)
-
-                proc_exec = subprocess.Popen(
-
-                    ["python", SCRIPTS["Executar Teste"], categoria_exec, nome_teste_exec, "--serial", serial],
-
-                    cwd=BASE_DIR,
-
-                    stdout=log_file,
-
-                    stderr=subprocess.STDOUT,
-
-                    text=True
-
-                )
-
-                st.session_state["proc_execucao_unica"] = proc_exec
-
-                st.session_state["execucao_unica_status"] = f"Executando {categoria_exec}/{nome_teste_exec} na bancada {serial}..."
-
-                st.session_state["teste_em_execucao"] = True
-
-                st.session_state["teste_pausado"] = False
-
-                st.success(f"Execucao iniciada para {categoria_exec}/{nome_teste_exec} (Bancada {serial})")
-
-
-
-            except Exception as e:
-
-                st.error(f"Falha ao iniciar execucao: {e}")
+            st.success(f"Execucao iniciada para {categoria_exec}/{nome_teste_exec} (Bancada {serial})")
 
         else:
 
-            st.error("Informe categoria e nome do teste.")
+            st.error(msg_exec)
+
+    if executar_duplo:
+
+        if len(bancadas) < 2:
+
+            st.error("Conecte pelo menos duas bancadas ADB para rodar em paralelo.")
+
+        elif len(execucoes_paralelas_config) < 2:
+
+            st.error("Preencha pelo menos duas bancadas com categoria e teste para executar em paralelo.")
+
+        else:
+
+            ok_exec, msg_exec, processos = _iniciar_execucoes_configuradas(
+
+                execucoes_paralelas_config
+
+            )
+
+            if ok_exec:
+
+                st.success("Execucoes iniciadas ao mesmo tempo nas bancadas configuradas.")
+
+                for processo in processos:
+
+                    st.caption(
+
+                        f"{processo['label']}: {processo['categoria']}/{processo['teste']} em {processo['serial']}"
+
+                    )
+
+            else:
+
+                st.error(msg_exec)
 
     st.markdown("</div>", unsafe_allow_html=True)
-
-
-
-# Logs de execucao (ao vivo) dentro de um box
-
-log_path = st.session_state.get("execucao_log_path")
-
-if log_path and os.path.exists(log_path):
-
-    st.markdown("**Logs de execucao**")
-
-    try:
-
-        with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
-
-            lines = f.readlines()
-
-        logs_txt = "".join(lines[-200:])
-
-    except Exception:
-
-        logs_txt = ""
-
-    st.markdown(
-
-        """
-
-        <div style="
-
-            background: #1f1f1f;
-
-            border: 1px solid rgba(255,255,255,0.08);
-
-            border-radius: 10px;
-
-            padding: 12px;
-
-            max-height: 260px;
-
-            overflow: auto;
-
-            white-space: pre-wrap;
-
-            font-family: monospace;
-
-            font-size: 12px;
-
-            color: #E6E6E6;
-
-        ">
-
-        {logs}
-
-        </div>
-
-        """.format(logs=logs_txt.replace("<", "&lt;").replace(">", "&gt;")),
-
-        unsafe_allow_html=True
-
-    )
 
 
 
@@ -738,33 +1030,62 @@ with col_b:
 
     st.markdown("<h4>Status</h4>", unsafe_allow_html=True)
 
-    proc_exec = st.session_state.get("proc_execucao_unica")
+    execucao_processos = st.session_state.get("execucao_unica_processos", [])
 
-    if proc_exec is not None and proc_exec.poll() is None:
+    status_msgs = []
+
+    existe_execucao_ativa = False
+
+    for item in execucao_processos:
+
+        proc_exec = item.get("proc")
+
+        if proc_exec is None:
+
+            continue
+
+        if proc_exec.poll() is None:
+
+            payload = _carregar_status_execucao(item.get("categoria"), item.get("teste"), item.get("serial"))
+            resumo = _formatar_resumo_execucao(payload)
+            existe_execucao_ativa = True
+            status_msgs.append(
+                f"{item.get('label', 'Bancada')} ({item.get('serial', '-')}): {resumo.lower()}."
+            )
+
+            continue
+
+        if not item.get("log_closed") and item.get("log_file") is not None:
+
+            try:
+
+                item["log_file"].close()
+
+            except Exception:
+
+                pass
+
+            item["log_closed"] = True
+
+        payload = _carregar_status_execucao(item.get("categoria"), item.get("teste"), item.get("serial"))
+        resumo = _formatar_resumo_execucao(payload, fallback_returncode=proc_exec.returncode)
+        status_msgs.append(
+            f"{item.get('label', 'Bancada')} ({item.get('serial', '-')}): {resumo.lower()}."
+        )
+
+    if existe_execucao_ativa:
 
         st_autorefresh(interval=1500, limit=None, key="execucao_unica_refresh")
 
-        status_msg = st.session_state.get("execucao_unica_status", "Executando teste...")
+    st.session_state["teste_em_execucao"] = existe_execucao_ativa
 
-    elif proc_exec is not None:
-
-        if proc_exec.returncode == 0:
-
-            status_msg = "Execucao do teste unico finalizada com sucesso."
-
-        else:
-
-            status_msg = f"Execucao do teste unico finalizou com erro (codigo {proc_exec.returncode})."
+    if not existe_execucao_ativa:
 
         st.session_state["proc_execucao_unica"] = None
 
         st.session_state["execucao_unica_status"] = ""
 
-        st.session_state["teste_em_execucao"] = False
-
-    else:
-
-        status_msg = "Nenhum teste em execucao."
+    status_msg = "<br>".join(status_msgs) if status_msgs else "Nenhum teste em execucao."
 
     st.markdown(f"<div class='status-box'>{status_msg}</div>", unsafe_allow_html=True)
 
@@ -896,6 +1217,102 @@ st.markdown("</div>", unsafe_allow_html=True)
 
 st.divider()
 
+execucao_processos = st.session_state.get("execucao_unica_processos", [])
+
+if execucao_processos:
+
+    st.subheader("Logs de Execucao")
+
+    abas_logs = st.tabs(
+
+        [
+
+            f"{item.get('label', 'Bancada')} | {item.get('categoria', '-')}/{item.get('teste', '-')}"
+
+            for item in execucao_processos
+
+        ]
+
+    )
+
+    for aba_log, item in zip(abas_logs, execucao_processos):
+
+        with aba_log:
+
+            proc_exec = item.get("proc")
+
+            payload = _carregar_status_execucao(item.get("categoria"), item.get("teste"), item.get("serial"))
+
+            if proc_exec is not None and proc_exec.poll() is None:
+
+                situacao = _formatar_resumo_execucao(payload)
+
+            elif proc_exec is not None:
+
+                situacao = _formatar_resumo_execucao(payload, fallback_returncode=proc_exec.returncode)
+
+            else:
+
+                situacao = "Sem processo"
+
+            info_col_1, info_col_2, info_col_3 = st.columns([1.3, 2.2, 2.5])
+
+            with info_col_1:
+
+                st.caption("Status")
+
+                st.write(situacao)
+
+            with info_col_2:
+
+                st.caption("Bancada / Serial")
+
+                st.write(f"{item.get('label', 'Bancada')} - {item.get('serial', '-')}")
+
+            with info_col_3:
+
+                st.caption("Teste")
+
+                st.write(f"{item.get('categoria', '-')}/{item.get('teste', '-')}")
+
+            log_path = item.get("log_path")
+
+            logs_txt = ""
+
+            if log_path and os.path.exists(log_path):
+
+                try:
+
+                    with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
+
+                        lines = f.readlines()
+
+                    logs_txt = _clean_display_text("".join(lines[-200:]))
+
+                except Exception:
+
+                    logs_txt = ""
+
+            if not logs_txt:
+
+                logs_txt = "Aguardando linhas de log..."
+
+            st.text_area(
+
+                "Saida da execucao",
+
+                value=logs_txt,
+
+                height=320,
+
+                disabled=True,
+
+                key=f"log_execucao_{item.get('serial', 'sem_serial')}_{item.get('categoria', '-')}_{item.get('teste', '-')}"
+
+            )
+
+
+
 st.subheader("Gerar Relatórios de Falhas")
 
 
@@ -970,45 +1387,59 @@ if st.button("Abrir Dashboard"):
 
         port = int(os.environ.get("VWAIT_DASHBOARD_PORT", "8504"))
 
-        subprocess.Popen(
+        dashboard_running = False
 
-            [
+        try:
 
-                sys.executable,
+            with urllib.request.urlopen(f"http://localhost:{port}", timeout=1.5):
 
-                "-m",
+                dashboard_running = True
 
-                "streamlit",
+        except Exception:
 
-                "run",
+            dashboard_running = False
 
-                SCRIPTS["Abrir Dashboard"],
+        if not dashboard_running:
 
-                "--server.port",
+            subprocess.Popen(
 
-                str(port),
+                [
 
-                "--server.headless",
+                    sys.executable,
 
-                "false",
+                    "-m",
 
-                "--server.fileWatcherType",
+                    "streamlit",
 
-                "none",
+                    "run",
 
-                "--server.runOnSave",
+                    SCRIPTS["Abrir Dashboard"],
 
-                "false",
+                    "--server.port",
 
-            ],
+                    str(port),
 
-            cwd=BASE_DIR,
+                    "--server.headless",
 
-            stdout=subprocess.DEVNULL,
+                    "false",
 
-            stderr=subprocess.DEVNULL,
+                    "--server.fileWatcherType",
 
-        )
+                    "none",
+
+                    "--server.runOnSave",
+
+                    "false",
+
+                ],
+
+                cwd=BASE_DIR,
+
+                stdout=subprocess.DEVNULL,
+
+                stderr=subprocess.DEVNULL,
+
+            )
 
         webbrowser.open_new_tab(f"http://localhost:{port}")
 

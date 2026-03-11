@@ -1,0 +1,106 @@
+{
+    "teste": "teste1",
+    "categoria": "teste",
+    "acoes": [
+        {
+            "id": 1,
+            "timestamp": "2026-03-10T09:18:35.640894",
+            "imagem": "frame_01.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 971,
+                "y": 1001,
+                "duracao_s": 0.07
+            }
+        },
+        {
+            "id": 2,
+            "timestamp": "2026-03-10T09:18:44.503732",
+            "imagem": "frame_02.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 692,
+                "y": 1021,
+                "duracao_s": 0.11
+            }
+        },
+        {
+            "id": 3,
+            "timestamp": "2026-03-10T09:18:47.215026",
+            "imagem": "frame_03.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 672,
+                "y": 1009,
+                "duracao_s": 0.16
+            }
+        },
+        {
+            "id": 4,
+            "timestamp": "2026-03-10T09:18:49.802678",
+            "imagem": "frame_04.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 692,
+                "y": 1017,
+                "duracao_s": 0.1
+            }
+        },
+        {
+            "id": 5,
+            "timestamp": "2026-03-10T09:18:53.154067",
+            "imagem": "frame_05.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 1719,
+                "y": 675,
+                "duracao_s": 0.1
+            }
+        },
+        {
+            "id": 6,
+            "timestamp": "2026-03-10T09:18:57.635569",
+            "imagem": "frame_06.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 1253,
+                "y": 749,
+                "duracao_s": 0.06
+            }
+        },
+        {
+            "id": 7,
+            "timestamp": "2026-03-10T09:19:03.108959",
+            "imagem": "frame_07.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 1553,
+                "y": 198,
+                "duracao_s": 0.06
+            }
+        },
+        {
+            "id": 8,
+            "timestamp": "2026-03-10T09:19:09.892885",
+            "imagem": "frame_08.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 1527,
+                "y": 210,
+                "duracao_s": 0.12
+            }
+        },
+        {
+            "id": 9,
+            "timestamp": "2026-03-10T09:19:12.826407",
+            "imagem": "frame_09.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 360,
+                "y": 847,
+                "duracao_s": 0.14
+            }
+        }
+    ],
+    "resultado_esperado": "resultado_final.png"
+}

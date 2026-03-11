@@ -6,10 +6,14 @@ import threading
 import time
 import sys
 import json
+import csv
+import re
 from datetime import datetime
 from skimage.metrics import structural_similarity as ssim
 import cv2
 import tempfile
+
+from app.shared.adb_utils import resolve_adb_path
 
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -27,16 +31,23 @@ except ImportError:
 # =========================
 # CONFIG
 # =========================
-if platform.system() == "Windows":
-    # Ajuste este caminho se seu adb estiver em outro local
-    ADB_PATH = r"C:\Users\Automation01\platform-tools\adb.exe"
-else:
-    ADB_PATH = "adb"
+ADB_PATH = resolve_adb_path()
 
 PAUSA_ENTRE_ACOES = 1.7              # segundos entre cada aÃ§Ã£o (mais lento)
 ESPERA_POS_ACAO_S = 1.9              # espera apos cada acao antes do screenshot
 SIMILARIDADE_HOME_OK = 0.85        # limite mÃ­nimo para considerar OK
 ADB_TIMEOUT = 25                   # timeout padrÃ£o para chamadas ADB (seg)
+LOG_CAPTURE_STEP_WAIT_S = 1.1
+LOG_CAPTURE_SEQUENCE_FILENAMES = (
+    "failure_log_sequence.csv",
+    "failure_log_sequence.json",
+    "log_capture_sequence.csv",
+    "log_capture_sequence.json",
+    "_failure_log_sequence.csv",
+    "_failure_log_sequence.json",
+    "_log_capture_sequence.csv",
+    "_log_capture_sequence.json",
+)
 
 # Caminho absoluto da raiz do projeto (este arquivo estÃ¡ em /Run)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -236,6 +247,286 @@ def comparar_imagens(img1_path, img2_path):
         return 0.0
 
 
+def _sanitize_scalar(value):
+    if value is None:
+        return None
+    try:
+        if pd.isna(value):
+            return None
+    except Exception:
+        pass
+    if isinstance(value, str):
+        value = value.strip()
+        return value or None
+    return value
+
+
+def _pick_action_value(action, *keys, default=None):
+    for key in keys:
+        if key not in action:
+            continue
+        value = _sanitize_scalar(action.get(key))
+        if value is not None:
+            return value
+    return default
+
+
+def _pick_float_value(action, *keys, default=None):
+    raw = _pick_action_value(action, *keys, default=None)
+    if raw is None:
+        return default
+    try:
+        return float(str(raw).replace(",", "."))
+    except Exception:
+        return default
+
+
+def _pick_int_value(action, *keys, default=None):
+    raw = _pick_action_value(action, *keys, default=None)
+    if raw is None:
+        return default
+    try:
+        return int(float(str(raw).replace(",", ".")))
+    except Exception:
+        return default
+
+
+def _slugify(text):
+    value = str(text or "").strip().lower()
+    value = re.sub(r"[^a-z0-9_-]+", "_", value)
+    value = re.sub(r"_+", "_", value).strip("_")
+    return value or "item"
+
+
+def executar_keyevent(keyevent, serial=None):
+    comando = adb_cmd(serial) + ["shell", "input", "keyevent", str(keyevent)]
+    result = run_subprocess(comando)
+    if result:
+        print_color(f"⌨️ KEYEVENT {keyevent}", "green")
+    return result
+
+
+def executar_texto(texto, serial=None):
+    texto_limpo = str(texto or "").strip()
+    if not texto_limpo:
+        return None
+    texto_adb = texto_limpo.replace(" ", "%s")
+    comando = adb_cmd(serial) + ["shell", "input", "text", texto_adb]
+    result = run_subprocess(comando)
+    if result:
+        print_color(f"⌨️ TEXTO enviado: {texto_limpo}", "green")
+    return result
+
+
+def puxar_arquivo_dispositivo(device_path, destino_local, serial=None):
+    os.makedirs(os.path.dirname(destino_local), exist_ok=True)
+    result = run_subprocess(adb_cmd(serial) + ["pull", device_path, destino_local], timeout=max(ADB_TIMEOUT, 90))
+    if result is None or result.returncode != 0:
+        return None
+    return destino_local if os.path.exists(destino_local) else None
+
+
+def _failure_log_sequence_candidates(categoria, nome_teste):
+    teste_dir = _status_dir(categoria, nome_teste)
+    categoria_dir = os.path.join(DATA_ROOT, categoria)
+    candidates = []
+    for root in (teste_dir, categoria_dir, DATA_ROOT):
+        for filename in LOG_CAPTURE_SEQUENCE_FILENAMES:
+            candidates.append(os.path.join(root, filename))
+    return candidates
+
+
+def _resolver_failure_log_sequence(categoria, nome_teste):
+    for candidate in _failure_log_sequence_candidates(categoria, nome_teste):
+        if os.path.exists(candidate):
+            return candidate
+    return None
+
+
+def _carregar_failure_log_steps(sequence_path):
+    if not sequence_path or not os.path.exists(sequence_path):
+        return []
+
+    ext = os.path.splitext(sequence_path)[1].lower()
+    if ext == ".csv":
+        with open(sequence_path, "r", encoding="utf-8", errors="ignore", newline="") as handle:
+            return [dict(row) for row in csv.DictReader(handle)]
+
+    if ext == ".json":
+        with open(sequence_path, "r", encoding="utf-8", errors="ignore") as handle:
+            raw = json.load(handle)
+        if isinstance(raw, list):
+            return [item for item in raw if isinstance(item, dict)]
+        if isinstance(raw, dict):
+            for key in ("acoes", "steps", "actions"):
+                values = raw.get(key)
+                if isinstance(values, list):
+                    return [item for item in values if isinstance(item, dict)]
+    return []
+
+
+def _executar_passo_failure_log(action, serial, artifacts_dir, step_index):
+    action_type = str(_pick_action_value(action, "tipo", "acao", "type", "action", default="tap")).strip().lower()
+    label = _pick_action_value(action, "label", "nome", "descricao", "description", default=f"passo_{step_index:02d}")
+    wait_s = _pick_float_value(action, "espera_s", "wait_s", "sleep_s", "delay_s", default=LOG_CAPTURE_STEP_WAIT_S)
+    started_at = datetime.now().isoformat()
+    artifact_rel = None
+    error = None
+    ok = False
+
+    try:
+        if action_type == "wait":
+            duration_s = _pick_float_value(action, "duracao_s", "duration_s", "espera_s", "wait_s", default=1.0) or 0.0
+            time.sleep(max(0.0, duration_s))
+            ok = True
+        elif action_type == "tap":
+            x = _pick_int_value(action, "x")
+            y = _pick_int_value(action, "y")
+            if x is None or y is None:
+                raise ValueError("tap exige colunas x e y")
+            ok = executar_tap(x, y, serial) is not None
+        elif action_type == "long_press":
+            x = _pick_int_value(action, "x")
+            y = _pick_int_value(action, "y")
+            duration_ms = _pick_int_value(action, "duracao_ms", default=None)
+            if duration_ms is None:
+                duration_s = _pick_float_value(action, "duracao_s", default=1.0) or 1.0
+                duration_ms = int(duration_s * 1000)
+            if x is None or y is None:
+                raise ValueError("long_press exige colunas x e y")
+            ok = executar_long_press(x, y, duration_ms, serial) is not None
+        elif action_type in {"swipe", "swipe_inicio"}:
+            x1 = _pick_int_value(action, "x1", "x")
+            y1 = _pick_int_value(action, "y1", "y")
+            x2 = _pick_int_value(action, "x2")
+            y2 = _pick_int_value(action, "y2")
+            duration_ms = _pick_int_value(action, "duracao_ms", default=300) or 300
+            if None in (x1, y1, x2, y2):
+                raise ValueError("swipe exige colunas x1, y1, x2 e y2")
+            ok = executar_swipe(x1, y1, x2, y2, duracao=duration_ms, serial=serial) is not None
+        elif action_type == "keyevent":
+            keyevent = _pick_action_value(action, "keyevent", "key", "valor", "value")
+            if keyevent is None:
+                raise ValueError("keyevent exige coluna keyevent")
+            ok = executar_keyevent(keyevent, serial) is not None
+        elif action_type == "text":
+            texto = _pick_action_value(action, "texto", "text", "valor", "value")
+            if texto is None:
+                raise ValueError("text exige coluna texto")
+            ok = executar_texto(texto, serial) is not None
+        elif action_type == "screenshot":
+            file_name = _pick_action_value(action, "arquivo", "nome_arquivo", "output_name", "screenshot_name")
+            file_name = file_name or f"step_{step_index:02d}.png"
+            if not str(file_name).lower().endswith(".png"):
+                file_name = f"{file_name}.png"
+            saved = capturar_screenshot(artifacts_dir, file_name, serial)
+            ok = saved is not None
+            if saved:
+                artifact_rel = os.path.relpath(saved, artifacts_dir)
+        elif action_type == "pull_file":
+            device_path = _pick_action_value(action, "device_path", "remote_path", "origem_device")
+            output_name = _pick_action_value(action, "output_name", "arquivo", "nome_arquivo")
+            if device_path is None:
+                raise ValueError("pull_file exige coluna device_path")
+            output_name = output_name or os.path.basename(str(device_path).replace("\\", "/")) or f"arquivo_{step_index:02d}.bin"
+            local_path = os.path.join(artifacts_dir, output_name)
+            saved = puxar_arquivo_dispositivo(str(device_path), local_path, serial)
+            ok = saved is not None
+            if saved:
+                artifact_rel = os.path.relpath(saved, artifacts_dir)
+        else:
+            raise ValueError(f"tipo de passo nao suportado: {action_type}")
+
+        if not ok:
+            raise RuntimeError(f"falha ao executar passo do tipo {action_type}")
+
+        if action_type != "wait" and wait_s and wait_s > 0:
+            time.sleep(wait_s)
+    except Exception as exc:
+        error = str(exc)
+        ok = False
+
+    finished_at = datetime.now().isoformat()
+    return {
+        "step": step_index,
+        "label": str(label),
+        "type": action_type,
+        "started_at": started_at,
+        "finished_at": finished_at,
+        "status": "ok" if ok else "erro",
+        "artifact": artifact_rel,
+        "error": error,
+    }
+
+
+def executar_captura_logs_pos_falha(categoria, nome_teste, serial, motivo):
+    sequence_path = _resolver_failure_log_sequence(categoria, nome_teste)
+    if not sequence_path:
+        return {
+            "status": "sem_roteiro",
+            "artifact_dir": None,
+            "error": "Nenhum roteiro de captura de logs configurado para este teste/categoria.",
+            "sequence_path": None,
+        }
+
+    steps = _carregar_failure_log_steps(sequence_path)
+    if not steps:
+        return {
+            "status": "sem_roteiro",
+            "artifact_dir": None,
+            "error": f"Roteiro encontrado em {sequence_path}, mas sem passos validos.",
+            "sequence_path": sequence_path,
+        }
+
+    started_at = datetime.now()
+    base_dir = _status_dir(categoria, nome_teste)
+    capture_dir = os.path.join(base_dir, "failure_logs", started_at.strftime("%Y%m%d_%H%M%S"))
+    os.makedirs(capture_dir, exist_ok=True)
+    metadata_path = os.path.join(capture_dir, "capture_metadata.json")
+    metadata = {
+        "categoria": categoria,
+        "teste": nome_teste,
+        "serial": serial,
+        "motivo": motivo,
+        "sequence_path": os.path.relpath(sequence_path, base_dir),
+        "status": "executando",
+        "started_at": started_at.isoformat(),
+        "finished_at": None,
+        "steps": [],
+    }
+    atomic_write_json(metadata_path, metadata)
+
+    for step_index, step in enumerate(steps, start=1):
+        result = _executar_passo_failure_log(step, serial, capture_dir, step_index)
+        metadata["steps"].append(result)
+        if result["status"] != "ok":
+            metadata["status"] = "falha"
+            metadata["finished_at"] = datetime.now().isoformat()
+            metadata["error"] = result.get("error")
+            atomic_write_json(metadata_path, metadata)
+            return {
+                "status": "falha",
+                "artifact_dir": os.path.relpath(capture_dir, base_dir),
+                "error": result.get("error"),
+                "sequence_path": sequence_path,
+            }
+        atomic_write_json(metadata_path, metadata)
+
+    final_shot = capturar_screenshot(capture_dir, "estado_final.png", serial)
+    metadata["status"] = "capturado"
+    metadata["finished_at"] = datetime.now().isoformat()
+    metadata["final_screenshot"] = (
+        os.path.relpath(final_shot, capture_dir) if final_shot and os.path.exists(final_shot) else None
+    )
+    atomic_write_json(metadata_path, metadata)
+    return {
+        "status": "capturado",
+        "artifact_dir": os.path.relpath(capture_dir, base_dir),
+        "error": None,
+        "sequence_path": sequence_path,
+    }
+
+
 # =========================
 # STATUS DAS BANCADAS (padronizado)
 # =========================
@@ -250,6 +541,9 @@ def _bancada_key_from_serial(serial):
 
 def _status_dir(categoria, nome_teste):
     return os.path.join(DATA_ROOT, categoria, nome_teste)
+
+def _teste_ref(categoria, nome_teste):
+    return f"{categoria}/{nome_teste}"
 
 def carregar_status(categoria, nome_teste, serial=None):
     """Carrega status da bancada (por teste)."""
@@ -269,6 +563,17 @@ def carregar_status(categoria, nome_teste, serial=None):
 
 status_lock = threading.Lock()  # adiciona lock global
 
+def _carregar_payload_bancada(categoria, nome_teste, bancada_key):
+    raw = carregar_status(categoria, nome_teste, serial=bancada_key)
+    if not isinstance(raw, dict):
+        return {}
+    nested = raw.get(bancada_key)
+    if isinstance(nested, dict):
+        return dict(nested)
+    if str(raw.get("serial", "")).strip() == str(bancada_key):
+        return dict(raw)
+    return {}
+
 def salvar_status(status, categoria, nome_teste, serial=None):
     """
     Salva status da execucao de forma segura e isolada por bancada.
@@ -281,53 +586,152 @@ def salvar_status(status, categoria, nome_teste, serial=None):
                 status_file = os.path.join(_status_dir(categoria, nome_teste), f"status_{serial}.json")
             else:
                 status_file = os.path.join(_status_dir(categoria, nome_teste), "status_bancadas.json")
-
-            tmp_path = status_file + ".tmp"
-            with open(tmp_path, "w", encoding="utf-8") as f:
-                json.dump(status, f, ensure_ascii=False, indent=2)
-            os.replace(tmp_path, status_file)
+            atomic_write_json(status_file, status)
     except Exception as e:
         print(f"ERRO: falha ao salvar status: {e}")
 
 def inicializar_status_bancada(bancada_key, categoria, teste_nome, total_acoes):
-    status = carregar_status(categoria, teste_nome)
+    agora = datetime.now().isoformat()
+    anterior = _carregar_payload_bancada(categoria, teste_nome, bancada_key)
     INICIO_EXECUCAO[bancada_key] = time.time()
-    status[bancada_key] = {
-        "teste": teste_nome,
+    status = {
+        bancada_key: {
+        "serial": bancada_key,
+        "categoria": categoria,
+        "teste": _teste_ref(categoria, teste_nome),
         "status": "executando",
         "acoes_totais": int(total_acoes),
         "acoes_executadas": 0,
         "progresso": 0.0,
         "ultima_acao": "-",
+        "ultima_acao_idx": 0,
+        "ultima_acao_status": "-",
         "tempo_decorrido_s": 0.0,
-        "inicio": datetime.now().isoformat()
+        "inicio": anterior.get("inicio") or agora,
+        "fim": None,
+        "atualizado_em": agora,
+        "resultados_ok": 0,
+        "resultados_divergentes": 0,
+        "similaridade_media": 0.0,
+        "ultima_similaridade": None,
+        "ultimo_screenshot": None,
+        "resultado_final": anterior.get("resultado_final") or "pendente",
+        "log_capture_status": anterior.get("log_capture_status") or "nao_necessario",
+        "log_capture_dir": anterior.get("log_capture_dir"),
+        "log_capture_error": anterior.get("log_capture_error"),
+        "log_capture_sequence": anterior.get("log_capture_sequence"),
+        }
     }
     salvar_status(status, categoria, teste_nome, serial=bancada_key)
 
-def atualizar_status_bancada(bancada_key, categoria, teste_nome, total_acoes, executadas, ultima_acao):
-    status = carregar_status(categoria, teste_nome)
+def atualizar_status_bancada(
+    bancada_key,
+    categoria,
+    teste_nome,
+    total_acoes,
+    executadas,
+    ultima_acao,
+    status_resultado=None,
+    similaridade=None,
+    screenshot_rel=None,
+):
+    anterior = _carregar_payload_bancada(categoria, teste_nome, bancada_key)
     inicio = INICIO_EXECUCAO.get(bancada_key, time.time())
     tempo_decorrido = time.time() - inicio
     progresso = round(((executadas or 0) / max(total_acoes, 1)) * 100, 1)
-    status[bancada_key] = {
-        "teste": teste_nome,
+    ok_count = int(anterior.get("resultados_ok", 0) or 0)
+    divergente_count = int(anterior.get("resultados_divergentes", 0) or 0)
+    if str(status_resultado).strip().lower() == "ok":
+        ok_count += 1
+    elif str(status_resultado).strip().lower() == "divergente":
+        divergente_count += 1
+
+    media_anterior = float(anterior.get("similaridade_media", 0.0) or 0.0)
+    similaridade_media = media_anterior
+    if similaridade is not None and int(executadas or 0) > 0:
+        similaridade_media = ((media_anterior * max(int(executadas) - 1, 0)) + float(similaridade)) / float(executadas)
+
+    velocidade_acoes_min = 0.0
+    if tempo_decorrido > 0 and int(executadas or 0) > 0:
+        velocidade_acoes_min = round((float(executadas) / tempo_decorrido) * 60.0, 2)
+
+    status = {
+        bancada_key: {
+        "serial": bancada_key,
+        "categoria": categoria,
+        "teste": _teste_ref(categoria, teste_nome),
         "status": "executando",
         "acoes_totais": int(total_acoes),
         "acoes_executadas": int(executadas),
         "progresso": progresso,
         "ultima_acao": str(ultima_acao),
+        "ultima_acao_idx": int(executadas),
+        "ultima_acao_status": str(status_resultado or anterior.get("ultima_acao_status") or "-"),
         "tempo_decorrido_s": float(tempo_decorrido),
-        "inicio": status.get(bancada_key, {}).get("inicio")
+        "inicio": anterior.get("inicio") or datetime.now().isoformat(),
+        "fim": None,
+        "atualizado_em": datetime.now().isoformat(),
+        "resultados_ok": ok_count,
+        "resultados_divergentes": divergente_count,
+        "similaridade_media": round(similaridade_media, 4) if similaridade is not None else round(float(anterior.get("similaridade_media", 0.0) or 0.0), 4),
+        "ultima_similaridade": round(float(similaridade), 4) if similaridade is not None else anterior.get("ultima_similaridade"),
+        "ultimo_screenshot": str(screenshot_rel or anterior.get("ultimo_screenshot") or ""),
+        "velocidade_acoes_min": velocidade_acoes_min,
+        "resultado_final": anterior.get("resultado_final") or "pendente",
+        "log_capture_status": anterior.get("log_capture_status") or "nao_necessario",
+        "log_capture_dir": anterior.get("log_capture_dir"),
+        "log_capture_error": anterior.get("log_capture_error"),
+        "log_capture_sequence": anterior.get("log_capture_sequence"),
+        }
     }
     salvar_status(status, categoria, teste_nome, serial=bancada_key)
 
-def finalizar_status_bancada(bancada_key, categoria, teste_nome, resultado="finalizado"):
-    status = carregar_status(categoria, teste_nome)
-    if bancada_key in status:
-        status[bancada_key]["status"] = resultado
-        status[bancada_key]["fim"] = datetime.now().isoformat()
-    else:
-        status[bancada_key] = {"status": resultado, "fim": datetime.now().isoformat()}
+def finalizar_status_bancada(
+    bancada_key,
+    categoria,
+    teste_nome,
+    resultado="finalizado",
+    motivo=None,
+    resultado_final=None,
+    log_capture_status=None,
+    log_capture_dir=None,
+    log_capture_error=None,
+    log_capture_sequence=None,
+):
+    anterior = _carregar_payload_bancada(categoria, teste_nome, bancada_key)
+    agora = datetime.now().isoformat()
+    status = {
+        bancada_key: {
+        "serial": bancada_key,
+        "categoria": categoria,
+        "teste": anterior.get("teste") or _teste_ref(categoria, teste_nome),
+        "status": resultado,
+        "acoes_totais": int(anterior.get("acoes_totais", 0) or 0),
+        "acoes_executadas": int(anterior.get("acoes_executadas", 0) or 0),
+        "progresso": float(anterior.get("progresso", 0.0) or 0.0),
+        "ultima_acao": anterior.get("ultima_acao", "-"),
+        "ultima_acao_idx": int(anterior.get("ultima_acao_idx", 0) or 0),
+        "ultima_acao_status": anterior.get("ultima_acao_status", "-"),
+        "tempo_decorrido_s": float(anterior.get("tempo_decorrido_s", 0.0) or 0.0),
+        "inicio": anterior.get("inicio"),
+        "fim": agora if resultado in {"finalizado", "erro"} else None,
+        "atualizado_em": agora,
+        "resultados_ok": int(anterior.get("resultados_ok", 0) or 0),
+        "resultados_divergentes": int(anterior.get("resultados_divergentes", 0) or 0),
+        "similaridade_media": round(float(anterior.get("similaridade_media", 0.0) or 0.0), 4),
+        "ultima_similaridade": anterior.get("ultima_similaridade"),
+        "ultimo_screenshot": anterior.get("ultimo_screenshot"),
+        "velocidade_acoes_min": float(anterior.get("velocidade_acoes_min", 0.0) or 0.0),
+        "resultado_final": resultado_final or anterior.get("resultado_final") or "pendente",
+        "log_capture_status": log_capture_status or anterior.get("log_capture_status") or "nao_necessario",
+        "log_capture_dir": log_capture_dir if log_capture_dir is not None else anterior.get("log_capture_dir"),
+        "log_capture_error": log_capture_error if log_capture_error is not None else anterior.get("log_capture_error"),
+        "log_capture_sequence": log_capture_sequence if log_capture_sequence is not None else anterior.get("log_capture_sequence"),
+        "erro_motivo": motivo,
+        }
+    }
+    if resultado in {"finalizado", "coletando_logs"} and status[bancada_key]["acoes_totais"] > 0:
+        status[bancada_key]["progresso"] = 100.0
     salvar_status(status, categoria, teste_nome, serial=bancada_key)
 
 # =========================
@@ -359,17 +763,72 @@ def main():
     # âœ… Define identificador Ãºnico da bancada (corrige o NameError)
     bancada_key = _bancada_key_from_serial(serial)
 
+    def concluir_execucao(status_execucao, resultado_final, motivo=None, capturar_logs=False):
+        capture_status = "nao_necessario"
+        capture_dir = None
+        capture_error = None
+        capture_sequence = None
+
+        if capturar_logs:
+            print_color("ðŸ§¾ Falha detectada â€” iniciando captura de logs da peca...", "yellow")
+            try:
+                finalizar_status_bancada(
+                    bancada_key,
+                    categoria,
+                    nome_teste,
+                    resultado="coletando_logs",
+                    motivo=motivo,
+                    resultado_final=resultado_final,
+                    log_capture_status="executando",
+                )
+            except Exception as exc:
+                print_color(f"âš ï¸ Nao foi possivel marcar status de coleta de logs: {exc}", "yellow")
+
+            capture_result = executar_captura_logs_pos_falha(categoria, nome_teste, serial, motivo or resultado_final)
+            capture_status = capture_result.get("status") or "falha"
+            capture_dir = capture_result.get("artifact_dir")
+            capture_error = capture_result.get("error")
+            sequence_path = capture_result.get("sequence_path")
+            if sequence_path:
+                try:
+                    capture_sequence = os.path.relpath(sequence_path, _status_dir(categoria, nome_teste))
+                except Exception:
+                    capture_sequence = sequence_path
+
+            if capture_status == "capturado":
+                print_color(f"âœ… Logs da peca capturados em Data/{categoria}/{nome_teste}/{capture_dir}", "green")
+            elif capture_status == "sem_roteiro":
+                print_color(f"âš ï¸ Falha detectada, mas sem roteiro de captura configurado: {capture_error}", "yellow")
+            else:
+                print_color(f"âŒ Captura de logs falhou: {capture_error}", "red")
+
+        try:
+            finalizar_status_bancada(
+                bancada_key,
+                categoria,
+                nome_teste,
+                resultado=status_execucao,
+                motivo=motivo,
+                resultado_final=resultado_final,
+                log_capture_status=capture_status,
+                log_capture_dir=capture_dir,
+                log_capture_error=capture_error,
+                log_capture_sequence=capture_sequence,
+            )
+        except Exception as exc:
+            print_color(f"âš ï¸ Falha ao atualizar status final: {exc}", "yellow")
+
     # ðŸ” Verifica se o dispositivo estÃ¡ conectado
     print_color("ðŸ” Verificando dispositivos ADB conectados...", "cyan")
     try:
         devices = subprocess.check_output([ADB_PATH, "devices"], text=True)
         if serial not in devices:
             print_color(f"âŒ Dispositivo {serial} nÃ£o encontrado. Conecte o rÃ¡dio e tente novamente.", "red")
-            finalizar_status_bancada(serial, categoria, nome_teste, "erro_adb")
+            concluir_execucao("erro", "erro_tecnico", motivo="adb", capturar_logs=False)
             return
     except Exception as e:
         print_color(f"âš ï¸ Falha ao verificar dispositivos ADB: {e}", "red")
-        finalizar_status_bancada(serial, categoria, nome_teste, "erro_adb")
+        concluir_execucao("erro", "erro_tecnico", motivo="adb", capturar_logs=False)
         return
 
     teste_dir = os.path.join(DATA_ROOT, categoria, nome_teste)
@@ -389,6 +848,7 @@ def main():
             f"   Dica: rode a opÃ§Ã£o 'Processar Dataset' no menu.",
             "red"
         )
+        concluir_execucao("erro", "erro_tecnico", motivo="dataset", capturar_logs=False)
         return
 
     os.makedirs(resultados_dir, exist_ok=True)
@@ -396,14 +856,16 @@ def main():
         df = pd.read_csv(dataset_path)
     except Exception as e:
         print_color(f"âŒ Falha ao ler dataset.csv: {e}", "red")
+        concluir_execucao("erro", "erro_tecnico", motivo="dataset", capturar_logs=False)
         return
 
     total_acoes = sum(1 for _, r in df.iterrows() if str(r.get("tipo", "")).lower() != "swipe_fim")
     print_color(f"\nðŸŽ¬ Executando {total_acoes} aÃ§Ãµes do dataset...\n", "cyan")
     log = []
+    houve_divergencia = False
 
     # ðŸ”¹ Inicializa status
-    inicializar_status_bancada(bancada_key, categoria, nome_teste, len(df))
+    inicializar_status_bancada(bancada_key, categoria, nome_teste, total_acoes)
 
     action_idx = 0
     for i, row in df.iterrows():
@@ -439,7 +901,7 @@ def main():
                 res = executar_tap(int(row["x"]), int(row["y"]), serial)
                 if res is None:
                     print_color("âŒ Falha na execuÃ§Ã£o do TAP â€” interrompendo teste.", "red")
-                    finalizar_status_bancada(bancada_key, categoria, nome_teste, "erro_adb")
+                    concluir_execucao("erro", "erro_tecnico", motivo="adb", capturar_logs=True)
                     return
 
 
@@ -463,19 +925,29 @@ def main():
                             y2 = int(proxima.get("y2", proxima.get("y", 0)))
 
                 if x2 is not None and y2 is not None:
-                    executar_swipe(x1, y1, x2, y2, duracao=dur, serial=serial)
+                    res = executar_swipe(x1, y1, x2, y2, duracao=dur, serial=serial)
+                    if res is None:
+                        print_color("âŒ Falha na execuÃ§Ã£o do SWIPE â€” interrompendo teste.", "red")
+                        concluir_execucao("erro", "erro_tecnico", motivo="adb", capturar_logs=True)
+                        return
                 else:
                     print_color("âš ï¸ swipe sem fim vÃ¡lido â€” ignorado.", "yellow")
 
             elif tipo == "long_press":
                 duracao_press_ms = float(row.get("duracao_s", 1.0)) * 1000
-                executar_long_press(int(row["x"]), int(row["y"]), duracao_press_ms, serial)
+                res = executar_long_press(int(row["x"]), int(row["y"]), duracao_press_ms, serial)
+                if res is None:
+                    print_color("âŒ Falha na execuÃ§Ã£o do LONG PRESS â€” interrompendo teste.", "red")
+                    concluir_execucao("erro", "erro_tecnico", motivo="adb", capturar_logs=True)
+                    return
 
             else:
                 print_color(f"âš ï¸ Tipo de aÃ§Ã£o '{tipo}' nÃ£o reconhecido â€” ignorado.", "yellow")
 
         except Exception as e:
             print_color(f"âš ï¸ Erro ao executar aÃ§Ã£o {i+1}: {e}", "red")
+            concluir_execucao("erro", "erro_tecnico", motivo="execucao_acao", capturar_logs=True)
+            return
 
         # Aguarda a UI estabilizar apÃ³s a aÃ§Ã£o antes de capturar o screenshot.
         time.sleep(ESPERA_POS_ACAO_S)
@@ -488,7 +960,9 @@ def main():
         esperado_abs = os.path.join(teste_dir, esperado_rel)
 
         similaridade = comparar_imagens(screenshot_path, esperado_abs)
-        status_txt = "âœ… OK" if similaridade >= SIMILARIDADE_HOME_OK else "âŒ Divergente"
+        status_txt = "OK" if similaridade >= SIMILARIDADE_HOME_OK else "Divergente"
+        if status_txt != "OK":
+            houve_divergencia = True
 
         fim = time.time()
         duracao = round(fim - inicio, 2)
@@ -508,27 +982,34 @@ def main():
             "duracao": duracao
         }
         log.append(registro)
+        atomic_write_json(log_path, log)
 
         # ðŸ”¹ Atualiza status da bancada
-        atualizar_status_bancada(bancada_key, categoria, nome_teste, total_acoes, i + 1, tipo)
+        atualizar_status_bancada(
+            bancada_key,
+            categoria,
+            nome_teste,
+            total_acoes,
+            action_idx,
+            tipo,
+            status_resultado=status_txt,
+            similaridade=similaridade,
+            screenshot_rel=registro["screenshot"],
+        )
 
         time.sleep(PAUSA_ENTRE_ACOES)
 
-    # ðŸ”¹ Finaliza status
-    try:
-        finalizar_status_bancada(bancada_key, categoria, nome_teste, resultado="finalizado")
-    except Exception as e:
-        print_color(f"âš ï¸ Falha ao atualizar status final: {e}", "yellow")
-
-
     # === SALVAR LOG FINAL ===
     try:
-        with open(log_path, "w", encoding="utf-8") as f:
-            json.dump(log, f, indent=4, ensure_ascii=False)
+        atomic_write_json(log_path, log)
         print_color(f"\nâœ… ExecuÃ§Ã£o finalizada. Log salvo em: {log_path}", "green")
-        print_color(f"Status atualizado em: Data/{categoria}/{nome_teste}/status_{bancada_key}.json", "cyan")
     except Exception as e:
         print_color(f"âŒ Falha ao salvar log final: {e}", "red")
+
+    resultado_final = "reprovado" if houve_divergencia else "aprovado"
+    motivo_final = "divergencia_visual" if houve_divergencia else None
+    concluir_execucao("finalizado", resultado_final, motivo=motivo_final, capturar_logs=houve_divergencia)
+    print_color(f"Status atualizado em: Data/{categoria}/{nome_teste}/status_{bancada_key}.json", "cyan")
 
 if __name__ == "__main__":
     main()

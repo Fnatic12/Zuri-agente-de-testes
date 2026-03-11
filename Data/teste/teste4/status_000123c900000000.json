@@ -1,0 +1,25 @@
+{
+  "000123c900000000": {
+    "serial": "000123c900000000",
+    "categoria": "teste",
+    "teste": "teste/teste4",
+    "status": "finalizado",
+    "acoes_totais": 7,
+    "acoes_executadas": 7,
+    "progresso": 100.0,
+    "ultima_acao": "tap",
+    "ultima_acao_idx": 7,
+    "ultima_acao_status": "OK",
+    "tempo_decorrido_s": 32.318323850631714,
+    "inicio": "2026-03-10T13:17:06.436882",
+    "fim": "2026-03-10T13:45:03.728699",
+    "atualizado_em": "2026-03-10T13:45:03.728699",
+    "resultados_ok": 7,
+    "resultados_divergentes": 0,
+    "similaridade_media": 0.9969,
+    "ultima_similaridade": 0.9984,
+    "ultimo_screenshot": "resultados\\resultado_07.png",
+    "velocidade_acoes_min": 13.0,
+    "erro_motivo": null
+  }
+}

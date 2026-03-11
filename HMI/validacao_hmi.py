@@ -162,6 +162,67 @@ def _run_demo_compare(
     }
 
 
+def _resolve_hmi_library(
+    hmi: Dict[str, Any],
+    cache_root: str,
+    figma_dir: str,
+    index_name: str,
+) -> tuple[Optional[str], Optional[Dict[str, Any]]]:
+    index_path = os.path.join(cache_root, f"{_slugify(index_name)}.json")
+    if os.path.exists(index_path):
+        try:
+            cached = hmi["load_library_index"](index_path)
+            cached_root = _safe_str(cached.get("figma_dir"))
+            if figma_dir and os.path.abspath(cached_root) == os.path.abspath(figma_dir):
+                return index_path, cached
+        except Exception:
+            pass
+    if not figma_dir or not os.path.isdir(figma_dir):
+        return None, None
+    index = hmi["build_library_index"](figma_dir, index_path, enable_semantic=True, enable_ocr=True)
+    return index_path, index
+
+
+def _run_demo_context_discovery(
+    hmi: Dict[str, Any],
+    cache_root: str,
+    actual_upload: Any,
+    library_index: Dict[str, Any],
+    cfg: Any,
+) -> Dict[str, Any]:
+    run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+    demo_dir = os.path.join(cache_root, "demo_context", run_id)
+    actual_ext = os.path.splitext(_safe_str(getattr(actual_upload, "name", "")))[1].lower() or ".png"
+    actual_path = os.path.join(demo_dir, f"actual{actual_ext}")
+    _save_uploaded_image(actual_upload, actual_path)
+    validation_result = hmi["validate_execution_images"]([actual_path], library_index, cfg)
+    report_path = hmi["save_validation_report"](demo_dir, library_index, validation_result)
+    report = hmi["load_validation_report"](demo_dir)
+    return {
+        "demo_dir": demo_dir,
+        "report_path": report_path,
+        "report": report,
+        "index_path": _safe_str(library_index.get("figma_dir")),
+    }
+
+
+def _context_narrative(item: Dict[str, Any]) -> str:
+    stage1 = item.get("stage1") or {}
+    predicted = _safe_str(stage1.get("predicted_screen_type"), "desconhecido")
+    confidence = float(stage1.get("context_confidence", 0.0) or 0.0)
+    screen_name = _safe_str(item.get("screen_name"), "sem match")
+    status = _safe_str(item.get("status"), "SEM_STATUS")
+    top_contexts = stage1.get("top_contexts") or []
+    alternatives = [str(row.get("context")) for row in top_contexts[1:3] if row.get("context")]
+    alt_text = f" Alternativas proximas: {', '.join(alternatives)}." if alternatives else ""
+    if predicted in {"", "unknown", "desconhecido"}:
+        return "O motor nao conseguiu definir um contexto confiavel para esta tela."
+    return (
+        f"Contexto mais provavel: {predicted} com confianca de {confidence:.1%}. "
+        f"A melhor referencia encontrada foi '{screen_name}' e o resultado final ficou em {status}.{alt_text}"
+    )
+
+
 def _vqa_runs_dir(test_dir: str) -> str:
     return os.path.join(test_dir, "hmi_validation", "visual_qa_runs")
 
@@ -376,9 +437,13 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
                         st.error("Informe a pasta dos exports do Figma.")
                     else:
                         try:
-                            index_path = os.path.join(cache_root, f"{_slugify(_safe_str(st.session_state['hmi_index_name_value']))}.json")
-                            index = hmi["build_library_index"](figma_dir.strip(), index_path, enable_semantic=True, enable_ocr=True)
-                            st.session_state["hmi_index_path"] = index_path
+                            index_path, index = _resolve_hmi_library(
+                                hmi,
+                                cache_root,
+                                figma_dir.strip(),
+                                _safe_str(st.session_state["hmi_index_name_value"]),
+                            )
+                            st.session_state["hmi_index_path"] = _safe_str(index_path)
                             st.success(f"Biblioteca HMI indexada com {index['screen_count']} telas.")
                             st.rerun()
                         except Exception as exc:
@@ -412,9 +477,13 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
                             library_index = hmi["load_library_index"](st.session_state["hmi_index_path"])
                         elif figma_dir.strip():
                             try:
-                                index_path = os.path.join(cache_root, f"{_slugify(_safe_str(st.session_state['hmi_index_name_value']))}.json")
-                                library_index = hmi["build_library_index"](figma_dir.strip(), index_path, enable_semantic=True, enable_ocr=True)
-                                st.session_state["hmi_index_path"] = index_path
+                                index_path, library_index = _resolve_hmi_library(
+                                    hmi,
+                                    cache_root,
+                                    figma_dir.strip(),
+                                    _safe_str(st.session_state["hmi_index_name_value"]),
+                                )
+                                st.session_state["hmi_index_path"] = _safe_str(index_path)
                             except Exception as exc:
                                 st.error(f"Falha ao preparar indice HMI: {exc}")
                         if library_index is None:
@@ -586,6 +655,7 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
                     for item in report.get("items", []):
                         stage1 = item.get("stage1") or {}
                         with st.expander(f"{os.path.basename(_safe_str(item.get('screenshot_path')))} -> {item.get('screen_name')}"):
+                            st.info(_context_narrative(item))
                             st.write(item.get("reason"))
                             st.write(
                                 {
@@ -596,6 +666,8 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
                             )
                             if stage1.get("top_contexts"):
                                 st.dataframe(stage1.get("top_contexts"), use_container_width=True, hide_index=True)
+                            if stage1.get("top_matches"):
+                                st.dataframe(stage1.get("top_matches"), use_container_width=True, hide_index=True)
                             c1, c2, c3 = st.columns(3)
                             with c1:
                                 _safe_show_image(item.get("screenshot_path"), "Captura", "Imagem nao encontrada")
@@ -664,27 +736,45 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
 
     with tab_demo:
         st.markdown("### Teste Visual 1x1")
-        st.caption("Suba uma imagem real e uma prevista para demonstrar a comparacao completa entre telas.")
+        st.caption("Use comparacao direta ou descoberta automatica de contexto com a biblioteca completa do radio.")
 
-        upload_real_col, upload_ref_col = st.columns(2)
-        with upload_real_col:
+        demo_mode = st.radio(
+            "Modo",
+            options=["Descobrir contexto automaticamente", "Comparacao direta"],
+            horizontal=True,
+            key="hmi_demo_mode",
+        )
+
+        if demo_mode == "Comparacao direta":
+            upload_real_col, upload_ref_col = st.columns(2)
+            with upload_real_col:
+                actual_upload = st.file_uploader(
+                    "Imagem real",
+                    type=["png", "jpg", "jpeg", "bmp", "webp"],
+                    key="hmi_demo_actual_upload",
+                )
+            with upload_ref_col:
+                expected_upload = st.file_uploader(
+                    "Imagem prevista",
+                    type=["png", "jpg", "jpeg", "bmp", "webp"],
+                    key="hmi_demo_expected_upload",
+                )
+
+            meta_col1, meta_col2 = st.columns([1, 2])
+            with meta_col1:
+                feature_context = st.text_input("Contexto", value="demo", key="hmi_demo_context")
+            with meta_col2:
+                screen_name = st.text_input("Nome da tela esperada", value="Tela esperada", key="hmi_demo_screen_name")
+        else:
             actual_upload = st.file_uploader(
                 "Imagem real",
                 type=["png", "jpg", "jpeg", "bmp", "webp"],
-                key="hmi_demo_actual_upload",
+                key="hmi_demo_actual_upload_context",
             )
-        with upload_ref_col:
-            expected_upload = st.file_uploader(
-                "Imagem prevista",
-                type=["png", "jpg", "jpeg", "bmp", "webp"],
-                key="hmi_demo_expected_upload",
-            )
-
-        meta_col1, meta_col2 = st.columns([1, 2])
-        with meta_col1:
-            feature_context = st.text_input("Contexto", value="demo", key="hmi_demo_context")
-        with meta_col2:
-            screen_name = st.text_input("Nome da tela esperada", value="Tela esperada", key="hmi_demo_screen_name")
+            expected_upload = None
+            feature_context = ""
+            screen_name = ""
+            st.info("Neste modo, a imagem real eh comparada contra toda a biblioteca HMI para descobrir o contexto e a tela mais provavel.")
 
         with st.expander("Ajustes avancados", expanded=False):
             demo_enable_context = st.checkbox("Roteamento por contexto", value=True, key="hmi_demo_enable_context")
@@ -695,13 +785,16 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
             demo_exact_match = st.slider("Pixel match minimo", min_value=0.9, max_value=0.999, value=0.985, key="hmi_demo_exact")
             demo_min_cell = st.slider("Pior celula minima", min_value=0.7, max_value=0.999, value=0.92, key="hmi_demo_min_cell")
 
-        if st.button("Comparar imagens", type="primary", key="hmi_demo_compare_btn"):
-            if expected_upload is None or actual_upload is None:
-                st.error("Envie a imagem real e a imagem prevista.")
+        button_label = "Analisar contexto e comparar" if demo_mode != "Comparacao direta" else "Comparar imagens"
+        if st.button(button_label, type="primary", key="hmi_demo_compare_btn"):
+            if actual_upload is None:
+                st.error("Envie a imagem real.")
+            elif demo_mode == "Comparacao direta" and expected_upload is None:
+                st.error("Envie a imagem prevista.")
             else:
                 try:
                     cfg = hmi["ValidationConfig"](
-                        top_k=1,
+                        top_k=5 if demo_mode != "Comparacao direta" else 1,
                         pass_threshold=float(demo_pass_threshold),
                         warning_threshold=float(demo_warning_threshold),
                         point_tolerance=float(demo_point_tolerance),
@@ -709,18 +802,36 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
                         min_cell_score=float(demo_min_cell),
                         allow_alignment=bool(demo_allow_alignment),
                         enable_context_routing=bool(demo_enable_context),
-                        context_top_k=3,
+                        context_top_k=8 if demo_mode != "Comparacao direta" else 3,
                     )
-                    st.session_state["hmi_demo_result"] = _run_demo_compare(
-                        hmi=hmi,
-                        cache_root=cache_root,
-                        expected_upload=expected_upload,
-                        actual_upload=actual_upload,
-                        feature_context=feature_context.strip() or "demo",
-                        screen_name=screen_name.strip() or "Tela esperada",
-                        cfg=cfg,
-                    )
-                    st.success("Comparacao concluida.")
+                    if demo_mode == "Comparacao direta":
+                        st.session_state["hmi_demo_result"] = _run_demo_compare(
+                            hmi=hmi,
+                            cache_root=cache_root,
+                            expected_upload=expected_upload,
+                            actual_upload=actual_upload,
+                            feature_context=feature_context.strip() or "demo",
+                            screen_name=screen_name.strip() or "Tela esperada",
+                            cfg=cfg,
+                        )
+                    else:
+                        index_path, library_index = _resolve_hmi_library(
+                            hmi,
+                            cache_root,
+                            _safe_str(st.session_state.get("hmi_figma_dir")).strip(),
+                            _safe_str(st.session_state.get("hmi_index_name_value"), "biblioteca_hmi"),
+                        )
+                        if library_index is None:
+                            raise RuntimeError("Indexe ou configure a biblioteca HMI antes de usar a descoberta automatica de contexto.")
+                        st.session_state["hmi_index_path"] = _safe_str(index_path)
+                        st.session_state["hmi_demo_result"] = _run_demo_context_discovery(
+                            hmi=hmi,
+                            cache_root=cache_root,
+                            actual_upload=actual_upload,
+                            library_index=library_index,
+                            cfg=cfg,
+                        )
+                    st.success("Analise concluida.")
                 except Exception as exc:
                     st.error(f"Falha ao comparar imagens: {exc}")
 
@@ -741,6 +852,8 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
                 st.warning(f"Resultado: {status}")
             else:
                 st.error(f"Resultado: {status}")
+
+            st.info(_context_narrative(item))
 
             top_metrics = st.columns(5)
             top_metrics[0].metric("Score final", f"{float(scores.get('final', 0.0)):.2%}")
@@ -768,6 +881,12 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
                 {"metrica": "Alinhamento", "score": float(scores.get("alignment", 0.0))},
             ]
             st.dataframe(score_rows, use_container_width=True, hide_index=True)
+            if stage1.get("top_contexts"):
+                st.markdown("**Top contextos detectados**")
+                st.dataframe(stage1.get("top_contexts"), use_container_width=True, hide_index=True)
+            if stage1.get("top_matches"):
+                st.markdown("**Top telas candidatas**")
+                st.dataframe(stage1.get("top_matches"), use_container_width=True, hide_index=True)
 
             img_cols = st.columns(4)
             with img_cols[0]:

@@ -1,16 +1,37 @@
-# Visual QA on Windows
+# Windows Scripts
 
-This folder contains ready-to-run wrappers for the new Visual QA pipeline.
+## Para testers
 
-## Scripts
+Use estes dois scripts:
+
+- `setup_vwait.bat`
+- `iniciar_vwait.bat`
+
+Fluxo:
+
+```bat
+Scripts\windows\setup_vwait.bat
+Scripts\windows\iniciar_vwait.bat
+```
+
+O setup:
+- cria `.venv`
+- instala as dependencias do runtime
+- valida o ADB
+
+O launcher:
+- sobe `Menu Chat` em `http://localhost:8502`
+- sobe `Menu Tester` em `http://localhost:8503`
+
+## Visual QA
+
+Wrappers adicionais:
 
 - `visual_qa_build_index.bat`
 - `visual_qa_classify.bat`
 - `visual_qa_validate.bat`
 
-## Usage
-
-From repo root or by double-click (with terminal open):
+Exemplos:
 
 ```bat
 Scripts\windows\visual_qa_build_index.bat
@@ -18,4 +39,4 @@ Scripts\windows\visual_qa_classify.bat C:\path\to\screenshot.png
 Scripts\windows\visual_qa_validate.bat C:\path\to\screenshot.png
 ```
 
-Each script automatically uses `.venv\Scripts\python.exe` if available.
+Todos os scripts preferem `.venv\Scripts\python.exe` quando disponivel.
