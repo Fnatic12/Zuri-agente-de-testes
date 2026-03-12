@@ -13,6 +13,10 @@ from skimage.metrics import structural_similarity as ssim
 import cv2
 import tempfile
 
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
 from app.shared.adb_utils import resolve_adb_path
 
 sys.stdout.reconfigure(encoding='utf-8')

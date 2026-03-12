@@ -1219,7 +1219,7 @@ st.divider()
 
 execucao_processos = st.session_state.get("execucao_unica_processos", [])
 
-if execucao_processos:
+if False and execucao_processos:
 
     st.subheader("Logs de Execucao")
 

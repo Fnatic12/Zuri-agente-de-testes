@@ -1,17 +1,28 @@
 import json
 import os
+import signal
+import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+import numpy as np
 import streamlit as st
 from PIL import Image
+from app.shared.adb_utils import resolve_adb_path
+from app.shared.project_paths import root_path
 from app.shared.ui_theme import apply_dark_background
+
+try:
+    from streamlit_autorefresh import st_autorefresh
+except Exception:
+    st_autorefresh = None
 
 
 def _load_hmi_modules() -> Dict[str, Any]:
     from HMI.hmi_ai import get_backend_status
-    from HMI.hmi_engine import ValidationConfig, collect_result_screens, validate_execution_images
+    from HMI.hmi_engine import ValidationConfig, collect_result_screens, evaluate_single_screenshot, validate_execution_images
     from HMI.hmi_indexer import build_library_index, load_library_index
     from HMI.hmi_report import get_validation_dir, load_validation_report, save_validation_report
 
@@ -19,6 +30,7 @@ def _load_hmi_modules() -> Dict[str, Any]:
         "get_backend_status": get_backend_status,
         "ValidationConfig": ValidationConfig,
         "collect_result_screens": collect_result_screens,
+        "evaluate_single_screenshot": evaluate_single_screenshot,
         "validate_execution_images": validate_execution_images,
         "build_library_index": build_library_index,
         "load_library_index": load_library_index,
@@ -89,6 +101,19 @@ def _safe_show_image(path: Optional[str], caption: str, empty_message: str) -> N
     if path and os.path.exists(path):
         try:
             st.image(Image.open(path), caption=caption, use_container_width=True)
+            return
+        except Exception:
+            pass
+    st.info(empty_message)
+
+
+def _show_image_payload(payload: Any, caption: str, empty_message: str) -> None:
+    if isinstance(payload, str):
+        _safe_show_image(payload, caption, empty_message)
+        return
+    if isinstance(payload, np.ndarray):
+        try:
+            st.image(payload, caption=caption, use_container_width=True)
             return
         except Exception:
             pass
@@ -206,6 +231,192 @@ def _run_demo_context_discovery(
     }
 
 
+def _run_library_similarity_lookup(
+    hmi: Dict[str, Any],
+    cache_root: str,
+    actual_upload: Any,
+    library_index: Dict[str, Any],
+    cfg: Any,
+) -> Dict[str, Any]:
+    run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+    lookup_dir = os.path.join(cache_root, "library_lookup", run_id)
+    actual_ext = os.path.splitext(_safe_str(getattr(actual_upload, "name", "")))[1].lower() or ".png"
+    actual_path = os.path.join(lookup_dir, f"actual{actual_ext}")
+    _save_uploaded_image(actual_upload, actual_path)
+    result = hmi["evaluate_single_screenshot"](actual_path, library_index, cfg)
+    return {
+        "lookup_dir": lookup_dir,
+        "actual_path": actual_path,
+        "result": result,
+    }
+
+
+def _candidate_rows(result: Dict[str, Any]) -> list[Dict[str, Any]]:
+    rows: list[Dict[str, Any]] = []
+    for idx, candidate in enumerate(result.get("candidate_results") or [], start=1):
+        scores = candidate.get("scores") or {}
+        diff_summary = candidate.get("diff_summary") or {}
+        rows.append(
+            {
+                "rank": idx,
+                "tela": _safe_str(candidate.get("screen_name"), "-"),
+                "contexto": _safe_str(candidate.get("feature_context"), "-"),
+                "similaridade": f"{float(scores.get('final', 0.0) or 0.0):.1%}",
+                "pixel_match": f"{float(diff_summary.get('pixel_match_ratio', 0.0) or 0.0):.1%}",
+                "status": _safe_str(candidate.get("status"), "-"),
+                "arquivo": os.path.basename(_safe_str(candidate.get("reference_path"), "")),
+            }
+        )
+    return rows
+
+
+def _render_library_lookup_result(bundle: Optional[Dict[str, Any]]) -> None:
+    if not bundle:
+        return
+    result = bundle.get("result") or {}
+    if not result:
+        return
+
+    st.markdown(
+        """
+        <style>
+        .lookup-summary-card {
+            padding: 18px 20px;
+            border-radius: 18px;
+            border: 1px solid rgba(116, 183, 255, 0.18);
+            background: linear-gradient(135deg, rgba(8, 20, 46, 0.96), rgba(6, 11, 22, 0.92));
+            box-shadow: 0 18px 36px rgba(0, 0, 0, 0.24);
+            margin: 0.6rem 0 1rem 0;
+        }
+        .lookup-strip {
+            padding: 14px 18px;
+            border-radius: 16px;
+            background: linear-gradient(90deg, rgba(18, 90, 62, 0.92), rgba(26, 76, 53, 0.78));
+            border: 1px solid rgba(117, 255, 181, 0.14);
+            margin-bottom: 1rem;
+            color: #eafff2;
+            font-weight: 700;
+        }
+        .lookup-subtitle {
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: rgba(176, 215, 255, 0.72);
+            margin-bottom: 0.35rem;
+        }
+        .lookup-title {
+            font-size: 1.55rem;
+            font-weight: 800;
+            color: #f5f9ff;
+            line-height: 1.15;
+            margin-bottom: 0.4rem;
+        }
+        .lookup-copy {
+            color: rgba(229, 238, 255, 0.82);
+            font-size: 0.98rem;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    scores = result.get("scores") or {}
+    diff_summary = result.get("diff_summary") or {}
+    stage1 = result.get("stage1") or {}
+    status = _safe_str(result.get("status"), "SEM_STATUS")
+    best_name = _safe_str(result.get("screen_name"), "Sem correspondencia")
+    similarity = float(scores.get("final", 0.0) or 0.0)
+    pixel_match = float(diff_summary.get("pixel_match_ratio", 0.0) or 0.0)
+    predicted_context = _safe_str(stage1.get("predicted_screen_type"), "desconhecido")
+
+    if status == "PASS":
+        st.success(f"Melhor correspondencia encontrada: {best_name} ({similarity:.1%})")
+    elif "WARNING" in status:
+        st.warning(f"Correspondencia com ressalvas: {best_name} ({similarity:.1%})")
+    elif result.get("reference_path"):
+        st.error(f"Correspondencia fraca: {best_name} ({similarity:.1%})")
+    else:
+        st.error("Nenhuma imagem valida da biblioteca foi aprovada para comparacao.")
+
+    st.markdown(
+        f"""
+        <div class="lookup-summary-card">
+            <div class="lookup-subtitle">Resultado principal</div>
+            <div class="lookup-title">{best_name}</div>
+            <div class="lookup-copy">
+                Similaridade final <strong>{similarity:.1%}</strong> |
+                Pixel match <strong>{pixel_match:.1%}</strong> |
+                Status <strong>{status}</strong>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    metric_cols = st.columns(4)
+    metric_cols[0].metric("Melhor match", best_name)
+    metric_cols[1].metric("Similaridade final", f"{similarity:.1%}")
+    metric_cols[2].metric("Pixel match", f"{pixel_match:.1%}")
+    metric_cols[3].metric("Contexto sugerido", predicted_context)
+
+    st.caption(
+        f"Status: {status} | Arquivo de referencia: {os.path.basename(_safe_str(result.get('reference_path'), '-'))}"
+    )
+    st.info(_context_narrative(result))
+
+    st.markdown('<div class="lookup-strip">Comparativo visual</div>', unsafe_allow_html=True)
+    top_img_cols = st.columns(2)
+    with top_img_cols[0]:
+        with st.container(border=True):
+            st.markdown("**Screenshot real**")
+            _show_image_payload(result.get("screenshot_path"), "Screenshot real", "Screenshot indisponivel")
+    with top_img_cols[1]:
+        with st.container(border=True):
+            st.markdown("**Melhor referencia**")
+            _show_image_payload(result.get("reference_path"), "Melhor referencia", "Referencia indisponivel")
+
+    bottom_img_cols = st.columns(2)
+    with bottom_img_cols[0]:
+        with st.container(border=True):
+            st.markdown("**Overlay de divergencias**")
+            _show_image_payload((result.get("debug_images") or {}).get("overlay"), "Overlay", "Overlay indisponivel")
+    with bottom_img_cols[1]:
+        with st.container(border=True):
+            st.markdown("**Heatmap**")
+            _show_image_payload((result.get("debug_images") or {}).get("heatmap"), "Heatmap", "Heatmap indisponivel")
+
+    rows = _candidate_rows(result)
+    if rows:
+        st.markdown("#### Top correspondencias")
+        st.dataframe(rows, use_container_width=True, hide_index=True)
+
+    for idx, candidate in enumerate((result.get("candidate_results") or [])[:5], start=1):
+        candidate_scores = candidate.get("scores") or {}
+        candidate_diff = candidate.get("diff_summary") or {}
+        with st.expander(
+            f"Top {idx}: {_safe_str(candidate.get('screen_name'), '-')} | {_safe_str(candidate.get('status'), '-')}"
+        ):
+            detail_cols = st.columns(3)
+            with detail_cols[0]:
+                with st.container(border=True):
+                    st.markdown("**Screenshot real**")
+                    _show_image_payload(result.get("screenshot_path"), "Screenshot real", "Screenshot indisponivel")
+            with detail_cols[1]:
+                with st.container(border=True):
+                    st.markdown("**Referencia candidata**")
+                    _show_image_payload(candidate.get("reference_path"), "Referencia", "Referencia indisponivel")
+            with detail_cols[2]:
+                with st.container(border=True):
+                    st.markdown("**Overlay da candidata**")
+                    _show_image_payload((candidate.get("debug_images") or {}).get("overlay"), "Overlay", "Overlay indisponivel")
+
+            stats_cols = st.columns(4)
+            stats_cols[0].metric("Similaridade", f"{float(candidate_scores.get('final', 0.0) or 0.0):.1%}")
+            stats_cols[1].metric("Pixel match", f"{float(candidate_diff.get('pixel_match_ratio', 0.0) or 0.0):.1%}")
+            stats_cols[2].metric("Contexto", _safe_str(candidate.get("feature_context"), "-"))
+            stats_cols[3].metric("Status", _safe_str(candidate.get("status"), "-"))
+
+
 def _context_narrative(item: Dict[str, Any]) -> str:
     stage1 = item.get("stage1") or {}
     predicted = _safe_str(stage1.get("predicted_screen_type"), "desconhecido")
@@ -238,6 +449,195 @@ def _vqa_index_stats(index_dir: str) -> Dict[str, Any]:
         "ready": os.path.exists(os.path.join(index_dir, "index.faiss")) and os.path.exists(os.path.join(index_dir, "metadata.json")),
         "count": count,
     }
+
+
+def _default_lookup_cfg(hmi: Dict[str, Any]) -> Any:
+    return hmi["ValidationConfig"](
+        top_k=5,
+        pass_threshold=0.93,
+        warning_threshold=0.82,
+        point_tolerance=18.0,
+        exact_match_ratio=0.985,
+        min_cell_score=0.92,
+        enable_context_routing=False,
+        context_top_k=5,
+    )
+
+
+def _parse_adb_devices(raw_lines: list[str]) -> list[str]:
+    devices: list[str] = []
+    for line in raw_lines[1:]:
+        line = str(line).strip()
+        if not line:
+            continue
+        parts = line.split()
+        if len(parts) >= 2 and parts[1] == "device":
+            devices.append(parts[0])
+    return devices
+
+
+def _list_connected_adb_devices() -> list[str]:
+    adb_path = resolve_adb_path()
+    try:
+        raw = subprocess.check_output([adb_path, "devices"], text=True, timeout=8).strip().splitlines()
+        return _parse_adb_devices(raw)
+    except Exception:
+        return []
+
+
+def _safe_serial_name(serial: str) -> str:
+    return "".join(ch if ch.isalnum() or ch in "._-" else "_" for ch in str(serial or "sem_serial")) or "sem_serial"
+
+
+def _live_lookup_root(cache_root: str, serial: str) -> str:
+    return os.path.join(cache_root, "live_lookup", _safe_serial_name(serial))
+
+
+def _live_lookup_shots_dir(cache_root: str, serial: str) -> str:
+    return os.path.join(_live_lookup_root(cache_root, serial), "screenshots")
+
+
+def _live_lookup_results_path(cache_root: str, serial: str) -> str:
+    return os.path.join(_live_lookup_root(cache_root, serial), "results.json")
+
+
+def _live_lookup_monitor_state_path(cache_root: str, serial: str) -> str:
+    return os.path.join(_live_lookup_root(cache_root, serial), "monitor_state.json")
+
+
+def _live_lookup_stop_flag(cache_root: str, serial: str) -> str:
+    return os.path.join(_live_lookup_root(cache_root, serial), "stop.flag")
+
+
+def _pid_is_running(pid: int) -> bool:
+    if pid <= 0:
+        return False
+    try:
+        os.kill(pid, 0)
+        return True
+    except Exception:
+        return False
+
+
+def _load_live_monitor_state(cache_root: str, serial: str) -> Dict[str, Any]:
+    return _load_json(_live_lookup_monitor_state_path(cache_root, serial)) or {}
+
+
+def _live_monitor_running(cache_root: str, serial: str) -> bool:
+    state = _load_live_monitor_state(cache_root, serial)
+    pid = int(state.get("pid", 0) or 0)
+    return _pid_is_running(pid)
+
+
+def _start_live_monitor(cache_root: str, serial: str) -> str:
+    root_dir = _live_lookup_root(cache_root, serial)
+    shots_dir = _live_lookup_shots_dir(cache_root, serial)
+    os.makedirs(shots_dir, exist_ok=True)
+    stop_flag = _live_lookup_stop_flag(cache_root, serial)
+    if os.path.exists(stop_flag):
+        os.remove(stop_flag)
+    if _live_monitor_running(cache_root, serial):
+        return "Monitor automatico ja esta ativo."
+
+    script_path = root_path("Scripts", "hmi_touch_monitor.py")
+    log_path = os.path.join(root_dir, "monitor.log")
+    with open(log_path, "a", encoding="utf-8") as log_file:
+        proc = subprocess.Popen(
+            [sys.executable, script_path, "--serial", serial, "--output-dir", shots_dir],
+            cwd=root_path(),
+            stdout=log_file,
+            stderr=log_file,
+        )
+    _save_json(
+        _live_lookup_monitor_state_path(cache_root, serial),
+        {
+            "pid": proc.pid,
+            "serial": serial,
+            "started_at": datetime.now().isoformat(),
+            "output_dir": shots_dir,
+        },
+    )
+    return f"Monitor automatico iniciado para {serial}."
+
+
+def _stop_live_monitor(cache_root: str, serial: str) -> str:
+    stop_flag = _live_lookup_stop_flag(cache_root, serial)
+    os.makedirs(os.path.dirname(stop_flag), exist_ok=True)
+    Path(stop_flag).write_text("stop", encoding="utf-8")
+    state = _load_live_monitor_state(cache_root, serial)
+    pid = int(state.get("pid", 0) or 0)
+    if pid > 0 and _pid_is_running(pid):
+        try:
+            os.kill(pid, signal.SIGTERM)
+        except Exception:
+            pass
+    return f"Monitor automatico sinalizado para parar em {serial}."
+
+
+def _result_to_history_row(result: Dict[str, Any]) -> Dict[str, Any]:
+    scores = result.get("scores") or {}
+    diff_summary = result.get("diff_summary") or {}
+    screenshot_path = _safe_str(result.get("screenshot_path"))
+    return {
+        "capturado_em": os.path.basename(screenshot_path),
+        "screenshot_path": screenshot_path,
+        "screen_name": _safe_str(result.get("screen_name"), "-"),
+        "feature_context": _safe_str(result.get("feature_context"), "-"),
+        "status": _safe_str(result.get("status"), "-"),
+        "similarity": float(scores.get("final", 0.0) or 0.0),
+        "pixel_match": float(diff_summary.get("pixel_match_ratio", 0.0) or 0.0),
+        "reference_path": _safe_str(result.get("reference_path"), ""),
+        "processed_at": datetime.now().isoformat(),
+    }
+
+
+def _process_live_lookup_queue(
+    hmi: Dict[str, Any],
+    cache_root: str,
+    serial: str,
+    library_index: Dict[str, Any],
+) -> Dict[str, Any]:
+    shots_dir = _live_lookup_shots_dir(cache_root, serial)
+    state_path = _live_lookup_results_path(cache_root, serial)
+    payload = _load_json(state_path) or {"processed": [], "history": []}
+    processed = set(str(name) for name in payload.get("processed", []))
+    history = list(payload.get("history", []))
+    latest_bundle = st.session_state.get("hmi_lookup_result")
+    latest_result = latest_bundle.get("result") if isinstance(latest_bundle, dict) else None
+    latest_path = _safe_str(latest_result.get("screenshot_path")) if isinstance(latest_result, dict) else ""
+    cfg = _default_lookup_cfg(hmi)
+
+    if not os.path.isdir(shots_dir):
+        return {"new_count": 0, "history": history, "latest_bundle": latest_bundle}
+
+    files = []
+    for name in sorted(os.listdir(shots_dir)):
+        ext = os.path.splitext(name)[1].lower()
+        if ext in {".png", ".jpg", ".jpeg", ".bmp", ".webp"}:
+            files.append(name)
+
+    new_count = 0
+    latest_file_path = ""
+    for name in files:
+        file_path = os.path.join(shots_dir, name)
+        latest_file_path = file_path
+        if name in processed:
+            continue
+        result = hmi["evaluate_single_screenshot"](file_path, library_index, cfg)
+        history.append(_result_to_history_row(result))
+        processed.add(name)
+        latest_bundle = {"lookup_dir": _live_lookup_root(cache_root, serial), "actual_path": file_path, "result": result}
+        st.session_state["hmi_lookup_result"] = latest_bundle
+        new_count += 1
+
+    if not latest_bundle and latest_file_path:
+        result = hmi["evaluate_single_screenshot"](latest_file_path, library_index, cfg)
+        latest_bundle = {"lookup_dir": _live_lookup_root(cache_root, serial), "actual_path": latest_file_path, "result": result}
+        st.session_state["hmi_lookup_result"] = latest_bundle
+
+    history = history[-50:]
+    _save_json(state_path, {"processed": sorted(processed), "history": history})
+    return {"new_count": new_count, "history": history, "latest_bundle": latest_bundle}
 
 
 def _load_vqa_runs(runs_dir: str) -> list[Dict[str, Any]]:
@@ -323,11 +723,20 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
     st.session_state.setdefault("vqa_ollama_base_url", "http://127.0.0.1:11434")
     st.session_state.setdefault("vqa_ollama_model", "llama3.1:8b")
     st.session_state.setdefault("hmi_demo_result", None)
+    st.session_state.setdefault("hmi_lookup_result", None)
+    st.session_state.setdefault("hmi_live_selected_serial", "")
+    st.session_state.setdefault("hmi_lookup_top_k", 5)
+    st.session_state.setdefault("hmi_lookup_enable_context_routing", False)
+    st.session_state.setdefault("hmi_lookup_pass", 0.93)
+    st.session_state.setdefault("hmi_lookup_warning", 0.82)
+    st.session_state.setdefault("hmi_lookup_tolerance", 18)
+    st.session_state.setdefault("hmi_lookup_exact", 0.985)
+    st.session_state.setdefault("hmi_lookup_min_cell", 0.92)
     st.session_state.setdefault("hmi_last_hmi_summary", None)
     st.session_state.setdefault("hmi_last_vqa_summary", None)
 
     st.title("Validação HMI")
-    st.caption("Fluxo contextual GEI: contexto da tela -> roteamento por feature -> validacao pixel a pixel -> JSON.")
+    st.caption("Biblioteca de telas do radio + screenshot real -> melhor correspondencia por similaridade visual.")
 
     current_index = None
     if st.session_state.get("hmi_index_path") and os.path.exists(st.session_state["hmi_index_path"]):
@@ -337,6 +746,9 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
     context_stats = _hmi_context_stats(current_index)
     tests = _list_tests(data_root)
     label_map = {label: (categoria, teste) for label, categoria, teste in tests}
+    connected_devices = _list_connected_adb_devices()
+    if connected_devices and st.session_state.get("hmi_live_selected_serial") not in connected_devices:
+        st.session_state["hmi_live_selected_serial"] = connected_devices[0]
 
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Biblioteca HMI", current_index.get("screen_count", 0) if current_index else 0)
@@ -344,7 +756,131 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
     c3.metric("Features GEI", len(context_stats))
     c4.metric("Visual QA pronto", "SIM" if vqa_stats["ready"] else "NAO")
 
-    tab_validate, tab_demo = st.tabs(["Validacao HMI", "Teste Visual"])
+    tab_lookup, tab_validate, tab_demo = st.tabs(["Comparacao ao Vivo", "Execucoes Salvas", "Teste Visual"])
+
+    with tab_lookup:
+        st.markdown("### Comparacao ao vivo com a biblioteca")
+        st.caption("Compare manualmente um screenshot real ou deixe a bancada conectada gerar screenshots automaticamente a cada toque.")
+
+        with st.container(border=True):
+            lookup_dir = st.text_input(
+                "Pasta da biblioteca de telas",
+                value=_safe_str(st.session_state.get("hmi_figma_dir")),
+                key="hmi_lookup_figma_dir",
+            )
+            st.session_state["hmi_figma_dir"] = lookup_dir.strip()
+            if lookup_dir.strip() and not st.session_state.get("vqa_reference_dir"):
+                st.session_state["vqa_reference_dir"] = lookup_dir.strip()
+
+            lookup_upload = st.file_uploader(
+                "Screenshot real",
+                type=["png", "jpg", "jpeg", "bmp", "webp"],
+                key="hmi_lookup_upload",
+            )
+
+            if st.button("Comparar", type="primary", use_container_width=True, key="hmi_lookup_run_btn"):
+                if not lookup_dir.strip():
+                    st.error("Informe a pasta da biblioteca.")
+                elif lookup_upload is None:
+                    st.error("Envie o screenshot real para comparar.")
+                else:
+                    try:
+                        index_path, library_index = _resolve_hmi_library(
+                            hmi,
+                            cache_root,
+                            lookup_dir.strip(),
+                            _safe_str(st.session_state.get("hmi_index_name_value"), "biblioteca_hmi"),
+                        )
+                        if library_index is None:
+                            raise RuntimeError("Nao foi possivel carregar a biblioteca.")
+                        st.session_state["hmi_index_path"] = _safe_str(index_path)
+                        cfg = hmi["ValidationConfig"](
+                            top_k=5,
+                            pass_threshold=0.93,
+                            warning_threshold=0.82,
+                            point_tolerance=18.0,
+                            exact_match_ratio=0.985,
+                            min_cell_score=0.92,
+                            enable_context_routing=False,
+                            context_top_k=5,
+                        )
+                        st.session_state["hmi_lookup_result"] = _run_library_similarity_lookup(
+                            hmi,
+                            cache_root,
+                            lookup_upload,
+                            library_index,
+                            cfg,
+                        )
+                        st.success("Comparacao concluida.")
+                    except Exception as exc:
+                        st.error(f"Falha ao comparar screenshot com a biblioteca: {exc}")
+
+        if connected_devices:
+            st.markdown("### Comparacao automatica da bancada")
+            st.caption("Quando ativa, cada toque detectado no radio gera um screenshot que e comparado automaticamente com a biblioteca.")
+
+            selected_serial = st.selectbox(
+                "Bancada conectada",
+                options=connected_devices,
+                key="hmi_live_selected_serial",
+            )
+            live_running = _live_monitor_running(cache_root, selected_serial)
+
+            live_action_cols = st.columns([1, 1])
+            with live_action_cols[0]:
+                if not live_running:
+                    if st.button("Ativar comparacao automatica", use_container_width=True, key="hmi_live_start_btn"):
+                        if not lookup_dir.strip():
+                            st.error("Informe a pasta da biblioteca antes de ativar o modo automatico.")
+                        else:
+                            msg = _start_live_monitor(cache_root, selected_serial)
+                            st.success(msg)
+                            st.rerun()
+                else:
+                    if st.button("Parar comparacao automatica", use_container_width=True, key="hmi_live_stop_btn"):
+                        msg = _stop_live_monitor(cache_root, selected_serial)
+                        st.info(msg)
+                        st.rerun()
+            with live_action_cols[1]:
+                st.metric("Modo automatico", "ATIVO" if live_running else "PARADO")
+
+            if live_running and lookup_dir.strip():
+                index_path, live_library_index = _resolve_hmi_library(
+                    hmi,
+                    cache_root,
+                    lookup_dir.strip(),
+                    _safe_str(st.session_state.get("hmi_index_name_value"), "biblioteca_hmi"),
+                )
+                if live_library_index is not None:
+                    st.session_state["hmi_index_path"] = _safe_str(index_path)
+                    if st_autorefresh is not None:
+                        st_autorefresh(interval=1800, limit=None, key=f"hmi_live_refresh_{selected_serial}")
+                    live_payload = _process_live_lookup_queue(hmi, cache_root, selected_serial, live_library_index)
+                    if live_payload.get("new_count", 0):
+                        st.success(f"{int(live_payload['new_count'])} screenshot(s) novo(s) comparado(s) automaticamente.")
+                    history_rows = live_payload.get("history") or []
+                    if history_rows:
+                        st.markdown("#### Historico automatico")
+                        st.dataframe(
+                            [
+                                {
+                                    "capturado_em": row.get("capturado_em"),
+                                    "tela": row.get("screen_name"),
+                                    "similaridade": f"{float(row.get('similarity', 0.0) or 0.0):.1%}",
+                                    "pixel_match": f"{float(row.get('pixel_match', 0.0) or 0.0):.1%}",
+                                    "status": row.get("status"),
+                                }
+                                for row in reversed(history_rows[-15:])
+                            ],
+                            use_container_width=True,
+                            hide_index=True,
+                        )
+            elif connected_devices and not lookup_dir.strip():
+                st.info("Informe a pasta da biblioteca para habilitar a comparacao automatica da bancada.")
+        else:
+            st.info("Nenhuma bancada ADB conectada no momento. O modo automatico aparece quando o radio estiver conectado.")
+
+        _render_library_lookup_result(st.session_state.get("hmi_lookup_result"))
 
     with tab_validate:
         st.markdown(
@@ -380,8 +916,8 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
             """,
             unsafe_allow_html=True,
         )
-        st.markdown("### Servico Unificado de Validacao")
-        st.caption("Biblioteca Figma, contexto, comparacao pixel a pixel, resultados HMI e Visual QA no mesmo fluxo.")
+        st.markdown("### Execucoes salvas e validacao em lote")
+        st.caption("Use esta area para rodar validacao HMI em execucoes gravadas no Data/ e inspecionar resultados tecnicos.")
 
         with st.container(border=True):
             st.markdown("#### Biblioteca")
@@ -396,7 +932,12 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
                 if figma_dir.strip() and not st.session_state.get("vqa_reference_dir"):
                     st.session_state["vqa_reference_dir"] = figma_dir.strip()
             with config_col2:
-                st.text_input("Nome indice HMI", key="hmi_index_name_value")
+                unified_index_name = st.text_input(
+                    "Nome indice HMI",
+                    value=_safe_str(st.session_state.get("hmi_index_name_value"), "biblioteca_hmi"),
+                    key="hmi_unified_index_name",
+                )
+                st.session_state["hmi_index_name_value"] = unified_index_name.strip() or "biblioteca_hmi"
             with config_col3:
                 st.selectbox(
                     "Fonte screenshots",
@@ -452,7 +993,7 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
                 st.caption("Use a mesma biblioteca para HMI contextual e Visual QA.")
 
         st.divider()
-        st.markdown("### Execucao da validacao")
+        st.markdown("### Rodar lote em execucao salva")
 
         if not tests:
             st.warning("Nenhuma execucao encontrada em Data.")

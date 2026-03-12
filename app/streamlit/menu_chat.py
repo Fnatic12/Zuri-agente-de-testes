@@ -419,9 +419,22 @@ PAUSE_FLAG_PATH = os.path.join(PROJECT_ROOT, "pause.flag")
 
 # === MODO CONVERSACIONAL ===
 MODO_CONVERSA = True  # Altere para False se quiser desativar as respostas naturais
+PAGINA_CHAT = "Chat"
+PAGINA_DASHBOARD = "Dashboard"
+PAGINA_MENU_TESTER = "Menu Tester"
+PAGINA_VALIDACAO_HMI = "Validação HMI"
+NAV_RADIO_KEY = "pagina_navegacao"
+NAV_PENDING_KEY = "pagina_navegacao_pendente"
+DASHBOARD_PORT = 8504
+MENU_TESTER_PORT = 8503
 
 
-st.set_page_config(page_title="Agente de Testes", page_icon="", layout="wide")
+st.set_page_config(
+    page_title="Agente de Testes",
+    page_icon="",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 apply_dark_background(hide_header=True)
 
 
@@ -443,6 +456,10 @@ if "execucoes_ativas" not in st.session_state:
 if "stt_whisper_warmup_started" not in st.session_state:
     st.session_state.stt_whisper_warmup_started = True
     threading.Thread(target=_preload_whisper_default, daemon=True).start()
+if NAV_RADIO_KEY not in st.session_state:
+    st.session_state[NAV_RADIO_KEY] = PAGINA_CHAT
+if NAV_PENDING_KEY not in st.session_state:
+    st.session_state[NAV_PENDING_KEY] = None
 
 # =========================
 # === SUPORTE A BANCADAS ===
@@ -452,6 +469,101 @@ GLOBAL_LOG_SEQUENCE_TEST = "failure_log_sequence_global"
 GLOBAL_LOG_SEQUENCE_CSV = os.path.join(DATA_ROOT, "failure_log_sequence.csv")
 GLOBAL_LOG_SEQUENCE_RAW_JSON = os.path.join(DATA_ROOT, "failure_log_sequence.raw.json")
 GLOBAL_LOG_SEQUENCE_META_JSON = os.path.join(DATA_ROOT, "failure_log_sequence.meta.json")
+
+
+def _url_ativa(url: str) -> bool:
+    try:
+        with urllib.request.urlopen(url, timeout=1.5):
+            return True
+    except Exception:
+        return False
+
+
+def _iniciar_app_streamlit(script_path: str, port: int, silence_output: bool = False) -> None:
+    cmd = [
+        sys.executable,
+        "-m",
+        "streamlit",
+        "run",
+        script_path,
+        "--server.port",
+        str(port),
+        "--server.headless",
+        "false",
+        "--server.fileWatcherType",
+        "none",
+        "--server.runOnSave",
+        "false",
+    ]
+    if silence_output:
+        subprocess.Popen(cmd, cwd=BASE_DIR, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return
+    subprocess.Popen(cmd, cwd=BASE_DIR)
+
+
+def _selecionar_pagina(nome_pagina: str) -> None:
+    st.session_state[NAV_PENDING_KEY] = nome_pagina
+
+
+def _abrir_menu_tester() -> str:
+    tester_url = f"http://localhost:{MENU_TESTER_PORT}"
+    try:
+        if not _url_ativa(tester_url):
+            _iniciar_app_streamlit(
+                root_path("app", "streamlit", "menu_tester.py"),
+                MENU_TESTER_PORT,
+            )
+            time.sleep(1.5)
+        import webbrowser
+        webbrowser.open_new_tab(tester_url)
+        return f"Abrindo o Menu Tester em {tester_url}."
+    except Exception as e:
+        return f"Falha ao abrir Menu Tester: {e}"
+
+
+def _resolver_comando_navegacao(texto: str) -> str | None:
+    texto_norm = _replace_number_words(_norm(texto))
+    intencao_navegacao = any(
+        trecho in texto_norm
+        for trecho in [
+            "abrir",
+            "abre",
+            "abra",
+            "ir para",
+            "ir pro",
+            "ir pra",
+            "vai para",
+            "acesse",
+            "acessar",
+            "mostrar",
+            "mostra",
+        ]
+    )
+    comandos_diretos = {
+        "dashboard",
+        "menu tester",
+        "menu testers",
+        "menu dos testers",
+        "validacao hmi",
+        "validar hmi",
+        "hmi",
+    }
+    if not intencao_navegacao and texto_norm not in comandos_diretos:
+        return None
+
+    if "dashboard" in texto_norm:
+        _selecionar_pagina(PAGINA_DASHBOARD)
+        return "Abrindo o dashboard."
+
+    if "hmi" in texto_norm and any(token in texto_norm for token in ["valid", "validacao", "validar", "hmi"]):
+        _selecionar_pagina(PAGINA_VALIDACAO_HMI)
+        return "Abrindo a validação HMI."
+
+    if re.search(r"\bmenu\s+(dos?\s+)?testers?\b", texto_norm) or "menu tester" in texto_norm:
+        _selecionar_pagina(PAGINA_CHAT)
+        return _abrir_menu_tester()
+
+    return None
 
 
 def _parse_adb_devices(raw_lines):
@@ -1849,6 +1961,10 @@ def interpretar_comando(comando: str) -> str:
     texto = comando.strip()
     texto_norm = _norm(texto)
 
+    resposta_navegacao = _resolver_comando_navegacao(texto)
+    if resposta_navegacao:
+        return resposta_navegacao
+
     # 1) AJUDA
     if _has_any(texto_norm, KW_AJUDA):
         return (
@@ -1861,6 +1977,7 @@ def interpretar_comando(comando: str) -> str:
             "- **apagar/deletar/remover** `<teste>`\n"
             "- **listar/mostrar** categorias | testes [de <categoria>]\n"
             "- **listar bancadas**\n"
+            "- **abrir** dashboard | menu tester | validacao HMI\n"
             "Ex.: `execute o teste audio_1 na bancada 2`"
         )
 
@@ -2042,6 +2159,10 @@ def responder_conversacional(comando: str):
     if st.session_state.pending_gravacao is not None:
         return continuar_fluxo_gravacao(comando)
 
+    resposta_navegacao = _resolver_comando_navegacao(comando)
+    if resposta_navegacao:
+        return resposta_navegacao
+
     # ExpressÃµes auxiliares para respostas naturais
     frases_iniciais = [
         "Entendido",
@@ -2182,14 +2303,17 @@ def responder_conversacional(comando: str):
         "content": "Posso ajudar com comandos de testes. Ex.: `executar audio_1 na bancada 1`"
     })
     return ""
-
-# ==================
-# === UI LATERAL  ===
-# ==================
-PAGINA_VALIDACAO_HMI = "Validação HMI"
+pagina_pendente = st.session_state.get(NAV_PENDING_KEY)
+if pagina_pendente:
+    st.session_state[NAV_RADIO_KEY] = pagina_pendente
+    st.session_state[NAV_PENDING_KEY] = None
 
 st.sidebar.title("VWAIT - Menu")
-pagina = st.sidebar.radio("Navegacao", ["Chat", "Dashboard", "Menu Tester", PAGINA_VALIDACAO_HMI])
+pagina = st.sidebar.radio(
+    "Navegacao",
+    [PAGINA_CHAT, PAGINA_DASHBOARD, PAGINA_MENU_TESTER, PAGINA_VALIDACAO_HMI],
+    key=NAV_RADIO_KEY,
+)
 
 # Botao de voz (sidebar)
 with st.sidebar:
@@ -2259,7 +2383,7 @@ with st.sidebar.expander("Bancadas (ADB)"):
 # ============
 # === CHAT ===
 # ============
-if pagina == "Chat":
+if pagina == PAGINA_CHAT:
     titulo_painel("VWAIT - Agente de Testes", "Digite <b>ajuda</b> para ver exemplos de comandos.")
 
     # === EXEMPLOS DE PROMPTS ESTILIZADOS ===
@@ -2395,39 +2519,17 @@ if pagina == "Chat":
             st.session_state.chat_history.append({"role": "assistant", "content": resposta})
         st.rerun()
 
-elif pagina == "Dashboard":
+elif pagina == PAGINA_DASHBOARD:
     st.title("Dashboard")
     st.caption("Visualizando o mesmo dashboard do Menu Tester.")
 
-    dash_port = 8504
+    dash_port = DASHBOARD_PORT
     dash_url = f"http://localhost:{dash_port}"
     dash_script = root_path("Dashboard", "visualizador_execucao.py")
 
-    def _dashboard_ativo(url: str) -> bool:
+    if not _url_ativa(dash_url):
         try:
-            with urllib.request.urlopen(url, timeout=1.5):
-                return True
-        except Exception:
-            return False
-
-    if not _dashboard_ativo(dash_url):
-        try:
-            cmd = [
-                "python",
-                "-m",
-                "streamlit",
-                "run",
-                dash_script,
-                "--server.port",
-                str(dash_port),
-                "--server.headless",
-                "false",
-                "--server.fileWatcherType",
-                "none",
-                "--server.runOnSave",
-                "false",
-            ]
-            subprocess.Popen(cmd, cwd=BASE_DIR, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            _iniciar_app_streamlit(dash_script, dash_port, silence_output=True)
             time.sleep(1.5)
         except Exception as e:
             st.error(f"Falha ao iniciar dashboard: {e}")
@@ -2444,45 +2546,20 @@ elif pagina == "Dashboard":
             except Exception:
                 pass
 
-    if _dashboard_ativo(dash_url):
+    if _url_ativa(dash_url):
         components.iframe(dash_url, height=1700, scrolling=True)
     else:
         st.warning("Dashboard ainda iniciando. Clique em 'Recarregar dashboard' em alguns segundos.")
 
-elif pagina == "Menu Tester":
+elif pagina == PAGINA_MENU_TESTER:
     st.title("Menu Tester")
     st.info("Abra o menu_tester em uma nova aba para executar coletas e testes.")
     if st.button("Abrir Menu Tester"):
-        try:
-            import webbrowser
-            tester_url = "http://localhost:8503"
-            tester_ativo = False
-            try:
-                with urllib.request.urlopen(tester_url, timeout=1.5):
-                    tester_ativo = True
-            except Exception:
-                tester_ativo = False
-            if not tester_ativo:
-                cmd = [
-                    sys.executable,
-                    "-m",
-                    "streamlit",
-                    "run",
-                    root_path("app", "streamlit", "menu_tester.py"),
-                    "--server.port",
-                    "8503",
-                    "--server.headless",
-                    "false",
-                    "--server.fileWatcherType",
-                    "none",
-                    "--server.runOnSave",
-                    "false",
-                ]
-                subprocess.Popen(cmd, cwd=BASE_DIR)
-            webbrowser.open_new_tab("http://localhost:8503")
-            st.success("Menu Tester disponivel em http://localhost:8503")
-        except Exception as e:
-            st.error(f"Falha ao abrir Menu Tester: {e}")
+        resposta = _abrir_menu_tester()
+        if resposta.startswith("Falha"):
+            st.error(resposta)
+        else:
+            st.success(resposta)
 
 elif pagina == PAGINA_VALIDACAO_HMI:
     from HMI.validacao_hmi import render_hmi_validation_page

@@ -564,6 +564,7 @@ def evaluate_single_screenshot(
     ranked = ranked[: max(1, cfg.top_k)]
 
     best_result = None
+    candidate_results: List[Dict[str, Any]] = []
     for entry, rank_score in ranked:
         hash_distance = _hash_distance(entry["average_hash"], screenshot_hash)
         if hash_distance > cfg.hash_distance_limit:
@@ -591,18 +592,27 @@ def evaluate_single_screenshot(
         global_score = _global_similarity(reference, aligned_shot)
         structure_score = _structure_score(_diff_area_ratio(diff_result["diffs"], total_area))
         component_score = _component_score(diff_result["toggle_changes"], diff_area_ratio)
-        semantic_score = _soft_score(cosine_similarity_from_lists(entry.get("semantic_embedding"), screenshot_embedding), 0.5)
-        text_score = _soft_score(compare_texts(entry.get("ocr_text", ""), screenshot_text), 0.5 if not screenshot_text else 0.0)
+        semantic_similarity = cosine_similarity_from_lists(entry.get("semantic_embedding"), screenshot_embedding)
+        text_similarity = compare_texts(entry.get("ocr_text", ""), screenshot_text)
+        semantic_score = _soft_score(semantic_similarity, 0.0)
+        text_score = _soft_score(text_similarity, 0.0)
         critical_failures = _critical_region_metrics(delta_map, entry.get("critical_regions", []), cfg.point_tolerance)
+        weighted_scores = [
+            (global_score, cfg.global_weight),
+            (pixel_metrics["pixel_match_ratio"], cfg.pixel_weight),
+            (edge_score, cfg.edge_weight),
+            (grid_metrics["avg_score"], cfg.grid_weight),
+            (structure_score, cfg.structure_weight),
+            (component_score, cfg.component_weight),
+        ]
+        if semantic_similarity is not None:
+            weighted_scores.append((semantic_score, cfg.semantic_weight))
+        if text_similarity is not None:
+            weighted_scores.append((text_score, cfg.text_weight))
+
+        total_weight = sum(weight for _, weight in weighted_scores)
         final_score = (
-            global_score * cfg.global_weight
-            + pixel_metrics["pixel_match_ratio"] * cfg.pixel_weight
-            + edge_score * cfg.edge_weight
-            + grid_metrics["avg_score"] * cfg.grid_weight
-            + structure_score * cfg.structure_weight
-            + component_score * cfg.component_weight
-            + semantic_score * cfg.semantic_weight
-            + text_score * cfg.text_weight
+            sum(score * weight for score, weight in weighted_scores) / float(max(total_weight, 1e-9))
         )
         status = _classify_result(
             final_score,
@@ -635,8 +645,8 @@ def evaluate_single_screenshot(
                 "grid_min": round(grid_metrics["min_score"], 4),
                 "structure": round(structure_score, 4),
                 "component": round(component_score, 4),
-                "semantic": round(semantic_score, 4),
-                "text": round(text_score, 4),
+                "semantic": round(semantic_score, 4) if semantic_similarity is not None else None,
+                "text": round(text_score, 4) if text_similarity is not None else None,
                 "alignment": round(alignment_score, 4),
                 "final": round(final_score, 4),
             },
@@ -649,8 +659,8 @@ def evaluate_single_screenshot(
                 "mean_delta": round(pixel_metrics["mean_delta"], 4),
                 "p95_delta": round(pixel_metrics["p95_delta"], 4),
                 "worst_cell_score": round(grid_metrics["min_score"], 4),
-                "semantic_score": round(semantic_score, 4),
-                "text_score": round(text_score, 4),
+                "semantic_score": round(semantic_score, 4) if semantic_similarity is not None else None,
+                "text_score": round(text_score, 4) if text_similarity is not None else None,
             },
             "toggle_changes": diff_result["toggle_changes"],
             "critical_region_failures": critical_failures,
@@ -671,6 +681,7 @@ def evaluate_single_screenshot(
                 "aligned": aligned_shot,
             },
         }
+        candidate_results.append(candidate_result)
         if best_result is None:
             best_result = candidate_result
             continue
@@ -678,6 +689,12 @@ def evaluate_single_screenshot(
         best_key = (_status_priority(best_result["status"]), best_result["scores"]["final"])
         if current_key > best_key:
             best_result = candidate_result
+
+    candidate_results = sorted(
+        candidate_results,
+        key=lambda item: (_status_priority(item["status"]), item["scores"]["final"]),
+        reverse=True,
+    )
 
     if best_result is None:
         return {
@@ -717,10 +734,12 @@ def evaluate_single_screenshot(
             "screen_name": None,
             "feature_context": routed_context,
             "stage1": stage1,
+            "candidate_results": candidate_results,
             "debug_images": {},
         }
 
     best_result["screenshot_path"] = screenshot_path
+    best_result["candidate_results"] = candidate_results
     return best_result
 
 

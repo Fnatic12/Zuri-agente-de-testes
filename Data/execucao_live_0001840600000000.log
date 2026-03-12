@@ -1,100 +1,34 @@
 ðŸ“ ExecuÃ§Ã£o AutomÃ¡tica de Testes no RÃ¡dio via ADB
 [96mðŸ” Verificando dispositivos ADB conectados...[0m
 [96m
-ðŸ—‚ï¸ Dataset: C:\Users\Automation01\Desktop\zuri_agente\Data\teste\teste5\dataset.csv[0m
-[96mðŸ—‚ï¸ Frames:  C:\Users\Automation01\Desktop\zuri_agente\Data\teste\teste5\frames[0m
-[96mðŸ—‚ï¸ Result.: C:\Users\Automation01\Desktop\zuri_agente\Data\teste\teste5\resultados
+ðŸ—‚ï¸ Dataset: C:\Users\Automation01\Desktop\zuri_agente\Data\teste\teste11\dataset.csv[0m
+[96mðŸ—‚ï¸ Frames:  C:\Users\Automation01\Desktop\zuri_agente\Data\teste\teste11\frames[0m
+[96mðŸ—‚ï¸ Result.: C:\Users\Automation01\Desktop\zuri_agente\Data\teste\teste11\resultados
 [0m
 [96m
-ðŸŽ¬ Executando 29 aÃ§Ãµes do dataset...
+ðŸŽ¬ Executando 7 aÃ§Ãµes do dataset...
 [0m
-[0mâ–¶ï¸ AÃ§Ã£o 1/29 (tap)[0m
-[92mðŸ‘‰ TAP em (700,997)[0m
-[96mðŸ”Ž Similaridade: 0.932 â†’ OK | â±ï¸ 3.06s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 2/29 (tap)[0m
-[92mðŸ‘‰ TAP em (1619,693)[0m
-[96mðŸ”Ž Similaridade: 0.991 â†’ OK | â±ï¸ 3.27s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 3/29 (tap)[0m
-[92mðŸ‘‰ TAP em (788,681)[0m
-[96mðŸ”Ž Similaridade: 0.950 â†’ OK | â±ï¸ 2.94s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 4/29 (tap)[0m
-[92mðŸ‘‰ TAP em (74,122)[0m
-[96mðŸ”Ž Similaridade: 0.800 â†’ Divergente | â±ï¸ 2.91s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 5/29 (tap)[0m
-[92mðŸ‘‰ TAP em (82,186)[0m
-[96mðŸ”Ž Similaridade: 0.717 â†’ Divergente | â±ï¸ 3.38s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 6/29 (tap)[0m
-[92mðŸ‘‰ TAP em (680,985)[0m
-[96mðŸ”Ž Similaridade: 0.860 â†’ OK | â±ï¸ 3.04s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 7/29 (tap)[0m
-[92mðŸ‘‰ TAP em (1633,689)[0m
-[96mðŸ”Ž Similaridade: 0.990 â†’ OK | â±ï¸ 3.14s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 8/29 (tap)[0m
-[92mðŸ‘‰ TAP em (292,709)[0m
-[96mðŸ”Ž Similaridade: 0.975 â†’ OK | â±ï¸ 2.95s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 9/29 (tap)[0m
-[92mðŸ‘‰ TAP em (88,186)[0m
-[96mðŸ”Ž Similaridade: 0.915 â†’ OK | â±ï¸ 3.21s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 10/29 (tap)[0m
-[92mðŸ‘‰ TAP em (80,184)[0m
-[96mðŸ”Ž Similaridade: 0.879 â†’ OK | â±ï¸ 2.90s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 11/29 (tap)[0m
-[92mðŸ‘‰ TAP em (672,1019)[0m
-[96mðŸ”Ž Similaridade: 0.931 â†’ OK | â±ï¸ 2.90s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 12/29 (tap)[0m
-[92mðŸ‘‰ TAP em (1629,715)[0m
-[96mðŸ”Ž Similaridade: 0.991 â†’ OK | â±ï¸ 3.13s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 13/29 (tap)[0m
-[92mðŸ‘‰ TAP em (322,464)[0m
-[96mðŸ”Ž Similaridade: 0.708 â†’ Divergente | â±ï¸ 2.94s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 14/29 (tap)[0m
-[92mðŸ‘‰ TAP em (78,194)[0m
-[96mðŸ”Ž Similaridade: 0.645 â†’ Divergente | â±ï¸ 2.88s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 15/29 (tap)[0m
-[92mðŸ‘‰ TAP em (102,158)[0m
-[96mðŸ”Ž Similaridade: 0.880 â†’ OK | â±ï¸ 2.92s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 16/29 (tap)[0m
-[92mðŸ‘‰ TAP em (692,1027)[0m
-[96mðŸ”Ž Similaridade: 0.931 â†’ OK | â±ï¸ 2.90s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 17/29 (tap)[0m
-[92mðŸ‘‰ TAP em (1625,687)[0m
-[96mðŸ”Ž Similaridade: 0.991 â†’ OK | â±ï¸ 3.17s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 18/29 (tap)[0m
-[92mðŸ‘‰ TAP em (798,470)[0m
-[96mðŸ”Ž Similaridade: 0.986 â†’ OK | â±ï¸ 2.93s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 19/29 (tap)[0m
-[92mðŸ‘‰ TAP em (90,158)[0m
-[96mðŸ”Ž Similaridade: 0.991 â†’ OK | â±ï¸ 3.09s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 20/29 (tap)[0m
-[92mðŸ‘‰ TAP em (88,156)[0m
-[96mðŸ”Ž Similaridade: 0.880 â†’ OK | â±ï¸ 2.97s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 21/29 (tap)[0m
-[92mðŸ‘‰ TAP em (696,1011)[0m
-[96mðŸ”Ž Similaridade: 0.932 â†’ OK | â±ï¸ 2.95s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 22/29 (tap)[0m
-[92mðŸ‘‰ TAP em (1663,667)[0m
-[96mðŸ”Ž Similaridade: 0.991 â†’ OK | â±ï¸ 3.24s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 23/29 (tap)[0m
-[92mðŸ‘‰ TAP em (1397,462)[0m
-[96mðŸ”Ž Similaridade: 0.990 â†’ OK | â±ï¸ 2.98s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 24/29 (tap)[0m
-[92mðŸ‘‰ TAP em (92,178)[0m
-[96mðŸ”Ž Similaridade: 0.991 â†’ OK | â±ï¸ 3.17s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 25/29 (tap)[0m
-[92mðŸ‘‰ TAP em (90,186)[0m
-[96mðŸ”Ž Similaridade: 0.880 â†’ OK | â±ï¸ 2.92s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 26/29 (tap)[0m
-[92mðŸ‘‰ TAP em (700,1011)[0m
-[96mðŸ”Ž Similaridade: 0.932 â†’ OK | â±ï¸ 2.90s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 27/29 (tap)[0m
-[92mðŸ‘‰ TAP em (1665,711)[0m
-[96mðŸ”Ž Similaridade: 0.991 â†’ OK | â±ï¸ 3.19s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 28/29 (tap)[0m
-[92mðŸ‘‰ TAP em (1635,725)[0m
-[96mðŸ”Ž Similaridade: 0.805 â†’ Divergente | â±ï¸ 2.89s[0m
-[0mâ–¶ï¸ AÃ§Ã£o 29/29 (tap)[0m
-[92mðŸ‘‰ TAP em (82,182)[0m
-[96mðŸ”Ž Similaridade: 0.991 â†’ OK | â±ï¸ 3.19s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 1/7 (tap)[0m
+[92mðŸ‘‰ TAP em (706,991)[0m
+[96mðŸ”Ž Similaridade: 0.982 â†’ OK | â±ï¸ 2.99s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 2/7 (tap)[0m
+[92mðŸ‘‰ TAP em (1621,693)[0m
+[96mðŸ”Ž Similaridade: 1.000 â†’ OK | â±ï¸ 3.34s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 3/7 (tap)[0m
+[92mðŸ‘‰ TAP em (1155,428)[0m
+[96mðŸ”Ž Similaridade: 1.000 â†’ OK | â±ï¸ 3.02s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 4/7 (tap)[0m
+[92mðŸ‘‰ TAP em (788,601)[0m
+[96mðŸ”Ž Similaridade: 1.000 â†’ OK | â±ï¸ 3.13s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 5/7 (tap)[0m
+[92mðŸ‘‰ TAP em (154,324)[0m
+[96mðŸ”Ž Similaridade: 1.000 â†’ OK | â±ï¸ 3.15s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 6/7 (tap)[0m
+[92mðŸ‘‰ TAP em (150,512)[0m
+[96mðŸ”Ž Similaridade: 0.997 â†’ OK | â±ï¸ 3.19s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 7/7 (tap)[0m
+[92mðŸ‘‰ TAP em (140,631)[0m
+[96mðŸ”Ž Similaridade: 0.996 â†’ OK | â±ï¸ 3.16s[0m
 [92m
-âœ… ExecuÃ§Ã£o finalizada. Log salvo em: C:\Users\Automation01\Desktop\zuri_agente\Data\teste\teste5\execucao_log.json[0m
-[96mStatus atualizado em: Data/teste/teste5/status_0001840600000000.json[0m
+âœ… ExecuÃ§Ã£o finalizada. Log salvo em: C:\Users\Automation01\Desktop\zuri_agente\Data\teste\teste11\execucao_log.json[0m
+[96mStatus atualizado em: Data/teste/teste11/status_0001840600000000.json[0m

@@ -52,6 +52,18 @@ def apply_dark_background(hide_header: bool = True) -> None:
             background: linear-gradient(180deg, #08101b 0%, #070d16 52%, #050a12 100%) !important;
             border-right: 1px solid rgba(103, 168, 255, 0.08) !important;
         }}
+        section[data-testid="stSidebar"][aria-expanded="false"] {{
+            min-width: var(--chat-sidebar-offset) !important;
+            max-width: var(--chat-sidebar-offset) !important;
+            transform: translateX(0) !important;
+            margin-left: 0 !important;
+        }}
+        section[data-testid="stSidebar"][aria-expanded="false"] > div:first-child {{
+            min-width: var(--chat-sidebar-offset) !important;
+            max-width: var(--chat-sidebar-offset) !important;
+            width: var(--chat-sidebar-offset) !important;
+            margin-left: 0 !important;
+        }}
         section[data-testid="stSidebar"] > div {{
             background: transparent !important;
         }}

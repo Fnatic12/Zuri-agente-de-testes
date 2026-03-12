@@ -3,14 +3,20 @@ from difflib import SequenceMatcher
 from functools import lru_cache
 import os
 import shutil
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 import cv2
 import numpy as np
-import torch
 from PIL import Image
-from torch import nn
-from torchvision import models
+
+try:
+    import torch
+    from torch import nn
+    from torchvision import models
+except Exception:  # pragma: no cover
+    torch = None
+    nn = None
+    models = None
 
 try:
     import pytesseract
@@ -132,14 +138,17 @@ def _ocr_cli_config() -> str:
 
 @lru_cache(maxsize=1)
 def _load_semantic_models() -> Dict[str, Any]:
+    if torch is None or nn is None or models is None:
+        raise RuntimeError("Torch/torchvision indisponiveis.")
+
     resnet_weights = models.ResNet50_Weights.DEFAULT
     resnet = models.resnet50(weights=resnet_weights)
-    resnet.fc = nn.Identity()
+    resnet.fc = cast(Any, nn.Identity())
     resnet.eval()
 
     vit_weights = models.ViT_B_16_Weights.DEFAULT
     vit = models.vit_b_16(weights=vit_weights)
-    vit.heads = nn.Identity()
+    vit.heads = cast(Any, nn.Identity())
     vit.eval()
 
     return {
@@ -151,11 +160,11 @@ def _load_semantic_models() -> Dict[str, Any]:
 
 
 def get_backend_status() -> BackendStatus:
-    semantic_available = True
-    semantic_engine = "torchvision: resnet50 + vit_b_16"
+    semantic_available = torch is not None and nn is not None and models is not None
+    semantic_engine = "torchvision: resnet50 + vit_b_16" if semantic_available else "semantic off"
     ocr_available = False
     ocr_engine = "ocr off"
-    details = "Semantic embeddings locais habilitadas."
+    details = "Semantic embeddings locais habilitadas." if semantic_available else "Semantic embeddings locais indisponiveis."
 
     tesseract_cmd = _resolve_tesseract_cmd()
     if pytesseract is not None and tesseract_cmd:
@@ -179,6 +188,9 @@ def get_backend_status() -> BackendStatus:
 
 
 def extract_semantic_embedding(img_bgr: np.ndarray) -> Optional[np.ndarray]:
+    if torch is None or nn is None or models is None:
+        return None
+
     try:
         pack = _load_semantic_models()
     except Exception:
@@ -203,7 +215,7 @@ def extract_semantic_embedding(img_bgr: np.ndarray) -> Optional[np.ndarray]:
 def embedding_to_list(embedding: Optional[np.ndarray]) -> Optional[list[float]]:
     if embedding is None:
         return None
-    return embedding.astype(np.float32).tolist()
+    return cast(list[float], embedding.astype(np.float32).tolist())
 
 
 def cosine_similarity_from_lists(a: Optional[list[float]], b: Optional[np.ndarray]) -> Optional[float]:

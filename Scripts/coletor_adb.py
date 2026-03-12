@@ -12,6 +12,11 @@ from colorama import Fore, Style
 from termcolor import colored
 import subprocess
 from datetime import datetime
+
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
 from app.shared.adb_utils import resolve_adb_path
 colorama.init()
 
