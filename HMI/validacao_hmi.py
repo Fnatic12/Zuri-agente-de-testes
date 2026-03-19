@@ -20,6 +20,18 @@ except Exception:
     st_autorefresh = None
 
 
+def _subprocess_windowless_kwargs() -> dict:
+    if os.name != "nt":
+        return {}
+    startupinfo = subprocess.STARTUPINFO()
+    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    startupinfo.wShowWindow = 0
+    return {
+        "creationflags": subprocess.CREATE_NO_WINDOW,
+        "startupinfo": startupinfo,
+    }
+
+
 def _load_hmi_modules() -> Dict[str, Any]:
     from HMI.hmi_ai import get_backend_status
     from HMI.hmi_engine import ValidationConfig, collect_result_screens, evaluate_single_screenshot, validate_execution_images
@@ -479,7 +491,12 @@ def _parse_adb_devices(raw_lines: list[str]) -> list[str]:
 def _list_connected_adb_devices() -> list[str]:
     adb_path = resolve_adb_path()
     try:
-        raw = subprocess.check_output([adb_path, "devices"], text=True, timeout=8).strip().splitlines()
+        raw = subprocess.check_output(
+            [adb_path, "devices"],
+            text=True,
+            timeout=8,
+            **_subprocess_windowless_kwargs(),
+        ).strip().splitlines()
         return _parse_adb_devices(raw)
     except Exception:
         return []
@@ -512,6 +529,64 @@ def _live_lookup_stop_flag(cache_root: str, serial: str) -> str:
 def _pid_is_running(pid: int) -> bool:
     if pid <= 0:
         return False
+
+
+def _kill_process_tree(pid: int) -> None:
+    if pid <= 0:
+        return
+    if os.name == "nt":
+        creationflags = subprocess.CREATE_NO_WINDOW
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        startupinfo.wShowWindow = 0
+        subprocess.run(
+            ["taskkill", "/F", "/T", "/PID", str(pid)],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+            creationflags=creationflags,
+            startupinfo=startupinfo,
+        )
+        return
+    try:
+        os.kill(pid, signal.SIGTERM)
+    except Exception:
+        pass
+
+
+def _list_live_monitor_pids(serial: str) -> list[int]:
+    if not serial or os.name != "nt":
+        return []
+    script_name = "hmi_touch_monitor.py"
+    escaped_serial = str(serial).replace("'", "''")
+    ps_script = (
+        "$items = Get-CimInstance Win32_Process | "
+        "Where-Object { $_.Name -like 'python*.exe' -and $_.CommandLine -like '*"
+        + script_name
+        + "*' -and $_.CommandLine -like '*--serial "
+        + escaped_serial
+        + "*' }; "
+        "$items | ForEach-Object { $_.ProcessId }"
+    )
+    startupinfo = subprocess.STARTUPINFO()
+    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    startupinfo.wShowWindow = 0
+    try:
+        raw = subprocess.check_output(
+            ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps_script],
+            text=True,
+            stderr=subprocess.DEVNULL,
+            creationflags=subprocess.CREATE_NO_WINDOW,
+            startupinfo=startupinfo,
+        )
+    except Exception:
+        return []
+    pids: list[int] = []
+    for line in raw.splitlines():
+        text = line.strip()
+        if text.isdigit():
+            pids.append(int(text))
+    return sorted(set(pids))
     try:
         os.kill(pid, 0)
         return True
@@ -524,6 +599,9 @@ def _load_live_monitor_state(cache_root: str, serial: str) -> Dict[str, Any]:
 
 
 def _live_monitor_running(cache_root: str, serial: str) -> bool:
+    live_pids = _list_live_monitor_pids(serial)
+    if live_pids:
+        return True
     state = _load_live_monitor_state(cache_root, serial)
     pid = int(state.get("pid", 0) or 0)
     return _pid_is_running(pid)
@@ -539,14 +617,34 @@ def _start_live_monitor(cache_root: str, serial: str) -> str:
     if _live_monitor_running(cache_root, serial):
         return "Monitor automatico ja esta ativo."
 
+    state = _load_live_monitor_state(cache_root, serial)
+    previous_pid = int(state.get("pid", 0) or 0)
+    if previous_pid > 0:
+        _kill_process_tree(previous_pid)
+    for pid in _list_live_monitor_pids(serial):
+        _kill_process_tree(pid)
+
     script_path = root_path("Scripts", "hmi_touch_monitor.py")
     log_path = os.path.join(root_dir, "monitor.log")
+    python_exec = sys.executable
+    if os.name == "nt":
+        pythonw_exec = os.path.join(os.path.dirname(sys.executable), "pythonw.exe")
+        if os.path.exists(pythonw_exec):
+            python_exec = pythonw_exec
+    creationflags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+    startupinfo = None
+    if os.name == "nt":
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        startupinfo.wShowWindow = 0
     with open(log_path, "a", encoding="utf-8") as log_file:
         proc = subprocess.Popen(
-            [sys.executable, script_path, "--serial", serial, "--output-dir", shots_dir],
+            [python_exec, script_path, "--serial", serial, "--output-dir", shots_dir],
             cwd=root_path(),
             stdout=log_file,
             stderr=log_file,
+            creationflags=creationflags,
+            startupinfo=startupinfo,
         )
     _save_json(
         _live_lookup_monitor_state_path(cache_root, serial),
@@ -567,10 +665,9 @@ def _stop_live_monitor(cache_root: str, serial: str) -> str:
     state = _load_live_monitor_state(cache_root, serial)
     pid = int(state.get("pid", 0) or 0)
     if pid > 0 and _pid_is_running(pid):
-        try:
-            os.kill(pid, signal.SIGTERM)
-        except Exception:
-            pass
+        _kill_process_tree(pid)
+    for live_pid in _list_live_monitor_pids(serial):
+        _kill_process_tree(live_pid)
     return f"Monitor automatico sinalizado para parar em {serial}."
 
 

@@ -52,6 +52,22 @@ LOG_CAPTURE_SEQUENCE_FILENAMES = (
     "_log_capture_sequence.csv",
     "_log_capture_sequence.json",
 )
+DEFAULT_FAILURE_LOG_PATTERNS = (
+    "/data/tombstones/*",
+    "/data/anr/*",
+    "/data/log/*",
+    "/data/tcpdump/*",
+    "/data/capture/*",
+    "/data/bugreport/*",
+    "/data/dumpsys/*",
+    "/data/lshal/*",
+    "/data/McuLog/*",
+    "/data/local/traces/*",
+    "/ota_download/recovery_log/*",
+    "/data/misc/bluetooth*",
+    "/data/vendor/broadcastradio/log*",
+    "/data/vendor/extend_log_/dropbox/*",
+)
 
 # Caminho absoluto da raiz do projeto (este arquivo estÃ¡ em /Run)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -330,6 +346,113 @@ def puxar_arquivo_dispositivo(device_path, destino_local, serial=None):
     return destino_local if os.path.exists(destino_local) else None
 
 
+def _default_log_label(pattern):
+    base = str(pattern or "").rstrip("*").rstrip("/")
+    label = os.path.basename(base) or "logs"
+    return re.sub(r"[^0-9A-Za-z_.-]+", "_", label) or "logs"
+
+
+def _listar_matches_device_glob(pattern, serial=None):
+    script = f'for p in {pattern}; do if [ -e "$p" ]; then echo "$p"; fi; done'
+    result = run_subprocess(adb_cmd(serial) + ["shell", "sh", "-c", script], timeout=max(ADB_TIMEOUT, 45), quiet=True)
+    if result is None or result.returncode != 0:
+        return []
+    matches = []
+    for line in (result.stdout or "").splitlines():
+        text = str(line).strip()
+        if text:
+            matches.append(text)
+    return sorted(set(matches))
+
+
+def preparar_logs_pos_falha(serial=None):
+    cleaned = []
+    for pattern in DEFAULT_FAILURE_LOG_PATTERNS:
+        script = f'for p in {pattern}; do if [ -e "$p" ]; then rm -rf "$p"; fi; done'
+        result = run_subprocess(adb_cmd(serial) + ["shell", "sh", "-c", script], timeout=max(ADB_TIMEOUT, 60), quiet=True)
+        cleaned.append(
+            {
+                "pattern": pattern,
+                "status": "ok" if result is not None and result.returncode == 0 else "erro",
+                "error": None if result is not None and result.returncode == 0 else "falha ao limpar origem remota",
+            }
+        )
+    return cleaned
+
+
+def _log_capture_dir(base_dir, started_at):
+    return os.path.join(base_dir, "logs", started_at.strftime("%Y%m%d_%H%M%S"))
+
+
+def _executar_captura_logs_default(categoria, nome_teste, serial, motivo):
+    started_at = datetime.now()
+    base_dir = _status_dir(categoria, nome_teste)
+    capture_dir = _log_capture_dir(base_dir, started_at)
+    logs_root = os.path.join(capture_dir, "radio_logs")
+    os.makedirs(logs_root, exist_ok=True)
+
+    metadata_path = os.path.join(capture_dir, "capture_metadata.json")
+    metadata = {
+        "categoria": categoria,
+        "teste": nome_teste,
+        "serial": serial,
+        "motivo": motivo,
+        "mode": "default_auto_capture",
+        "status": "executando",
+        "started_at": started_at.isoformat(),
+        "finished_at": None,
+        "patterns": [],
+    }
+    atomic_write_json(metadata_path, metadata)
+
+    total_artifacts = 0
+    for idx, pattern in enumerate(DEFAULT_FAILURE_LOG_PATTERNS, start=1):
+        label = _default_log_label(pattern)
+        matches = _listar_matches_device_glob(pattern, serial)
+        pattern_payload = {
+            "pattern": pattern,
+            "label": label,
+            "match_count": len(matches),
+            "status": "vazio",
+            "artifacts": [],
+            "error": None,
+        }
+
+        for match in matches:
+            output_name = os.path.basename(match.rstrip("/")) or label
+            target_root = os.path.join(logs_root, f"{idx:02d}_{label}")
+            local_target = os.path.join(target_root, output_name)
+            saved = puxar_arquivo_dispositivo(match, local_target, serial)
+            if saved:
+                pattern_payload["artifacts"].append(os.path.relpath(saved, capture_dir))
+                total_artifacts += 1
+            else:
+                pattern_payload["status"] = "falha"
+                pattern_payload["error"] = f"falha ao puxar {match}"
+                break
+
+        if pattern_payload["status"] != "falha":
+            pattern_payload["status"] = "capturado" if pattern_payload["artifacts"] else "vazio"
+
+        metadata["patterns"].append(pattern_payload)
+        atomic_write_json(metadata_path, metadata)
+
+    final_shot = capturar_screenshot(capture_dir, "estado_final.png", serial)
+    metadata["status"] = "capturado" if total_artifacts > 0 else "sem_artefatos"
+    metadata["finished_at"] = datetime.now().isoformat()
+    metadata["total_artifacts"] = total_artifacts
+    metadata["final_screenshot"] = (
+        os.path.relpath(final_shot, capture_dir) if final_shot and os.path.exists(final_shot) else None
+    )
+    atomic_write_json(metadata_path, metadata)
+    return {
+        "status": "capturado" if total_artifacts > 0 else "sem_artefatos",
+        "artifact_dir": os.path.relpath(capture_dir, base_dir),
+        "error": None if total_artifacts > 0 else "Nenhum log novo encontrado nos caminhos padrao.",
+        "sequence_path": "default_auto_capture",
+    }
+
+
 def _failure_log_sequence_candidates(categoria, nome_teste):
     teste_dir = _status_dir(categoria, nome_teste)
     categoria_dir = os.path.join(DATA_ROOT, categoria)
@@ -466,12 +589,7 @@ def _executar_passo_failure_log(action, serial, artifacts_dir, step_index):
 def executar_captura_logs_pos_falha(categoria, nome_teste, serial, motivo):
     sequence_path = _resolver_failure_log_sequence(categoria, nome_teste)
     if not sequence_path:
-        return {
-            "status": "sem_roteiro",
-            "artifact_dir": None,
-            "error": "Nenhum roteiro de captura de logs configurado para este teste/categoria.",
-            "sequence_path": None,
-        }
+        return _executar_captura_logs_default(categoria, nome_teste, serial, motivo)
 
     steps = _carregar_failure_log_steps(sequence_path)
     if not steps:
@@ -484,7 +602,7 @@ def executar_captura_logs_pos_falha(categoria, nome_teste, serial, motivo):
 
     started_at = datetime.now()
     base_dir = _status_dir(categoria, nome_teste)
-    capture_dir = os.path.join(base_dir, "failure_logs", started_at.strftime("%Y%m%d_%H%M%S"))
+    capture_dir = _log_capture_dir(base_dir, started_at)
     os.makedirs(capture_dir, exist_ok=True)
     metadata_path = os.path.join(capture_dir, "capture_metadata.json")
     metadata = {
@@ -529,6 +647,35 @@ def executar_captura_logs_pos_falha(categoria, nome_teste, serial, motivo):
         "error": None,
         "sequence_path": sequence_path,
     }
+
+
+def capturar_logs_teste(categoria, nome_teste, serial, motivo="manual", limpar_antes=False):
+    if limpar_antes:
+        preparar_logs_pos_falha(serial)
+
+    capture_result = executar_captura_logs_pos_falha(categoria, nome_teste, serial, motivo)
+    bancada_key = _bancada_key_from_serial(serial)
+    sequence_path = capture_result.get("sequence_path")
+    capture_sequence = None
+    if sequence_path:
+        if sequence_path == "default_auto_capture":
+            capture_sequence = sequence_path
+        else:
+            try:
+                capture_sequence = os.path.relpath(sequence_path, _status_dir(categoria, nome_teste))
+            except Exception:
+                capture_sequence = sequence_path
+
+    atualizar_status_captura_logs(
+        bancada_key,
+        categoria,
+        nome_teste,
+        capture_result.get("status"),
+        log_capture_dir=capture_result.get("artifact_dir"),
+        log_capture_error=capture_result.get("error"),
+        log_capture_sequence=capture_sequence,
+    )
+    return capture_result
 
 
 # =========================
@@ -738,6 +885,50 @@ def finalizar_status_bancada(
         status[bancada_key]["progresso"] = 100.0
     salvar_status(status, categoria, teste_nome, serial=bancada_key)
 
+
+def atualizar_status_captura_logs(
+    bancada_key,
+    categoria,
+    teste_nome,
+    log_capture_status,
+    log_capture_dir=None,
+    log_capture_error=None,
+    log_capture_sequence=None,
+):
+    anterior = _carregar_payload_bancada(categoria, teste_nome, bancada_key)
+    agora = datetime.now().isoformat()
+    status = {
+        bancada_key: {
+        "serial": bancada_key,
+        "categoria": categoria,
+        "teste": anterior.get("teste") or _teste_ref(categoria, teste_nome),
+        "status": anterior.get("status") or "finalizado",
+        "acoes_totais": int(anterior.get("acoes_totais", 0) or 0),
+        "acoes_executadas": int(anterior.get("acoes_executadas", 0) or 0),
+        "progresso": float(anterior.get("progresso", 0.0) or 0.0),
+        "ultima_acao": anterior.get("ultima_acao", "-"),
+        "ultima_acao_idx": int(anterior.get("ultima_acao_idx", 0) or 0),
+        "ultima_acao_status": anterior.get("ultima_acao_status", "-"),
+        "tempo_decorrido_s": float(anterior.get("tempo_decorrido_s", 0.0) or 0.0),
+        "inicio": anterior.get("inicio"),
+        "fim": anterior.get("fim"),
+        "atualizado_em": agora,
+        "resultados_ok": int(anterior.get("resultados_ok", 0) or 0),
+        "resultados_divergentes": int(anterior.get("resultados_divergentes", 0) or 0),
+        "similaridade_media": round(float(anterior.get("similaridade_media", 0.0) or 0.0), 4),
+        "ultima_similaridade": anterior.get("ultima_similaridade"),
+        "ultimo_screenshot": anterior.get("ultimo_screenshot"),
+        "velocidade_acoes_min": float(anterior.get("velocidade_acoes_min", 0.0) or 0.0),
+        "resultado_final": anterior.get("resultado_final") or "pendente",
+        "log_capture_status": log_capture_status or anterior.get("log_capture_status") or "nao_necessario",
+        "log_capture_dir": log_capture_dir if log_capture_dir is not None else anterior.get("log_capture_dir"),
+        "log_capture_error": log_capture_error if log_capture_error is not None else anterior.get("log_capture_error"),
+        "log_capture_sequence": log_capture_sequence if log_capture_sequence is not None else anterior.get("log_capture_sequence"),
+        "erro_motivo": anterior.get("erro_motivo"),
+        }
+    }
+    salvar_status(status, categoria, teste_nome, serial=bancada_key)
+
 # =========================
 # MAIN
 # =========================
@@ -794,13 +985,18 @@ def main():
             capture_error = capture_result.get("error")
             sequence_path = capture_result.get("sequence_path")
             if sequence_path:
-                try:
-                    capture_sequence = os.path.relpath(sequence_path, _status_dir(categoria, nome_teste))
-                except Exception:
+                if sequence_path == "default_auto_capture":
                     capture_sequence = sequence_path
+                else:
+                    try:
+                        capture_sequence = os.path.relpath(sequence_path, _status_dir(categoria, nome_teste))
+                    except Exception:
+                        capture_sequence = sequence_path
 
             if capture_status == "capturado":
                 print_color(f"âœ… Logs da peca capturados em Data/{categoria}/{nome_teste}/{capture_dir}", "green")
+            elif capture_status == "sem_artefatos":
+                print_color(f"âš ï¸ Nenhum log novo encontrado apos a falha. Pasta gerada: Data/{categoria}/{nome_teste}/{capture_dir}", "yellow")
             elif capture_status == "sem_roteiro":
                 print_color(f"âš ï¸ Falha detectada, mas sem roteiro de captura configurado: {capture_error}", "yellow")
             else:
@@ -834,6 +1030,16 @@ def main():
         print_color(f"âš ï¸ Falha ao verificar dispositivos ADB: {e}", "red")
         concluir_execucao("erro", "erro_tecnico", motivo="adb", capturar_logs=False)
         return
+
+    try:
+        clean_results = preparar_logs_pos_falha(serial)
+        cleaned_ok = sum(1 for item in clean_results if item.get("status") == "ok")
+        print_color(
+            f"ðŸ§¹ Limpeza preventiva dos logs remotos concluida: {cleaned_ok}/{len(clean_results)} origem(ns).",
+            "cyan",
+        )
+    except Exception as exc:
+        print_color(f"âš ï¸ Falha ao preparar limpeza preventiva dos logs: {exc}", "yellow")
 
     teste_dir = os.path.join(DATA_ROOT, categoria, nome_teste)
     dataset_path = os.path.join(teste_dir, "dataset.csv")

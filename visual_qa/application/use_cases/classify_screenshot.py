@@ -147,7 +147,7 @@ class ClassifyScreenshot:
         stage1_match = Stage1ScreenMatch(
             screen_type=predicted,
             similarity_score=float(winning_score),
-            matched_baseline_path=Path(selected_baseline).resolve() if selected_baseline else None,
+            matched_baseline_path=Path(selected_baseline) if selected_baseline else None,
             top_k=top_k_rows,
         )
 

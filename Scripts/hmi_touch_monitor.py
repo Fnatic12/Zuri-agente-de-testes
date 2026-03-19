@@ -16,12 +16,18 @@ if PROJECT_ROOT not in sys.path:
 from app.shared.adb_utils import resolve_adb_path
 
 
-ADB_PATH = resolve_adb_path()
 DEFAULT_DEV = "/dev/input/event2"
 DEFAULT_RES = (1920, 1080)
 SCREENSHOT_DELAY_S = 1.05
 STOP_REQUESTED = False
 HEX_VAL = re.compile(r"\s([0-9a-fA-F]{8})\s*$")
+CREATE_FLAGS = 0
+STARTUPINFO = None
+if os.name == "nt":
+    CREATE_FLAGS = subprocess.CREATE_NO_WINDOW
+    STARTUPINFO = subprocess.STARTUPINFO()
+    STARTUPINFO.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    STARTUPINFO.wShowWindow = 0
 
 
 def _handle_stop(signum, frame):
@@ -35,13 +41,39 @@ signal.signal(signal.SIGINT, _handle_stop)
 
 
 def adb_cmd(serial: str | None = None) -> list[str]:
+    adb_path = resolve_adb_path()
     if serial:
-        return [ADB_PATH, "-s", serial]
-    return [ADB_PATH]
+        return [adb_path, "-s", serial]
+    return [adb_path]
+
+
+def _run_kwargs() -> dict:
+    kwargs = {"creationflags": CREATE_FLAGS}
+    if STARTUPINFO is not None:
+        kwargs["startupinfo"] = STARTUPINFO
+    return kwargs
+
+
+def _kill_process_tree(pid: int) -> None:
+    if pid <= 0:
+        return
+    if os.name == "nt":
+        subprocess.run(
+            ["taskkill", "/F", "/T", "/PID", str(pid)],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+            **_run_kwargs(),
+        )
+        return
+    try:
+        os.kill(pid, signal.SIGTERM)
+    except OSError:
+        pass
 
 
 def run_out(cmd: list[str]) -> str:
-    proc = subprocess.run(cmd, capture_output=True, text=True)
+    proc = subprocess.run(cmd, capture_output=True, text=True, **_run_kwargs())
     return proc.stdout.strip()
 
 
@@ -49,7 +81,7 @@ def take_screenshot(local_path: str, serial: str | None = None) -> str:
     os.makedirs(os.path.dirname(local_path), exist_ok=True)
     cmd = adb_cmd(serial) + ["exec-out", "screencap", "-p"]
     with open(local_path, "wb") as fh:
-        subprocess.run(cmd, stdout=fh)
+        subprocess.run(cmd, stdout=fh, **_run_kwargs())
     return local_path
 
 
@@ -140,6 +172,7 @@ def collect_touch_screenshots(dev_path: str, output_dir: str, screen_res: tuple[
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             bufsize=0,
+            **_run_kwargs(),
         )
 
         if proc.stdout is None:
@@ -202,8 +235,7 @@ def collect_touch_screenshots(dev_path: str, output_dir: str, screen_res: tuple[
 
         finally:
             try:
-                proc.terminate()
-                proc.wait(timeout=1)
+                _kill_process_tree(proc.pid)
             except Exception:
                 pass
 

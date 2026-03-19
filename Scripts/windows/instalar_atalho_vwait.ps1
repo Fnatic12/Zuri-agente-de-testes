@@ -1,13 +1,13 @@
 $projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $shortcutPath = Join-Path $env:USERPROFILE 'Desktop\VWAIT.lnk'
-$launcherPath = Join-Path $projectRoot 'Scripts\windows\iniciar_vwait.bat'
+$launcherPath = Join-Path $projectRoot 'Scripts\windows\abrir_vwait_hidden.vbs'
 $iconPath = Join-Path $projectRoot 'app\assets\vwait_logo.ico'
-$cmdPath = Join-Path $env:SystemRoot 'System32\cmd.exe'
+$wscriptPath = Join-Path $env:SystemRoot 'System32\wscript.exe'
 
 $shell = New-Object -ComObject WScript.Shell
 $shortcut = $shell.CreateShortcut($shortcutPath)
-$shortcut.TargetPath = $cmdPath
-$shortcut.Arguments = "/c `"$launcherPath`""
+$shortcut.TargetPath = $wscriptPath
+$shortcut.Arguments = "`"$launcherPath`""
 $shortcut.WorkingDirectory = $projectRoot
 $shortcut.Description = 'Abrir VWAIT'
 

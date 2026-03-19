@@ -18,11 +18,31 @@ from streamlit_autorefresh import st_autorefresh
 from datetime import datetime
 from app.shared.project_paths import project_root, root_path
 from app.shared.adb_utils import resolve_adb_path
-from app.shared.ui_theme import apply_dark_background
+from app.shared import ui_theme as _ui_theme
+
+apply_dark_background = _ui_theme.apply_dark_background
+
+
+def apply_panel_button_theme() -> None:
+    handler = getattr(_ui_theme, "apply_panel_button_theme", None)
+    if callable(handler):
+        handler()
 
 
 # === Caminho do ADB ===
 ADB_PATH = resolve_adb_path()
+
+
+def _subprocess_windowless_kwargs() -> dict:
+    if os.name != "nt":
+        return {}
+    startupinfo = subprocess.STARTUPINFO()
+    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    startupinfo.wShowWindow = 0
+    return {
+        "creationflags": subprocess.CREATE_NO_WINDOW,
+        "startupinfo": startupinfo,
+    }
 
 
 def _parse_adb_devices(raw_lines):
@@ -49,7 +69,11 @@ def listar_bancadas():
 
     try:
 
-        result = subprocess.check_output([ADB_PATH, "devices"], text=True).strip().splitlines()
+        result = subprocess.check_output(
+            [ADB_PATH, "devices"],
+            text=True,
+            **_subprocess_windowless_kwargs(),
+        ).strip().splitlines()
 
         devices = _parse_adb_devices(result)
 
@@ -190,6 +214,7 @@ SCRIPTS = {
     "Processar Dataset": root_path("Pre_process", "processar_dataset.py"),
     "Executar Teste": root_path("Run", "run_noia.py"),
     "Abrir Dashboard": root_path("Dashboard", "visualizador_execucao.py"),
+    "Abrir Painel de Logs": root_path("Dashboard", "painel_logs_radio.py"),
 }
 
 
@@ -269,6 +294,81 @@ def _carregar_status_execucao(categoria, teste, serial):
     return {}
 
 
+def _resolver_teste_por_serial(serial):
+    latest = None
+    latest_ts = None
+    if not serial:
+        return None, None
+    for root, _, files in os.walk(os.path.join(BASE_DIR, "Data")):
+        for name in files:
+            if name != f"status_{serial}.json":
+                continue
+            path = os.path.join(root, name)
+            try:
+                with open(path, "r", encoding="utf-8") as handle:
+                    data = json.load(handle)
+            except Exception:
+                continue
+            ts = data.get("atualizado_em") or data.get("inicio") or os.path.getmtime(path)
+            if latest_ts is None or str(ts) > str(latest_ts):
+                latest_ts = ts
+                latest = data
+
+    if not isinstance(latest, dict):
+        return None, None
+    teste_ref = str(latest.get("teste", "") or "").strip()
+    if "/" not in teste_ref:
+        return None, None
+    categoria, nome_teste = teste_ref.split("/", 1)
+    return categoria, nome_teste
+
+
+def _capturar_logs_radio(categoria, nome_teste, serial, motivo="captura_manual_menu_tester"):
+    from Run.run_noia import capturar_logs_teste
+
+    return capturar_logs_teste(categoria, nome_teste, serial, motivo=motivo, limpar_antes=False)
+
+
+def _abrir_pasta_local(path):
+    path = os.path.abspath(str(path or "").strip())
+    if not path or not os.path.exists(path):
+        return False, "Pasta nao encontrada."
+    try:
+        if os.name == "nt":
+            os.startfile(path)
+        elif sys.platform == "darwin":
+            subprocess.Popen(["open", path])
+        else:
+            subprocess.Popen(["xdg-open", path])
+        return True, path
+    except Exception as exc:
+        return False, str(exc)
+
+
+def _resolver_pasta_logs_teste(categoria, nome_teste, serial=None):
+    base_dir = os.path.join(BASE_DIR, "Data", str(categoria or "").strip(), str(nome_teste or "").strip())
+    logs_root = os.path.join(base_dir, "logs")
+    status_payload = _carregar_status_execucao(categoria, nome_teste, serial) if serial else {}
+    relative_capture_dir = str((status_payload or {}).get("log_capture_dir", "") or "").strip()
+
+    if relative_capture_dir:
+        capture_dir = os.path.join(base_dir, relative_capture_dir)
+        if os.path.isdir(capture_dir):
+            return capture_dir
+
+    if not os.path.isdir(logs_root):
+        return None
+
+    candidates = [
+        os.path.join(logs_root, name)
+        for name in os.listdir(logs_root)
+        if os.path.isdir(os.path.join(logs_root, name))
+    ]
+    if not candidates:
+        return logs_root
+    return max(candidates, key=os.path.getmtime)
+
+
 def _formatar_resumo_execucao(payload, fallback_returncode=None):
     status = str(payload.get("status", "")).strip().lower()
     resultado_final = str(payload.get("resultado_final", "")).strip().lower()
@@ -289,6 +389,8 @@ def _formatar_resumo_execucao(payload, fallback_returncode=None):
             return f"Finalizado reprovado | logs capturados em {log_capture_dir}"
         if log_capture_status == "executando":
             return "Finalizado reprovado | capturando logs"
+        if log_capture_status == "sem_artefatos":
+            return "Finalizado reprovado | nenhum log novo encontrado"
         if log_capture_status == "sem_roteiro":
             return "Finalizado reprovado | sem roteiro de logs"
         if log_capture_status == "falha":
@@ -532,6 +634,7 @@ def _iniciar_execucoes_teste_unico(categoria_exec, nome_teste_exec, seriais):
 
 st.set_page_config(page_title="Menu Tester", page_icon="", layout="centered")
 apply_dark_background(hide_header=True)
+apply_panel_button_theme()
 titulo_painel("Painel de Automação de Testes", "Plataforma <b>para</b> Coletar e Processar Testes")
 st.divider() 
 
@@ -559,7 +662,7 @@ else:
 
 
 
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4, col5 = st.columns(5)
 
 
 with col1:
@@ -742,6 +845,56 @@ with col3:
         else:
 
             st.error("Informe categoria e nome do teste antes de salvar o esperado.")
+
+
+with col4:
+    if st.button("Capturar Log do Radio"):
+        if not serial_sel:
+            st.error("Selecione uma bancada conectada para capturar logs.")
+        else:
+            categoria_logs = (categoria or "").strip()
+            nome_teste_logs = (nome_teste or "").strip()
+            if not categoria_logs or not nome_teste_logs:
+                categoria_logs, nome_teste_logs = _resolver_teste_por_serial(serial_sel)
+
+            if not categoria_logs or not nome_teste_logs:
+                st.error("Nao consegui resolver o teste desta bancada. Informe categoria/nome do teste ou rode um teste antes.")
+            else:
+                with st.spinner("Capturando logs do radio..."):
+                    resultado = _capturar_logs_radio(categoria_logs, nome_teste_logs, serial_sel)
+                status_captura = str(resultado.get("status", "") or "")
+                pasta_logs = resultado.get("artifact_dir")
+                erro_logs = resultado.get("error")
+                if status_captura == "capturado":
+                    st.success(f"Logs capturados em Data/{categoria_logs}/{nome_teste_logs}/{pasta_logs}")
+                elif status_captura == "sem_artefatos":
+                    st.warning(f"Nenhum log novo encontrado. Pasta gerada em Data/{categoria_logs}/{nome_teste_logs}/{pasta_logs}")
+                else:
+                    st.error(f"Falha ao capturar logs: {erro_logs or 'erro desconhecido'}")
+
+
+with col5:
+    if st.button("Abrir Pasta de Logs"):
+        if not serial_sel:
+            st.error("Selecione uma bancada conectada para abrir os logs.")
+        else:
+            categoria_logs = (categoria or "").strip()
+            nome_teste_logs = (nome_teste or "").strip()
+            if not categoria_logs or not nome_teste_logs:
+                categoria_logs, nome_teste_logs = _resolver_teste_por_serial(serial_sel)
+
+            if not categoria_logs or not nome_teste_logs:
+                st.error("Nao consegui resolver o teste desta bancada. Informe categoria/nome do teste ou rode um teste antes.")
+            else:
+                pasta_logs = _resolver_pasta_logs_teste(categoria_logs, nome_teste_logs, serial_sel)
+                if not pasta_logs:
+                    st.error("Nenhuma pasta de logs encontrada para este teste.")
+                else:
+                    ok_open, detalhe_open = _abrir_pasta_local(pasta_logs)
+                    if ok_open:
+                        st.success(f"Pasta de logs aberta: {pasta_logs}")
+                    else:
+                        st.error(f"Falha ao abrir a pasta de logs: {detalhe_open}")
 
 
 
@@ -1448,4 +1601,73 @@ if st.button("Abrir Dashboard"):
     except Exception as e:
 
         st.error(f"Falha ao abrir dashboard: {e}")
+
+
+if st.button("Abrir Painel de Logs"):
+
+    try:
+
+        port = int(os.environ.get("VWAIT_LOGS_PANEL_PORT", "8505"))
+
+        painel_running = False
+
+        try:
+
+            with urllib.request.urlopen(f"http://localhost:{port}", timeout=1.5):
+
+                painel_running = True
+
+        except Exception:
+
+            painel_running = False
+
+        if not painel_running:
+
+            subprocess.Popen(
+
+                [
+
+                    sys.executable,
+
+                    "-m",
+
+                    "streamlit",
+
+                    "run",
+
+                    SCRIPTS["Abrir Painel de Logs"],
+
+                    "--server.port",
+
+                    str(port),
+
+                    "--server.headless",
+
+                    "false",
+
+                    "--server.fileWatcherType",
+
+                    "none",
+
+                    "--server.runOnSave",
+
+                    "false",
+
+                ],
+
+                cwd=BASE_DIR,
+
+                stdout=subprocess.DEVNULL,
+
+                stderr=subprocess.DEVNULL,
+
+            )
+
+        webbrowser.open_new_tab(f"http://localhost:{port}")
+
+        st.success(f"Painel de logs iniciado em http://localhost:{port}")
+
+    except Exception as e:
+
+        st.error(f"Falha ao abrir painel de logs: {e}")
 

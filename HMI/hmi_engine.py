@@ -756,7 +756,12 @@ def validate_execution_images(
     failed = total - passed - warnings
     avg_score = sum(item["scores"]["final"] for item in items) / max(total, 1)
     avg_pixel_match = sum(item["diff_summary"]["pixel_match_ratio"] for item in items) / max(total, 1)
-    avg_semantic = sum(item["diff_summary"]["semantic_score"] for item in items) / max(total, 1)
+    semantic_scores = [
+        float(item["diff_summary"]["semantic_score"])
+        for item in items
+        if item["diff_summary"].get("semantic_score") is not None
+    ]
+    avg_semantic = sum(semantic_scores) / max(len(semantic_scores), 1)
     critical_failures = sum(len(item.get("critical_region_failures", [])) for item in items)
     component_failures = sum(1 for item in items if item["status"] == "FAIL_COMPONENT_STATE")
     context_confidence = [

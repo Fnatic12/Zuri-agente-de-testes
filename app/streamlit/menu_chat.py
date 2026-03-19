@@ -37,7 +37,15 @@ from typing import TypedDict, cast
 from colorama import Fore, Style
 from app.shared.project_paths import project_root, root_path
 from app.shared.adb_utils import resolve_adb_path
-from app.shared.ui_theme import apply_dark_background
+from app.shared import ui_theme as _ui_theme
+
+apply_dark_background = _ui_theme.apply_dark_background
+
+
+def apply_panel_button_theme() -> None:
+    handler = getattr(_ui_theme, "apply_panel_button_theme", None)
+    if callable(handler):
+        handler()
 
 def _sanitize_text(s: str) -> str:
     if not isinstance(s, str):
@@ -63,6 +71,18 @@ OLLAMA_TOP_P = float(os.getenv("OLLAMA_TOP_P", "0.9"))
 OLLAMA_NUM_CTX = int(os.getenv("OLLAMA_NUM_CTX", "256"))
 OLLAMA_KEEP_ALIVE = os.getenv("OLLAMA_KEEP_ALIVE", "10m")
 ADB_PATH = resolve_adb_path()
+
+
+def _subprocess_windowless_kwargs() -> dict:
+    if os.name != "nt":
+        return {}
+    startupinfo = subprocess.STARTUPINFO()
+    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    startupinfo.wShowWindow = 0
+    return {
+        "creationflags": subprocess.CREATE_NO_WINDOW,
+        "startupinfo": startupinfo,
+    }
 
 STT_CAPTURE_TIMEOUT_S = float(os.getenv("STT_CAPTURE_TIMEOUT_S", "8"))
 STT_PHRASE_LIMIT_S = float(os.getenv("STT_PHRASE_LIMIT_S", "12"))
@@ -421,11 +441,13 @@ PAUSE_FLAG_PATH = os.path.join(PROJECT_ROOT, "pause.flag")
 MODO_CONVERSA = True  # Altere para False se quiser desativar as respostas naturais
 PAGINA_CHAT = "Chat"
 PAGINA_DASHBOARD = "Dashboard"
+PAGINA_LOGS_RADIO = "Painel de Logs"
 PAGINA_MENU_TESTER = "Menu Tester"
 PAGINA_VALIDACAO_HMI = "Validação HMI"
 NAV_RADIO_KEY = "pagina_navegacao"
 NAV_PENDING_KEY = "pagina_navegacao_pendente"
 DASHBOARD_PORT = 8504
+LOGS_PANEL_PORT = 8505
 MENU_TESTER_PORT = 8503
 
 
@@ -436,6 +458,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 apply_dark_background(hide_header=True)
+apply_panel_button_theme()
 
 
 # === SESSION STATE ===
@@ -521,6 +544,22 @@ def _abrir_menu_tester() -> str:
         return f"Falha ao abrir Menu Tester: {e}"
 
 
+def _abrir_painel_logs() -> str:
+    logs_url = f"http://localhost:{LOGS_PANEL_PORT}"
+    try:
+        if not _url_ativa(logs_url):
+            _iniciar_app_streamlit(
+                root_path("Dashboard", "painel_logs_radio.py"),
+                LOGS_PANEL_PORT,
+            )
+            time.sleep(1.5)
+        import webbrowser
+        webbrowser.open_new_tab(logs_url)
+        return f"Abrindo o Painel de Logs em {logs_url}."
+    except Exception as e:
+        return f"Falha ao abrir Painel de Logs: {e}"
+
+
 def _resolver_comando_navegacao(texto: str) -> str | None:
     texto_norm = _replace_number_words(_norm(texto))
     intencao_navegacao = any(
@@ -541,6 +580,9 @@ def _resolver_comando_navegacao(texto: str) -> str | None:
     )
     comandos_diretos = {
         "dashboard",
+        "painel de logs",
+        "logs do radio",
+        "painel de logs do radio",
         "menu tester",
         "menu testers",
         "menu dos testers",
@@ -554,6 +596,12 @@ def _resolver_comando_navegacao(texto: str) -> str | None:
     if "dashboard" in texto_norm:
         _selecionar_pagina(PAGINA_DASHBOARD)
         return "Abrindo o dashboard."
+
+    if ("painel de logs" in texto_norm or "logs do radio" in texto_norm) and any(
+        token in texto_norm for token in ["abrir", "abre", "abra", "mostrar", "mostra", "painel", "logs"]
+    ):
+        _selecionar_pagina(PAGINA_LOGS_RADIO)
+        return "Abrindo o painel de logs."
 
     if "hmi" in texto_norm and any(token in texto_norm for token in ["valid", "validacao", "validar", "hmi"]):
         _selecionar_pagina(PAGINA_VALIDACAO_HMI)
@@ -584,7 +632,11 @@ def _parse_adb_devices(raw_lines):
 def listar_bancadas():
     """Mapeia dispositivos adb em bancadas numeradas: {'1': serial1, '2': serial2, ...}"""
     try:
-        result = subprocess.check_output(["adb", "devices"], text=True).strip().splitlines()
+        result = subprocess.check_output(
+            ["adb", "devices"],
+            text=True,
+            **_subprocess_windowless_kwargs(),
+        ).strip().splitlines()
         devices = _parse_adb_devices(result)
         return {str(i + 1): dev for i, dev in enumerate(devices)}
     except Exception:
@@ -842,6 +894,55 @@ def _ler_status_serial(serial: str):
                 latest_ts = ts
                 latest = data
     return latest
+
+
+def _capturar_logs_radio_teste(categoria: str, nome_teste: str, serial: str, motivo: str = "captura_manual_chat"):
+    from Run.run_noia import capturar_logs_teste
+
+    return capturar_logs_teste(categoria, nome_teste, serial, motivo=motivo, limpar_antes=False)
+
+
+def capturar_log_radio_comando(texto: str) -> str:
+    bancadas = listar_bancadas()
+    bancada = _extrair_bancada(texto)
+    seriais, erro = _selecionar_bancada(bancada, bancadas)
+    if erro:
+        return erro
+    if len(seriais) != 1:
+        return "Aviso: informe uma bancada numerada para capturar logs do radio."
+
+    serial = seriais[0]
+    token = _extrair_token_teste(texto)
+    categoria = None
+    nome_teste = None
+
+    if token:
+        categoria, nome_teste = _resolver_teste(token)
+        if categoria is None or nome_teste is None:
+            for cat_try in listar_categorias():
+                if token in listar_testes(cat_try):
+                    categoria, nome_teste = cat_try, token
+                    break
+        if categoria is None or nome_teste is None:
+            return f"ERRO: teste **{token}** nao encontrado em `Data/*/`."
+    else:
+        latest = _ler_status_serial(serial)
+        teste_ref = str((latest or {}).get("teste", "") or "").strip()
+        if "/" in teste_ref:
+            categoria, nome_teste = teste_ref.split("/", 1)
+        else:
+            return "Aviso: informe o teste ou uma bancada que ja tenha execucao registrada para capturar os logs."
+
+    resultado = _capturar_logs_radio_teste(categoria, nome_teste, serial)
+    status_captura = str(resultado.get("status", "") or "")
+    pasta_logs = resultado.get("artifact_dir")
+    erro_logs = resultado.get("error")
+
+    if status_captura == "capturado":
+        return f"Logs do radio capturados em **Data/{categoria}/{nome_teste}/{pasta_logs}**."
+    if status_captura == "sem_artefatos":
+        return f"Nenhum log novo encontrado. Pasta gerada em **Data/{categoria}/{nome_teste}/{pasta_logs}**."
+    return f"ERRO: falha ao capturar logs do radio: {erro_logs or 'erro desconhecido'}"
 
 
 
@@ -1576,8 +1677,10 @@ def exibir_metricas(metricas):
 
     col4, col5, col6 = st.columns(3)
     col4.metric("Precisao (%)", metricas["precisao_percentual"])
-    col5.metric("Flakes", metricas["flakes"])
+    col5.metric("Instabilidades", metricas["flakes"])
     col6.metric("Cobertura de Telas (%)", metricas["cobertura_telas"])
+
+    st.caption("Instabilidades = acoes com status `FLAKE`, indicando falha intermitente ou comportamento inconsistente.")
 
     st.metric("Tempo total de execucao (s)", metricas["tempo_total"])
 
@@ -1972,12 +2075,13 @@ def interpretar_comando(comando: str) -> str:
             "- **executar/rodar** `<teste>` [na bancada N|todas]\n"
             "- **executar em paralelo** `executar teste_x na bancada 1 e executar teste_y na bancada 2`\n"
             "- **gravar/coletar** `<teste>` [na bancada N|todas]\n"
+            "- **capturar log** [do `<teste>`] [na bancada N]\n"
             "- **gravar sequencia padrao de coleta de logs** [na bancada N]\n"
             "- **processar** `<teste>`\n"
             "- **apagar/deletar/remover** `<teste>`\n"
             "- **listar/mostrar** categorias | testes [de <categoria>]\n"
             "- **listar bancadas**\n"
-            "- **abrir** dashboard | menu tester | validacao HMI\n"
+            "- **abrir** dashboard | painel de logs | menu tester | validacao HMI\n"
             "Ex.: `execute o teste audio_1 na bancada 2`"
         )
 
@@ -1997,6 +2101,19 @@ def interpretar_comando(comando: str) -> str:
     if _has_any(texto_norm, ["listar bancadas", "mostrar bancadas", "listar devices", "mostrar devices"]) \
        or (_has_any(texto_norm, KW_LISTAR) and any(k in texto_norm for k in ["bancada", "bancadas", "devices", "dispositivos"])):  
         return _formatar_bancadas_str(listar_bancadas())
+
+    if any(
+        p in texto_norm
+        for p in [
+            "capturar log",
+            "capturar logs",
+            "coletar log",
+            "coletar logs",
+            "capturar log do radio",
+            "capturar logs do radio",
+        ]
+    ):
+        return capturar_log_radio_comando(texto)
 
     # 3) EXECUTAR (rodar testes)
     if _has_any(texto_norm, KW_EXECUTAR):
@@ -2251,6 +2368,21 @@ def responder_conversacional(comando: str):
         st.session_state.chat_history.append({"role": "assistant", "content": resposta_pre})
         return resolver_comando_com_llm_ou_fallback("listar bancadas")
 
+    if any(
+        p in comando_norm
+        for p in [
+            "capturar log",
+            "capturar logs",
+            "coletar log",
+            "coletar logs",
+            "capturar log do radio",
+            "capturar logs do radio",
+        ]
+    ):
+        resposta_pre = "Capturando os logs do radio para a bancada solicitada."
+        st.session_state.chat_history.append({"role": "assistant", "content": resposta_pre})
+        return resolver_comando_com_llm_ou_fallback(comando)
+
     # â™»ï¸ RESETAR TESTE / REVERTER AÃ‡Ã•ES
     if any(p in comando_norm for p in ["reset", "resetar", "reverter", "restaurar", "desfazer", "voltar estado inicial"]):
         resposta_pre = f"{random.choice(frases_iniciais)}. Restaurando estado inicial do teste..."
@@ -2311,7 +2443,7 @@ if pagina_pendente:
 st.sidebar.title("VWAIT - Menu")
 pagina = st.sidebar.radio(
     "Navegacao",
-    [PAGINA_CHAT, PAGINA_DASHBOARD, PAGINA_MENU_TESTER, PAGINA_VALIDACAO_HMI],
+    [PAGINA_CHAT, PAGINA_DASHBOARD, PAGINA_LOGS_RADIO, PAGINA_MENU_TESTER, PAGINA_VALIDACAO_HMI],
     key=NAV_RADIO_KEY,
 )
 
@@ -2405,6 +2537,8 @@ if pagina == PAGINA_CHAT:
                 <li><code>executar audio_1 na bancada 1</code> - roda o teste gravado</li>
                 <li><code>executar audio_1 na bancada 1 e executar video_2 na bancada 2</code> - roda testes em paralelo nas bancadas informadas</li>
                 <li><code>rodar todos os testes da categoria video</code> - executa todos os testes de uma categoria</li>
+                <li><code>capturar log na bancada 1</code> - captura os logs atuais do radio para o ultimo teste dessa bancada</li>
+                <li><code>abrir painel de logs</code> - abre o painel dedicado para explorar e analisar logs capturados</li>
                 <li><code>listar bancadas</code> - mostra bancadas ADB conectadas</li>
                 <li><code>ajuda</code> - exibe a lista completa de comandos</li>
             </ul>
@@ -2550,6 +2684,38 @@ elif pagina == PAGINA_DASHBOARD:
         components.iframe(dash_url, height=1700, scrolling=True)
     else:
         st.warning("Dashboard ainda iniciando. Clique em 'Recarregar dashboard' em alguns segundos.")
+
+elif pagina == PAGINA_LOGS_RADIO:
+    st.title("Painel de Logs")
+    st.caption("Exploracao local dos logs capturados e analise assistida por IA.")
+
+    logs_port = LOGS_PANEL_PORT
+    logs_url = f"http://localhost:{logs_port}"
+    logs_script = root_path("Dashboard", "painel_logs_radio.py")
+
+    if not _url_ativa(logs_url):
+        try:
+            _iniciar_app_streamlit(logs_script, logs_port, silence_output=True)
+            time.sleep(1.5)
+        except Exception as e:
+            st.error(f"Falha ao iniciar painel de logs: {e}")
+
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        if st.button("Recarregar painel de logs"):
+            st.rerun()
+    with col2:
+        if st.button("Abrir painel em nova aba"):
+            try:
+                import webbrowser
+                webbrowser.open_new_tab(logs_url)
+            except Exception:
+                pass
+
+    if _url_ativa(logs_url):
+        components.iframe(logs_url, height=1700, scrolling=True)
+    else:
+        st.warning("Painel de logs ainda iniciando. Clique em 'Recarregar painel de logs' em alguns segundos.")
 
 elif pagina == PAGINA_MENU_TESTER:
     st.title("Menu Tester")

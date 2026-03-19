@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import os
-import platform
+import sys
+import subprocess
 from shutil import which
 
 from app.shared.project_paths import project_root, root_path
@@ -14,7 +15,7 @@ def candidate_adb_paths() -> list[str]:
     if env_path:
         candidates.append(env_path)
 
-    if platform.system() == "Windows":
+    if os.name == "nt" or sys.platform.startswith("win"):
         candidates.extend(
             [
                 root_path("tools", "platform-tools", "adb.exe"),
@@ -66,7 +67,19 @@ def adb_available() -> bool:
     return os.path.exists(adb_path)
 
 
+def subprocess_windowless_kwargs() -> dict:
+    if os.name != "nt" and not sys.platform.startswith("win"):
+        return {}
+    startupinfo = subprocess.STARTUPINFO()
+    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    startupinfo.wShowWindow = 0
+    return {
+        "creationflags": subprocess.CREATE_NO_WINDOW,
+        "startupinfo": startupinfo,
+    }
+
+
 def default_platform_tools_dir() -> str:
-    if platform.system() == "Windows":
+    if os.name == "nt" or sys.platform.startswith("win"):
         return os.path.join(project_root(), "tools", "platform-tools")
     return os.path.join(project_root(), "tools", "platform-tools")

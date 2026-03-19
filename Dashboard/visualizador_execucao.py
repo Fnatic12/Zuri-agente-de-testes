@@ -1,8 +1,10 @@
-import os
+﻿import os
 import json
+import sys
 from datetime import datetime, timedelta
 import subprocess
 import re
+from typing import Any, cast
 
 import cv2
 import matplotlib.pyplot as plt
@@ -10,6 +12,13 @@ import numpy as np
 import streamlit as st
 from PIL import Image
 from app.shared.adb_utils import candidate_adb_paths
+from app.shared import ui_theme as _ui_theme
+
+
+def apply_panel_button_theme() -> None:
+    handler = getattr(_ui_theme, "apply_panel_button_theme", None)
+    if callable(handler):
+        handler()
 
 try:
     from streamlit_autorefresh import st_autorefresh
@@ -22,6 +31,18 @@ def _identity_decorator(func):
 
 
 _REALTIME_FRAGMENT = st.fragment(run_every="3s") if hasattr(st, "fragment") else _identity_decorator
+
+
+def _subprocess_windowless_kwargs() -> dict:
+    if os.name != "nt":
+        return {}
+    startupinfo = subprocess.STARTUPINFO()
+    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    startupinfo.wShowWindow = 0
+    return {
+        "creationflags": subprocess.CREATE_NO_WINDOW,
+        "startupinfo": startupinfo,
+    }
 
 
 def titulo_painel(titulo: str, subtitulo: str = ""):
@@ -175,6 +196,7 @@ def titulo_painel(titulo: str, subtitulo: str = ""):
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_ROOT = os.path.join(BASE_DIR, "Data")
 st.set_page_config(page_title="Dashboard - VWAIT", page_icon="", layout="wide")
+apply_panel_button_theme()
 BANCADA_LABELS = {
     "2801761952320038": "Bancada 1",
     "2801780E52320038": "Bancada 2",
@@ -259,7 +281,7 @@ def _clean_status_text(value) -> str:
     return text
 
 
-def _sanitize_value(value):
+def _sanitize_value(value: Any) -> Any:
     if isinstance(value, dict):
         return {str(k): _sanitize_value(v) for k, v in value.items()}
     if isinstance(value, list):
@@ -269,13 +291,12 @@ def _sanitize_value(value):
     return value
 
 
-def _normalizar_execucao(execucao: list[dict]) -> list[dict]:
-    normalizada = []
+def _normalizar_execucao(execucao: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    normalizada: list[dict[str, Any]] = []
     for idx, acao in enumerate(execucao, start=1):
         if not isinstance(acao, dict):
             continue
-        item = dict(acao)
-        item = _sanitize_value(item)
+        item = cast(dict[str, Any], _sanitize_value(dict(acao)))
         item["id"] = item.get("id") or idx
         item["acao"] = _clean_display_text(item.get("acao", "")).lower() or "acao"
         item["status"] = _clean_status_text(item.get("status", ""))
@@ -296,6 +317,7 @@ def _listar_dispositivos_adb() -> set[str]:
                 capture_output=True,
                 text=True,
                 timeout=4,
+                **_subprocess_windowless_kwargs(),
             )
         except Exception:
             continue
@@ -479,6 +501,22 @@ def _status_normalized(status: str) -> str:
     return normalized
 
 
+def _abrir_pasta_local(path: str) -> tuple[bool, str]:
+    resolved = os.path.abspath(str(path or "").strip())
+    if not resolved or not os.path.exists(resolved):
+        return False, "Pasta nao encontrada."
+    try:
+        if os.name == "nt":
+            os.startfile(resolved)
+        elif sys.platform == "darwin":
+            subprocess.Popen(["open", resolved])
+        else:
+            subprocess.Popen(["xdg-open", resolved])
+        return True, resolved
+    except Exception as exc:
+        return False, str(exc)
+
+
 def _resolver_diretorio_teste(info: dict) -> str | None:
     status_path = str(info.get("_status_path") or "").strip()
     if status_path:
@@ -493,6 +531,58 @@ def _resolver_diretorio_teste(info: dict) -> str | None:
         if os.path.isdir(candidate):
             return candidate
     return None
+
+
+def _resolver_logs_root(info: dict) -> str | None:
+    test_dir = _resolver_diretorio_teste(info)
+    if not test_dir:
+        return None
+    logs_root = os.path.join(test_dir, "logs")
+    return logs_root if os.path.isdir(logs_root) else None
+
+
+def _resolver_log_capture_dir(info: dict) -> str | None:
+    test_dir = _resolver_diretorio_teste(info)
+    if not test_dir:
+        return None
+
+    relative_capture_dir = str(info.get("log_capture_dir") or "").strip()
+    if relative_capture_dir:
+        candidate = os.path.join(test_dir, relative_capture_dir)
+        if os.path.isdir(candidate):
+            return candidate
+
+    logs_root = _resolver_logs_root(info)
+    if not logs_root:
+        return None
+
+    candidates = [
+        os.path.join(logs_root, name)
+        for name in os.listdir(logs_root)
+        if os.path.isdir(os.path.join(logs_root, name))
+    ]
+    if not candidates:
+        return logs_root
+    return max(candidates, key=os.path.getmtime)
+
+
+def _resolver_logs_root_from_base_dir(base_dir: str) -> str | None:
+    candidate = os.path.join(base_dir, "logs")
+    return candidate if os.path.isdir(candidate) else None
+
+
+def _resolver_latest_log_capture_from_base_dir(base_dir: str) -> str | None:
+    logs_root = _resolver_logs_root_from_base_dir(base_dir)
+    if not logs_root:
+        return None
+    candidates = [
+        os.path.join(logs_root, name)
+        for name in os.listdir(logs_root)
+        if os.path.isdir(os.path.join(logs_root, name))
+    ]
+    if not candidates:
+        return logs_root
+    return max(candidates, key=os.path.getmtime)
 
 
 def _ultima_screenshot_bancada(info: dict) -> str | None:
@@ -685,7 +775,7 @@ def _portfolio_live_summary(executando_rows: dict, finalizado_rows: dict, erro_r
 @_REALTIME_FRAGMENT
 def exibir_bancadas_tempo_real():
     st.subheader("Bancadas em tempo real")
-    st.caption("Somente execucoes reais: bancada conectada + status recente.")
+    st.caption("Somente execuções reais: bancada conectada + status recente.")
 
     if st_autorefresh is not None and not hasattr(st, "fragment"):
         st_autorefresh(interval=3000, limit=None, key="dash_realtime_refresh")
@@ -791,7 +881,13 @@ def exibir_bancadas_tempo_real():
         executando_rows.items(),
         key=lambda item: (
             {"Critico": 0, "Atencao": 1, "Saudavel": 2}.get(
-                _saude_execucao(item[1], datetime.now(), _quality_snapshot(item[1], _carregar_execucao_parcial(item[1]))).get("label"),
+                str(
+                    _saude_execucao(
+                        item[1],
+                        datetime.now(),
+                        _quality_snapshot(item[1], _carregar_execucao_parcial(item[1])),
+                    ).get("label", "")
+                ),
                 2,
             ),
             item[0],
@@ -936,7 +1032,9 @@ def exibir_metricas(metricas):
     with col3:
         _kpi_card("Falhas", str(metricas["falhas"]))
     with col4:
-        _kpi_card("Flakes", str(metricas["flakes"]))
+        _kpi_card("Instabilidades", str(metricas["flakes"]))
+
+    st.caption("Instabilidades = acoes marcadas com status `FLAKE`, ou seja, comportamento intermitente/não deterministico durante a execucao.")
 
     col5, col6, col7 = st.columns(3)
     with col5:
@@ -1230,6 +1328,48 @@ def _compare_images_cv(img_a: np.ndarray, img_b: np.ndarray, ignore_regions=None
     }
 
 
+def _carregar_ignore_regions(esperados_dir: str) -> list:
+    ignore_path = os.path.join(esperados_dir, "ignore.json")
+    if not os.path.exists(ignore_path):
+        return []
+    try:
+        with open(ignore_path, "r", encoding="utf-8") as f:
+            loaded = json.load(f)
+        return loaded if isinstance(loaded, list) else []
+    except Exception:
+        return []
+
+
+def _comparar_esperado_com_final(exp_path: str, final_path: str, ignore_regions=None):
+    img_exp = Image.open(exp_path)
+    img_final = Image.open(final_path)
+    score = _simples_similarity(img_exp, img_final)
+
+    exp_bgr = cv2.cvtColor(np.array(img_exp), cv2.COLOR_RGB2BGR)
+    fin_bgr = cv2.cvtColor(np.array(img_final), cv2.COLOR_RGB2BGR)
+    if fin_bgr.shape[:2] != exp_bgr.shape[:2]:
+        fin_bgr = cv2.resize(fin_bgr, (exp_bgr.shape[1], exp_bgr.shape[0]))
+
+    diff_res = _compare_images_cv(exp_bgr, fin_bgr, ignore_regions=ignore_regions or [])
+    exp_box = exp_bgr.copy()
+    fin_box = fin_bgr.copy()
+    for diff in diff_res["diffs"]:
+        x, y, w, h = diff["bbox"]
+        color = (0, 255, 0) if diff["type"] == "toggle" else (0, 200, 255)
+        cv2.rectangle(exp_box, (x, y), (x + w, y + h), color, 2)
+        cv2.rectangle(fin_box, (x, y), (x + w, y + h), color, 2)
+
+    return {
+        "nome": os.path.basename(exp_path),
+        "score": score,
+        "img_exp": img_exp,
+        "img_final": img_final,
+        "diff_res": diff_res,
+        "exp_box": cv2.cvtColor(exp_box, cv2.COLOR_BGR2RGB),
+        "fin_box": cv2.cvtColor(fin_box, cv2.COLOR_BGR2RGB),
+    }
+
+
 def exibir_comparacao_esperados(base_dir):
     st.subheader("Comparacao com resultados esperados")
     esperados_dir = os.path.join(base_dir, "esperados")
@@ -1249,71 +1389,134 @@ def exibir_comparacao_esperados(base_dir):
         return
 
     try:
-        img_final = Image.open(final_path)
+        Image.open(final_path)
     except Exception:
         st.error("Falha ao abrir resultado_final.png.")
         return
 
-    # Regioes a ignorar (opcional)
-    ignore_regions = []
-    ignore_path = os.path.join(esperados_dir, "ignore.json")
-    if os.path.exists(ignore_path):
-        try:
-            with open(ignore_path, "r", encoding="utf-8") as f:
-                ignore_regions = json.load(f)
-        except Exception:
-            ignore_regions = []
+    ignore_regions = _carregar_ignore_regions(esperados_dir)
 
     for nome in sorted(esperados):
         exp_path = os.path.join(esperados_dir, nome)
         try:
-            img_exp = Image.open(exp_path)
-            score = _simples_similarity(img_exp, img_final)
+            comp = _comparar_esperado_com_final(exp_path, final_path, ignore_regions=ignore_regions)
         except Exception:
             st.warning(f"Falha ao comparar {nome}.")
             continue
 
         st.markdown(f"**Comparacao:** `{nome}` x `resultado_final.png`")
         col1, col2, col3 = st.columns([2, 2, 1])
-        col1.image(img_exp, caption=f"Esperado: {nome}", use_container_width=True)
-        col2.image(img_final, caption="Resultado final", use_container_width=True)
-        col3.metric("Similaridade (global)", f"{score * 100:.1f}%")
+        col1.image(comp["img_exp"], caption=f"Esperado: {nome}", use_container_width=True)
+        col2.image(comp["img_final"], caption="Resultado final", use_container_width=True)
+        col3.metric("Similaridade (global)", f"{comp['score'] * 100:.1f}%")
 
-        # Comparacao robusta automatica (differences + toggle)
+
+def exibir_comparacao_toggles(base_dir):
+    st.subheader("Comparacao de toggles")
+    esperados_dir = os.path.join(base_dir, "esperados")
+    final_path = os.path.join(base_dir, "resultado_final.png")
+
+    if not os.path.exists(final_path):
+        st.info("resultado_final.png nao encontrado para comparacao de toggles.")
+        return
+    if not os.path.isdir(esperados_dir):
+        st.info("Nenhuma pasta 'esperados' encontrada para avaliar toggles.")
+        return
+
+    esperados = sorted(f for f in os.listdir(esperados_dir) if f.lower().endswith(".png"))
+    if not esperados:
+        st.info("Nenhuma imagem esperada disponivel para comparar toggles.")
+        return
+
+    ignore_regions = _carregar_ignore_regions(esperados_dir)
+    resultados = []
+    for nome in esperados:
+        exp_path = os.path.join(esperados_dir, nome)
         try:
-            exp_bgr = cv2.cvtColor(np.array(img_exp), cv2.COLOR_RGB2BGR)
-            fin_bgr = cv2.cvtColor(np.array(img_final), cv2.COLOR_RGB2BGR)
-            if fin_bgr.shape[:2] != exp_bgr.shape[:2]:
-                fin_bgr = cv2.resize(fin_bgr, (exp_bgr.shape[1], exp_bgr.shape[0]))
-            diff_res = _compare_images_cv(exp_bgr, fin_bgr, ignore_regions=ignore_regions)
-
-            # desenha caixas nas duas imagens separadamente (sem overlay combinado)
-            exp_box = exp_bgr.copy()
-            fin_box = fin_bgr.copy()
-            for d in diff_res["diffs"]:
-                x, y, w, h = d["bbox"]
-                color = (0, 255, 0) if d["type"] == "toggle" else (0, 200, 255)
-                cv2.rectangle(exp_box, (x, y), (x + w, y + h), color, 2)
-                cv2.rectangle(fin_box, (x, y), (x + w, y + h), color, 2)
-
-            st.markdown("### Comparacao de toggle")
-
-            o1, o2, o3 = st.columns([2, 2, 2])
-            o1.image(cv2.cvtColor(exp_box, cv2.COLOR_BGR2RGB), caption="Esperado (com boxes)", use_container_width=True)
-            o2.image(cv2.cvtColor(fin_box, cv2.COLOR_BGR2RGB), caption="Final (com boxes)", use_container_width=True)
-            o3.image(diff_res["diff_mask"], caption="Mascara de diferencas", use_container_width=True)
-
-            with st.container():
-                if diff_res["toggle_changes"]:
-                    st.write("Toggles detectados (esperado -> final):")
-                    for t in diff_res["toggle_changes"]:
-                        st.write(f"- {t['stateA']} -> {t['stateB']} | conf={t['confidence']} | bbox={t['bbox']}")
-                    st.error("Resultado reprovado: divergencia de toggle detectada.")
-                else:
-                    st.write("Nenhum toggle detectado automaticamente.")
-                    st.success("Resultado aprovado: nenhum toggle divergente detectado.")
+            resultados.append(_comparar_esperado_com_final(exp_path, final_path, ignore_regions=ignore_regions))
         except Exception:
-            st.warning("Falha ao executar comparacao robusta (cv).")
+            st.warning(f"Falha ao avaliar toggles em {nome}.")
+
+    if not resultados:
+        st.info("Nao foi possivel gerar a comparacao de toggles desta execucao.")
+        return
+
+    total_toggles = sum(len(item["diff_res"]["toggle_changes"]) for item in resultados)
+    com_divergencia = sum(1 for item in resultados if item["diff_res"]["toggle_changes"])
+    sem_divergencia = len(resultados) - com_divergencia
+
+    if total_toggles > 0:
+        resumo = (
+            f"Foram detectados {total_toggles} toggle(s) divergente(s) em "
+            f"{com_divergencia} comparacao(oes) desta execucao. "
+            "Revise os cards abaixo antes de aprovar o resultado."
+        )
+        badge = (
+            "<span class='signal-badge' "
+            "style='background:#ef444420;border-color:#ef444466;color:#fecaca;'>"
+            "Toggle divergente detectado"
+            "</span>"
+        )
+        banner_style = (
+            "background:linear-gradient(135deg, rgba(127, 29, 29, 0.92), rgba(69, 10, 10, 0.88));"
+            "border:1px solid rgba(248, 113, 113, 0.45);"
+        )
+    else:
+        resumo = (
+            f"As {len(resultados)} comparacao(oes) avaliadas nao apresentaram divergencia de toggle. "
+            "O comportamento visual desta execucao permaneceu consistente."
+        )
+        badge = (
+            "<span class='signal-badge' "
+            "style='background:#22c55e20;border-color:#22c55e66;color:#bbf7d0;'>"
+            "Sem divergencia de toggle"
+            "</span>"
+        )
+        banner_style = (
+            "background:linear-gradient(135deg, rgba(6, 78, 59, 0.92), rgba(2, 44, 34, 0.88));"
+            "border:1px solid rgba(74, 222, 128, 0.35);"
+        )
+
+    st.markdown(
+        (
+            f"<div class='executive-banner' style='{banner_style}'>"
+            "<div class='executive-banner-title'>Resumo Executivo dos Toggles</div>"
+            f"<div class='executive-banner-body'>{resumo}</div>"
+            f"{badge}"
+            "</div>"
+        ),
+        unsafe_allow_html=True,
+    )
+
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Esperados analisados", str(len(resultados)))
+    m2.metric("Comparacoes sem divergencia", str(sem_divergencia))
+    m3.metric("Comparacoes com divergencia", str(com_divergencia))
+    m4.metric("Toggles divergentes", str(total_toggles))
+
+    for item in resultados:
+        nome = item["nome"]
+        diff_res = item["diff_res"]
+        toggle_count = len(diff_res["toggle_changes"])
+        status = "Divergencia detectada" if toggle_count else "Sem divergencia"
+        status_prefix = "error" if toggle_count else "success"
+        with st.expander(f"{nome} | {status} | similaridade {item['score'] * 100:.1f}%"):
+            c1, c2, c3 = st.columns(3)
+            c1.image(item["exp_box"], caption="Esperado (com boxes)", use_container_width=True)
+            c2.image(item["fin_box"], caption="Resultado final (com boxes)", use_container_width=True)
+            c3.image(diff_res["diff_mask"], caption="Mascara de diferencas", use_container_width=True)
+
+            if toggle_count:
+                getattr(st, status_prefix)(
+                    f"{toggle_count} toggle(s) divergente(s) detectado(s) nesta comparacao."
+                )
+                for toggle in diff_res["toggle_changes"]:
+                    st.write(
+                        f"- {toggle['stateA']} -> {toggle['stateB']} | "
+                        f"conf={toggle['confidence']} | bbox={toggle['bbox']}"
+                    )
+            else:
+                getattr(st, status_prefix)("Nenhum toggle divergente detectado.")
 
 
 def exibir_validacao_final(execucao, base_dir):
@@ -1343,10 +1546,10 @@ def exibir_validacao_final(execucao, base_dir):
 
 
 def main():
-    titulo_painel("Dashboard de Execucao de Testes - VWAIT", "")
+    titulo_painel("Dashboard de Execução de Testes - VWAIT", "")
     exibir_bancadas_tempo_real()
     st.markdown("---")
-    st.subheader("Execucao detalhada por teste")
+    st.subheader("Execução detalhada por teste")
 
     if not os.path.isdir(DATA_ROOT):
         st.error(f"Pasta de dados nao encontrada: {DATA_ROOT}")
@@ -1380,10 +1583,41 @@ def main():
     execucao = _normalizar_execucao(execucao)
 
     base_dir = os.path.dirname(log_path)
+    logs_root = _resolver_logs_root_from_base_dir(base_dir)
+    latest_log_capture = _resolver_latest_log_capture_from_base_dir(base_dir)
     metricas = calcular_metricas(execucao)
+
+    st.markdown("##### Logs do radio")
+    log_col1, log_col2 = st.columns(2)
+    with log_col1:
+        if st.button("Abrir pasta logs/", key=f"open_logs_root_{selected}"):
+            if not logs_root:
+                st.error("Nenhuma pasta logs encontrada para este teste.")
+            else:
+                ok_open, detalhe_open = _abrir_pasta_local(logs_root)
+                if ok_open:
+                    st.success(f"Pasta aberta: {logs_root}")
+                else:
+                    st.error(f"Falha ao abrir a pasta: {detalhe_open}")
+    with log_col2:
+        if st.button("Abrir ultima captura de logs", key=f"open_logs_latest_{selected}"):
+            if not latest_log_capture:
+                st.error("Nenhuma captura de logs encontrada para este teste.")
+            else:
+                ok_open, detalhe_open = _abrir_pasta_local(latest_log_capture)
+                if ok_open:
+                    st.success(f"Pasta aberta: {latest_log_capture}")
+                else:
+                    st.error(f"Falha ao abrir a pasta: {detalhe_open}")
+
+    if logs_root:
+        st.caption(f"Raiz dos logs: {logs_root}")
+    else:
+        st.caption("Raiz dos logs: nenhuma pasta logs/ encontrada para esta execucao.")
 
     exibir_metricas(metricas)
     exibir_timeline(execucao)
+    exibir_comparacao_toggles(base_dir)
     exibir_comparacao_esperados(base_dir)
     exibir_validacao_final(execucao, base_dir)
     exibir_acoes(execucao, base_dir)
@@ -1391,4 +1625,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

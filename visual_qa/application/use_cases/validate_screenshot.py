@@ -67,7 +67,7 @@ def _ensure_stage1_screen_match(classification: Dict[str, Any]) -> Stage1ScreenM
         return candidate
 
     selected = classification.get("selected_baseline_image")
-    selected_path = Path(selected).resolve() if selected else None
+    selected_path = Path(selected) if selected else None
     top_k = []
     for m in classification.get("matches") or []:
         if isinstance(m, ScreenMatch):
@@ -94,6 +94,23 @@ def _ensure_stage1_screen_match(classification: Dict[str, Any]) -> Stage1ScreenM
         matched_baseline_path=selected_path,
         top_k=top_k,
     )
+
+
+def _stringify_baseline_path(path: Optional[Path]) -> Optional[str]:
+    if path is None:
+        return None
+    if path.drive:
+        return str(path)
+    return path.as_posix()
+
+
+def _selected_baseline_image(classification: Dict[str, Any], stage1: Stage1ScreenMatch) -> Optional[str]:
+    selected = classification.get("selected_baseline_image")
+    if isinstance(selected, Path):
+        return _stringify_baseline_path(selected)
+    if selected:
+        return str(selected)
+    return _stringify_baseline_path(stage1.matched_baseline_path)
 
 
 @dataclass
@@ -169,14 +186,14 @@ class ValidateScreenshot:
             strategy=strategy,
         )
         stage1 = _ensure_stage1_screen_match(cls)
-        baseline_path = stage1.matched_baseline_path
+        baseline_image = _selected_baseline_image(cls, stage1)
 
         pixel_result = None
         skip_reason = None
-        if baseline_path is not None:
+        if baseline_image is not None:
             pixel_result = self.pixel_comparator.compare(
                 actual_image_path=screenshot_path,
-                expected_image_path=str(baseline_path),
+                expected_image_path=baseline_image,
                 output_dir=output_dir,
             )
         else:
@@ -201,7 +218,7 @@ class ValidateScreenshot:
                 "classification_threshold": float(threshold),
                 "classification_strategy": str(strategy),
                 "winning_score": float(stage1.similarity_score),
-                "selected_baseline_image": str(baseline_path) if baseline_path else None,
+                "selected_baseline_image": baseline_image,
                 "matches": [_match_to_dict(m) for m in (cls.get("matches") or []) if isinstance(m, ScreenMatch)],
                 "top_k": list(stage1.top_k),
             },
@@ -253,7 +270,7 @@ class ValidateScreenshot:
                 "run_id": run_id_value,
                 "timestamp": finished_at.isoformat(),
                 "predicted_screen_type": predicted_screen_type,
-                "selected_baseline_image": str(baseline_path) if baseline_path else None,
+                "selected_baseline_image": baseline_image,
                 "similarity": float(stage1.similarity_score),
                 "pixel_status": pixel_result.status if pixel_result else None,
                 "ssim_score": pixel_result.ssim_score if pixel_result else None,
@@ -270,7 +287,7 @@ class ValidateScreenshot:
             screenshot_path=screenshot_path,
             predicted_screen_type=predicted_screen_type,
             classification_threshold=float(threshold),
-            selected_baseline_image=str(baseline_path) if baseline_path else None,
+            selected_baseline_image=baseline_image,
             matches=[m for m in (cls.get("matches") or []) if isinstance(m, ScreenMatch)],
             pixel_result=pixel_result,
             report_path=report_path,

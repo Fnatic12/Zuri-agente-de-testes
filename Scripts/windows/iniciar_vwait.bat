@@ -9,6 +9,7 @@ set "STREAMLIT_SERVER_FILE_WATCHER_TYPE=none"
 set "STREAMLIT_SERVER_RUN_ON_SAVE=false"
 set "WATCHER_SCRIPT=Scripts\windows\dev_streamlit_watcher.py"
 set "PYTHON_EXE=%PROJECT_ROOT%\.venv\Scripts\python.exe"
+set "PYTHONW_EXE=%PROJECT_ROOT%\.venv\Scripts\pythonw.exe"
 
 if exist "%PROJECT_ROOT%\.env.tester" (
     for /f "usebackq tokens=1,* delims==" %%A in ("%PROJECT_ROOT%\.env.tester") do (
@@ -36,10 +37,11 @@ for /f "tokens=5" %%P in ('netstat -ano ^| findstr /r /c:":8502 .*LISTENING"') d
 for /f "tokens=5" %%P in ('netstat -ano ^| findstr /r /c:":8503 .*LISTENING"') do taskkill /f /pid %%P >nul 2>nul
 for /f "tokens=5" %%P in ('netstat -ano ^| findstr /r /c:":8504 .*LISTENING"') do taskkill /f /pid %%P >nul 2>nul
 
-start "VWAIT Watcher" "%PYTHON_EXE%" "%WATCHER_SCRIPT%"
-
-powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-  "$ports = 8502,8503; foreach ($port in $ports) { $ok = $false; for ($i = 0; $i -lt 60; $i++) { if (Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue) { $ok = $true; break }; Start-Sleep -Seconds 1 }; if ($ok) { Start-Process ('http://localhost:' + $port) } }"
+if exist "%PYTHONW_EXE%" (
+    start "" "%PYTHONW_EXE%" "%WATCHER_SCRIPT%"
+) else (
+    start "VWAIT Watcher" "%PYTHON_EXE%" "%WATCHER_SCRIPT%"
+)
 
 :end
 endlocal
