@@ -5,6 +5,7 @@ import csv
 import shutil
 import subprocess
 import platform
+import socket
 import sys
 from shutil import which
 import speech_recognition as sr
@@ -442,17 +443,19 @@ MODO_CONVERSA = True  # Altere para False se quiser desativar as respostas natur
 PAGINA_CHAT = "Chat"
 PAGINA_DASHBOARD = "Dashboard"
 PAGINA_LOGS_RADIO = "Painel de Logs"
+PAGINA_CONTROLE_FALHAS = "Controle de Falhas"
 PAGINA_MENU_TESTER = "Menu Tester"
 PAGINA_VALIDACAO_HMI = "Validação HMI"
 NAV_RADIO_KEY = "pagina_navegacao"
 NAV_PENDING_KEY = "pagina_navegacao_pendente"
 DASHBOARD_PORT = 8504
 LOGS_PANEL_PORT = 8505
+FAILURE_CONTROL_PORT = 8506
 MENU_TESTER_PORT = 8503
 
 
 st.set_page_config(
-    page_title="Agente de Testes",
+    page_title="Agente de Testes - VWAIT",
     page_icon="",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -502,6 +505,31 @@ def _url_ativa(url: str) -> bool:
         return False
 
 
+def _porta_local_ativa(port: int, timeout_s: float = 0.35) -> bool:
+    try:
+        with socket.create_connection(("127.0.0.1", int(port)), timeout=timeout_s):
+            return True
+    except OSError:
+        return False
+
+
+def _aguardar_porta_local(port: int, timeout_s: float = 12.0) -> bool:
+    deadline = time.time() + max(1.0, float(timeout_s))
+    while time.time() < deadline:
+        if _porta_local_ativa(port):
+            return True
+        time.sleep(0.2)
+    return False
+
+
+def _streamlit_launch_env() -> dict[str, str]:
+    env = os.environ.copy()
+    env["STREAMLIT_SERVER_FILE_WATCHER_TYPE"] = "none"
+    env["STREAMLIT_SERVER_RUN_ON_SAVE"] = "false"
+    env["BROWSER_GATHER_USAGE_STATS"] = "false"
+    return env
+
+
 def _iniciar_app_streamlit(script_path: str, port: int, silence_output: bool = False) -> None:
     cmd = [
         sys.executable,
@@ -512,16 +540,30 @@ def _iniciar_app_streamlit(script_path: str, port: int, silence_output: bool = F
         "--server.port",
         str(port),
         "--server.headless",
-        "false",
+        "true",
         "--server.fileWatcherType",
         "none",
         "--server.runOnSave",
         "false",
+        "--browser.gatherUsageStats",
+        "false",
     ]
+    kwargs = {
+        "cwd": BASE_DIR,
+        "env": _streamlit_launch_env(),
+        **_subprocess_windowless_kwargs(),
+    }
     if silence_output:
-        subprocess.Popen(cmd, cwd=BASE_DIR, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, **kwargs)
         return
-    subprocess.Popen(cmd, cwd=BASE_DIR)
+    subprocess.Popen(cmd, **kwargs)
+
+
+def _garantir_app_streamlit(script_path: str, port: int, silence_output: bool = False, timeout_s: float = 12.0) -> bool:
+    if _porta_local_ativa(port):
+        return True
+    _iniciar_app_streamlit(script_path, port, silence_output=silence_output)
+    return _aguardar_porta_local(port, timeout_s=timeout_s)
 
 
 def _selecionar_pagina(nome_pagina: str) -> None:
@@ -531,15 +573,15 @@ def _selecionar_pagina(nome_pagina: str) -> None:
 def _abrir_menu_tester() -> str:
     tester_url = f"http://localhost:{MENU_TESTER_PORT}"
     try:
-        if not _url_ativa(tester_url):
-            _iniciar_app_streamlit(
-                root_path("app", "streamlit", "menu_tester.py"),
-                MENU_TESTER_PORT,
-            )
-            time.sleep(1.5)
+        pronto = _garantir_app_streamlit(
+            root_path("app", "streamlit", "menu_tester.py"),
+            MENU_TESTER_PORT,
+        )
         import webbrowser
         webbrowser.open_new_tab(tester_url)
-        return f"Abrindo o Menu Tester em {tester_url}."
+        if pronto:
+            return f"Abrindo o Menu Tester em {tester_url}."
+        return f"Menu Tester em inicializacao: {tester_url}."
     except Exception as e:
         return f"Falha ao abrir Menu Tester: {e}"
 
@@ -547,17 +589,35 @@ def _abrir_menu_tester() -> str:
 def _abrir_painel_logs() -> str:
     logs_url = f"http://localhost:{LOGS_PANEL_PORT}"
     try:
-        if not _url_ativa(logs_url):
-            _iniciar_app_streamlit(
-                root_path("Dashboard", "painel_logs_radio.py"),
-                LOGS_PANEL_PORT,
-            )
-            time.sleep(1.5)
+        pronto = _garantir_app_streamlit(
+            root_path("Dashboard", "painel_logs_radio.py"),
+            LOGS_PANEL_PORT,
+            silence_output=True,
+        )
         import webbrowser
         webbrowser.open_new_tab(logs_url)
-        return f"Abrindo o Painel de Logs em {logs_url}."
+        if pronto:
+            return f"Abrindo o Painel de Logs em {logs_url}."
+        return f"Painel de Logs em inicializacao: {logs_url}."
     except Exception as e:
         return f"Falha ao abrir Painel de Logs: {e}"
+
+
+def _abrir_controle_falhas() -> str:
+    panel_url = f"http://localhost:{FAILURE_CONTROL_PORT}"
+    try:
+        pronto = _garantir_app_streamlit(
+            root_path("Dashboard", "controle_falhas.py"),
+            FAILURE_CONTROL_PORT,
+            silence_output=True,
+        )
+        import webbrowser
+        webbrowser.open_new_tab(panel_url)
+        if pronto:
+            return f"Abrindo o Controle de Falhas em {panel_url}."
+        return f"Controle de Falhas em inicializacao: {panel_url}."
+    except Exception as e:
+        return f"Falha ao abrir Controle de Falhas: {e}"
 
 
 def _resolver_comando_navegacao(texto: str) -> str | None:
@@ -583,6 +643,9 @@ def _resolver_comando_navegacao(texto: str) -> str | None:
         "painel de logs",
         "logs do radio",
         "painel de logs do radio",
+        "controle de falhas",
+        "falhas",
+        "painel de falhas",
         "menu tester",
         "menu testers",
         "menu dos testers",
@@ -602,6 +665,13 @@ def _resolver_comando_navegacao(texto: str) -> str | None:
     ):
         _selecionar_pagina(PAGINA_LOGS_RADIO)
         return "Abrindo o painel de logs."
+
+    if "falha" in texto_norm and any(
+        token in texto_norm
+        for token in ["abrir", "abre", "abra", "mostrar", "mostra", "painel", "controle", "falhas"]
+    ):
+        _selecionar_pagina(PAGINA_CONTROLE_FALHAS)
+        return "Abrindo o controle de falhas."
 
     if "hmi" in texto_norm and any(token in texto_norm for token in ["valid", "validacao", "validar", "hmi"]):
         _selecionar_pagina(PAGINA_VALIDACAO_HMI)
@@ -2081,7 +2151,7 @@ def interpretar_comando(comando: str) -> str:
             "- **apagar/deletar/remover** `<teste>`\n"
             "- **listar/mostrar** categorias | testes [de <categoria>]\n"
             "- **listar bancadas**\n"
-            "- **abrir** dashboard | painel de logs | menu tester | validacao HMI\n"
+            "- **abrir** dashboard | painel de logs | controle de falhas | menu tester | validacao HMI\n"
             "Ex.: `execute o teste audio_1 na bancada 2`"
         )
 
@@ -2443,7 +2513,7 @@ if pagina_pendente:
 st.sidebar.title("VWAIT - Menu")
 pagina = st.sidebar.radio(
     "Navegacao",
-    [PAGINA_CHAT, PAGINA_DASHBOARD, PAGINA_LOGS_RADIO, PAGINA_MENU_TESTER, PAGINA_VALIDACAO_HMI],
+    [PAGINA_CHAT, PAGINA_DASHBOARD, PAGINA_LOGS_RADIO, PAGINA_CONTROLE_FALHAS, PAGINA_MENU_TESTER, PAGINA_VALIDACAO_HMI],
     key=NAV_RADIO_KEY,
 )
 
@@ -2539,6 +2609,7 @@ if pagina == PAGINA_CHAT:
                 <li><code>rodar todos os testes da categoria video</code> - executa todos os testes de uma categoria</li>
                 <li><code>capturar log na bancada 1</code> - captura os logs atuais do radio para o ultimo teste dessa bancada</li>
                 <li><code>abrir painel de logs</code> - abre o painel dedicado para explorar e analisar logs capturados</li>
+                <li><code>abrir controle de falhas</code> - abre o painel dedicado para triagem e acompanhamento das falhas</li>
                 <li><code>listar bancadas</code> - mostra bancadas ADB conectadas</li>
                 <li><code>ajuda</code> - exibe a lista completa de comandos</li>
             </ul>
@@ -2661,10 +2732,9 @@ elif pagina == PAGINA_DASHBOARD:
     dash_url = f"http://localhost:{dash_port}"
     dash_script = root_path("Dashboard", "visualizador_execucao.py")
 
-    if not _url_ativa(dash_url):
+    if not _porta_local_ativa(dash_port):
         try:
-            _iniciar_app_streamlit(dash_script, dash_port, silence_output=True)
-            time.sleep(1.5)
+            _garantir_app_streamlit(dash_script, dash_port, silence_output=True)
         except Exception as e:
             st.error(f"Falha ao iniciar dashboard: {e}")
 
@@ -2680,7 +2750,7 @@ elif pagina == PAGINA_DASHBOARD:
             except Exception:
                 pass
 
-    if _url_ativa(dash_url):
+    if _porta_local_ativa(dash_port):
         components.iframe(dash_url, height=1700, scrolling=True)
     else:
         st.warning("Dashboard ainda iniciando. Clique em 'Recarregar dashboard' em alguns segundos.")
@@ -2693,10 +2763,9 @@ elif pagina == PAGINA_LOGS_RADIO:
     logs_url = f"http://localhost:{logs_port}"
     logs_script = root_path("Dashboard", "painel_logs_radio.py")
 
-    if not _url_ativa(logs_url):
+    if not _porta_local_ativa(logs_port):
         try:
-            _iniciar_app_streamlit(logs_script, logs_port, silence_output=True)
-            time.sleep(1.5)
+            _garantir_app_streamlit(logs_script, logs_port, silence_output=True)
         except Exception as e:
             st.error(f"Falha ao iniciar painel de logs: {e}")
 
@@ -2712,13 +2781,44 @@ elif pagina == PAGINA_LOGS_RADIO:
             except Exception:
                 pass
 
-    if _url_ativa(logs_url):
+    if _porta_local_ativa(logs_port):
         components.iframe(logs_url, height=1700, scrolling=True)
     else:
         st.warning("Painel de logs ainda iniciando. Clique em 'Recarregar painel de logs' em alguns segundos.")
 
+elif pagina == PAGINA_CONTROLE_FALHAS:
+    st.title("Controle de Falhas")
+    st.caption("Painel dedicado para triagem, acompanhamento e preparo das falhas para Jira.")
+
+    failure_port = FAILURE_CONTROL_PORT
+    failure_url = f"http://localhost:{failure_port}"
+    failure_script = root_path("Dashboard", "controle_falhas.py")
+
+    if not _porta_local_ativa(failure_port):
+        try:
+            _garantir_app_streamlit(failure_script, failure_port, silence_output=True)
+        except Exception as e:
+            st.error(f"Falha ao iniciar controle de falhas: {e}")
+
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        if st.button("Recarregar controle de falhas"):
+            st.rerun()
+    with col2:
+        if st.button("Abrir controle em nova aba"):
+            try:
+                import webbrowser
+                webbrowser.open_new_tab(failure_url)
+            except Exception:
+                pass
+
+    if _porta_local_ativa(failure_port):
+        components.iframe(failure_url, height=1900, scrolling=True)
+    else:
+        st.warning("Controle de falhas ainda iniciando. Clique em 'Recarregar controle de falhas' em alguns segundos.")
+
 elif pagina == PAGINA_MENU_TESTER:
-    st.title("Menu Tester")
+    st.title("Menu Tester - VWAIT")
     st.info("Abra o menu_tester em uma nova aba para executar coletas e testes.")
     if st.button("Abrir Menu Tester"):
         resposta = _abrir_menu_tester()

@@ -36,6 +36,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-CimInstance Win32_Pr
 for /f "tokens=5" %%P in ('netstat -ano ^| findstr /r /c:":8502 .*LISTENING"') do taskkill /f /pid %%P >nul 2>nul
 for /f "tokens=5" %%P in ('netstat -ano ^| findstr /r /c:":8503 .*LISTENING"') do taskkill /f /pid %%P >nul 2>nul
 for /f "tokens=5" %%P in ('netstat -ano ^| findstr /r /c:":8504 .*LISTENING"') do taskkill /f /pid %%P >nul 2>nul
+for /f "tokens=5" %%P in ('netstat -ano ^| findstr /r /c:":8505 .*LISTENING"') do taskkill /f /pid %%P >nul 2>nul
+for /f "tokens=5" %%P in ('netstat -ano ^| findstr /r /c:":8506 .*LISTENING"') do taskkill /f /pid %%P >nul 2>nul
 
 if exist "%PYTHONW_EXE%" (
     start "" "%PYTHONW_EXE%" "%WATCHER_SCRIPT%"

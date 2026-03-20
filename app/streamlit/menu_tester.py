@@ -4,6 +4,7 @@ import subprocess
 
 import os
 import platform
+import socket
 
 import sys
 
@@ -43,6 +44,62 @@ def _subprocess_windowless_kwargs() -> dict:
         "creationflags": subprocess.CREATE_NO_WINDOW,
         "startupinfo": startupinfo,
     }
+
+
+def _streamlit_launch_env() -> dict[str, str]:
+    env = os.environ.copy()
+    env["STREAMLIT_SERVER_FILE_WATCHER_TYPE"] = "none"
+    env["STREAMLIT_SERVER_RUN_ON_SAVE"] = "false"
+    env["BROWSER_GATHER_USAGE_STATS"] = "false"
+    return env
+
+
+def _porta_local_ativa(port: int, timeout_s: float = 0.35) -> bool:
+    try:
+        with socket.create_connection(("127.0.0.1", int(port)), timeout=timeout_s):
+            return True
+    except OSError:
+        return False
+
+
+def _aguardar_porta_local(port: int, timeout_s: float = 12.0) -> bool:
+    deadline = time.time() + max(1.0, float(timeout_s))
+    while time.time() < deadline:
+        if _porta_local_ativa(port):
+            return True
+        time.sleep(0.2)
+    return False
+
+
+def _garantir_painel_streamlit(script_path: str, port: int, timeout_s: float = 12.0) -> bool:
+    if _porta_local_ativa(port):
+        return True
+
+    subprocess.Popen(
+        [
+            sys.executable,
+            "-m",
+            "streamlit",
+            "run",
+            script_path,
+            "--server.port",
+            str(port),
+            "--server.headless",
+            "true",
+            "--server.fileWatcherType",
+            "none",
+            "--server.runOnSave",
+            "false",
+            "--browser.gatherUsageStats",
+            "false",
+        ],
+        cwd=BASE_DIR,
+        env=_streamlit_launch_env(),
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        **_subprocess_windowless_kwargs(),
+    )
+    return _aguardar_porta_local(port, timeout_s=timeout_s)
 
 
 def _parse_adb_devices(raw_lines):
@@ -210,11 +267,12 @@ BASE_DIR = project_root()
 
 
 SCRIPTS = {
-    "Coletar Gestos": root_path("Scripts", "coletor_adb.py"),
+    "Coletar Teste": root_path("Scripts", "coletor_adb.py"),
     "Processar Dataset": root_path("Pre_process", "processar_dataset.py"),
     "Executar Teste": root_path("Run", "run_noia.py"),
     "Abrir Dashboard": root_path("Dashboard", "visualizador_execucao.py"),
     "Abrir Painel de Logs": root_path("Dashboard", "painel_logs_radio.py"),
+    "Abrir Controle de Falhas": root_path("Dashboard", "controle_falhas.py"),
 }
 
 
@@ -1539,64 +1597,13 @@ if st.button("Abrir Dashboard"):
     try:
 
         port = int(os.environ.get("VWAIT_DASHBOARD_PORT", "8504"))
-
-        dashboard_running = False
-
-        try:
-
-            with urllib.request.urlopen(f"http://localhost:{port}", timeout=1.5):
-
-                dashboard_running = True
-
-        except Exception:
-
-            dashboard_running = False
-
-        if not dashboard_running:
-
-            subprocess.Popen(
-
-                [
-
-                    sys.executable,
-
-                    "-m",
-
-                    "streamlit",
-
-                    "run",
-
-                    SCRIPTS["Abrir Dashboard"],
-
-                    "--server.port",
-
-                    str(port),
-
-                    "--server.headless",
-
-                    "false",
-
-                    "--server.fileWatcherType",
-
-                    "none",
-
-                    "--server.runOnSave",
-
-                    "false",
-
-                ],
-
-                cwd=BASE_DIR,
-
-                stdout=subprocess.DEVNULL,
-
-                stderr=subprocess.DEVNULL,
-
-            )
+        pronto = _garantir_painel_streamlit(SCRIPTS["Abrir Dashboard"], port)
 
         webbrowser.open_new_tab(f"http://localhost:{port}")
-
-        st.success(f"Dashboard iniciado em http://localhost:{port}")
+        if pronto:
+            st.success(f"Dashboard pronto em http://localhost:{port}")
+        else:
+            st.warning(f"Dashboard ainda inicializando em http://localhost:{port}")
 
     except Exception as e:
 
@@ -1608,66 +1615,32 @@ if st.button("Abrir Painel de Logs"):
     try:
 
         port = int(os.environ.get("VWAIT_LOGS_PANEL_PORT", "8505"))
-
-        painel_running = False
-
-        try:
-
-            with urllib.request.urlopen(f"http://localhost:{port}", timeout=1.5):
-
-                painel_running = True
-
-        except Exception:
-
-            painel_running = False
-
-        if not painel_running:
-
-            subprocess.Popen(
-
-                [
-
-                    sys.executable,
-
-                    "-m",
-
-                    "streamlit",
-
-                    "run",
-
-                    SCRIPTS["Abrir Painel de Logs"],
-
-                    "--server.port",
-
-                    str(port),
-
-                    "--server.headless",
-
-                    "false",
-
-                    "--server.fileWatcherType",
-
-                    "none",
-
-                    "--server.runOnSave",
-
-                    "false",
-
-                ],
-
-                cwd=BASE_DIR,
-
-                stdout=subprocess.DEVNULL,
-
-                stderr=subprocess.DEVNULL,
-
-            )
+        pronto = _garantir_painel_streamlit(SCRIPTS["Abrir Painel de Logs"], port)
 
         webbrowser.open_new_tab(f"http://localhost:{port}")
-
-        st.success(f"Painel de logs iniciado em http://localhost:{port}")
+        if pronto:
+            st.success(f"Painel de logs pronto em http://localhost:{port}")
+        else:
+            st.warning(f"Painel de logs ainda inicializando em http://localhost:{port}")
 
     except Exception as e:
 
         st.error(f"Falha ao abrir painel de logs: {e}")
 
+
+if st.button("Abrir Controle de Falhas"):
+
+    try:
+
+        port = int(os.environ.get("VWAIT_FAILURE_CONTROL_PORT", "8506"))
+        pronto = _garantir_painel_streamlit(SCRIPTS["Abrir Controle de Falhas"], port)
+
+        webbrowser.open_new_tab(f"http://localhost:{port}")
+        if pronto:
+            st.success(f"Controle de falhas pronto em http://localhost:{port}")
+        else:
+            st.warning(f"Controle de falhas ainda inicializando em http://localhost:{port}")
+
+    except Exception as e:
+
+        st.error(f"Falha ao abrir controle de falhas: {e}")

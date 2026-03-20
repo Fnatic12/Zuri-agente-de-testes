@@ -365,6 +365,14 @@ def _extract_status_payload(serial: str, raw: dict) -> dict:
         "log_capture_dir",
         "log_capture_error",
         "log_capture_sequence",
+        "failure_report_status",
+        "failure_report_dir",
+        "failure_report_json",
+        "failure_report_markdown",
+        "failure_report_csv",
+        "failure_report_short_text",
+        "failure_report_generated_at",
+        "failure_report_error",
         "erro_motivo",
     ):
         if key in raw and raw.get(key) is not None:
@@ -583,6 +591,121 @@ def _resolver_latest_log_capture_from_base_dir(base_dir: str) -> str | None:
     if not candidates:
         return logs_root
     return max(candidates, key=os.path.getmtime)
+
+
+def _load_optional_json_file(path: str | None) -> dict[str, Any]:
+    if not path or not os.path.isfile(path):
+        return {}
+    try:
+        with open(path, "r", encoding="utf-8", errors="ignore") as handle:
+            data = json.load(handle)
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def _resolve_existing_path(base_dir: str, raw_path: Any, expected: str = "file") -> str | None:
+    text = str(raw_path or "").strip()
+    if not text:
+        return None
+
+    candidates = [text]
+    if not os.path.isabs(text):
+        candidates.append(os.path.join(base_dir, text))
+
+    for candidate in candidates:
+        resolved = os.path.abspath(candidate)
+        if expected == "dir" and os.path.isdir(resolved):
+            return resolved
+        if expected == "file" and os.path.isfile(resolved):
+            return resolved
+    return None
+
+
+def _carregar_status_teste(base_dir: str) -> dict[str, Any]:
+    if not os.path.isdir(base_dir):
+        return {}
+
+    candidates = [
+        os.path.join(base_dir, name)
+        for name in os.listdir(base_dir)
+        if name.startswith("status_") and name.endswith(".json")
+    ]
+    if not candidates:
+        return {}
+
+    status_path = max(candidates, key=os.path.getmtime)
+    raw = _load_optional_json_file(status_path)
+    if not raw:
+        return {}
+
+    serial = str(raw.get("serial") or os.path.basename(status_path)[len("status_") : -5]).strip()
+    payload = _extract_status_payload(serial, raw)
+    payload["_status_path"] = status_path
+    return payload
+
+
+def _carregar_relatorio_falha(base_dir: str, status_payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    status_payload = status_payload or {}
+    pointer_path = os.path.join(base_dir, "failure_report_latest.json")
+    pointer = _load_optional_json_file(pointer_path)
+
+    json_path = _resolve_existing_path(
+        base_dir,
+        pointer.get("json_path") or status_payload.get("failure_report_json"),
+        expected="file",
+    )
+    markdown_path = _resolve_existing_path(
+        base_dir,
+        pointer.get("markdown_path") or status_payload.get("failure_report_markdown"),
+        expected="file",
+    )
+    csv_path = _resolve_existing_path(
+        base_dir,
+        pointer.get("csv_path") or status_payload.get("failure_report_csv"),
+        expected="file",
+    )
+    report_dir = _resolve_existing_path(
+        base_dir,
+        pointer.get("report_dir") or status_payload.get("failure_report_dir"),
+        expected="dir",
+    )
+
+    report = _load_optional_json_file(json_path)
+    if not report_dir and json_path:
+        candidate_dir = os.path.dirname(json_path)
+        if os.path.isdir(candidate_dir):
+            report_dir = candidate_dir
+
+    status = (
+        _clean_display_text(status_payload.get("failure_report_status"))
+        or _clean_display_text(pointer.get("status"))
+        or ("gerado" if report else "nao_gerado")
+    ).lower()
+    generated_at = (
+        _clean_display_text(status_payload.get("failure_report_generated_at"))
+        or _clean_display_text(pointer.get("generated_at"))
+        or _clean_display_text(report.get("generated_at"))
+    )
+    short_text = (
+        _clean_display_text(status_payload.get("failure_report_short_text"))
+        or _clean_display_text(pointer.get("short_text"))
+        or _clean_display_text(report.get("short_text"))
+    )
+    error = _clean_display_text(status_payload.get("failure_report_error"))
+
+    return {
+        "status": status,
+        "generated_at": generated_at,
+        "short_text": short_text,
+        "error": error,
+        "pointer_path": pointer_path if os.path.isfile(pointer_path) else "",
+        "json_path": json_path or "",
+        "markdown_path": markdown_path or "",
+        "csv_path": csv_path or "",
+        "report_dir": report_dir or "",
+        "report": report,
+    }
 
 
 def _ultima_screenshot_bancada(info: dict) -> str | None:
@@ -1545,6 +1668,114 @@ def exibir_validacao_final(execucao, base_dir):
     st.write(f"Similaridade final: {sim:.2f}")
 
 
+def _render_text_block(text: Any, fallback: str = "-") -> None:
+    cleaned = _clean_display_text(text)
+    if not cleaned:
+        st.caption(fallback)
+        return
+    st.markdown(cleaned.replace("\n", "  \n"))
+
+
+def exibir_relatorio_falha(base_dir: str, selected: str, status_payload: dict[str, Any]) -> None:
+    st.subheader("Relatorio estruturado da falha")
+    bundle = _carregar_relatorio_falha(base_dir, status_payload)
+    report = bundle.get("report") or {}
+    resultado_final = _clean_display_text(status_payload.get("resultado_final")).lower()
+
+    if not report:
+        if resultado_final == "reprovado":
+            detalhe = bundle.get("error") or "Execucao reprovada sem artefato estruturado disponivel."
+            st.warning(detalhe)
+        else:
+            st.info("Nenhum relatorio de falha disponivel para esta execucao.")
+        return
+
+    dashboard_summary = report.get("dashboard_summary") or {}
+    radio_log = report.get("radio_log") or {}
+
+    st.error(bundle.get("short_text") or report.get("short_text") or "Falha detectada nesta execucao.")
+    if bundle.get("generated_at"):
+        st.caption(f"Relatorio gerado em {bundle['generated_at']}")
+
+    action_col1, action_col2 = st.columns(2)
+    with action_col1:
+        if st.button("Abrir pasta do relatorio", key=f"open_failure_report_{selected}"):
+            report_dir = bundle.get("report_dir")
+            if not report_dir:
+                st.error("Pasta do relatorio nao encontrada.")
+            else:
+                ok_open, detalhe_open = _abrir_pasta_local(str(report_dir))
+                if ok_open:
+                    st.success(f"Pasta aberta: {report_dir}")
+                else:
+                    st.error(f"Falha ao abrir a pasta: {detalhe_open}")
+    with action_col2:
+        if st.button("Abrir logs do radio da falha", key=f"open_failure_radio_logs_{selected}"):
+            radio_dir = _resolve_existing_path(
+                base_dir,
+                radio_log.get("capture_dir") or radio_log.get("capture_dir_relative") or status_payload.get("log_capture_dir"),
+                expected="dir",
+            )
+            if not radio_dir:
+                st.error("Pasta de logs do radio nao encontrada.")
+            else:
+                ok_open, detalhe_open = _abrir_pasta_local(str(radio_dir))
+                if ok_open:
+                    st.success(f"Pasta aberta: {radio_dir}")
+                else:
+                    st.error(f"Falha ao abrir a pasta: {detalhe_open}")
+
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Resultado", str(dashboard_summary.get("resultado_final") or "REPROVADO").upper())
+    m2.metric("Divergencias", str(dashboard_summary.get("failed_actions") or report.get("summary", {}).get("failed_actions") or 0))
+    m3.metric("Acoes avaliadas", str(dashboard_summary.get("total_actions") or report.get("summary", {}).get("total_actions") or 0))
+    avg_similarity = float(dashboard_summary.get("average_similarity", 0.0) or 0.0)
+    m4.metric("Similaridade media", f"{avg_similarity:.3f}")
+
+    st.markdown("##### Pre-condicao")
+    _render_text_block(report.get("precondition"))
+
+    st.markdown("##### Acoes executadas")
+    operation_steps = report.get("operation_steps") or []
+    if operation_steps:
+        with st.expander("Ver sequencia executada", expanded=True):
+            for idx, step in enumerate(operation_steps, start=1):
+                st.write(f"{idx}. {_clean_display_text(step)}")
+    else:
+        st.caption("Nenhuma acao consolidada no relatorio.")
+
+    col_result_1, col_result_2 = st.columns(2)
+    with col_result_1:
+        st.markdown("##### Resultado do teste")
+        _render_text_block(report.get("test_result"))
+    with col_result_2:
+        st.markdown("##### Resultado esperado")
+        _render_text_block(report.get("expected_result"))
+
+    st.markdown("##### Resultado obtido")
+    _render_text_block(report.get("actual_results"))
+
+    st.markdown("##### Log do radio")
+    _render_text_block(radio_log.get("summary"))
+    if radio_log.get("metadata"):
+        with st.expander("Metadados da captura de logs"):
+            st.json(radio_log["metadata"])
+    if radio_log.get("files"):
+        with st.expander("Arquivos indexados da falha"):
+            for item in radio_log["files"]:
+                st.write(_clean_display_text(item))
+
+    path_lines = []
+    if bundle.get("json_path"):
+        path_lines.append(f"JSON: {bundle['json_path']}")
+    if bundle.get("markdown_path"):
+        path_lines.append(f"Markdown: {bundle['markdown_path']}")
+    if bundle.get("csv_path"):
+        path_lines.append(f"CSV: {bundle['csv_path']}")
+    if path_lines:
+        st.caption(" | ".join(path_lines))
+
+
 def main():
     titulo_painel("Dashboard de Execução de Testes - VWAIT", "")
     exibir_bancadas_tempo_real()
@@ -1583,6 +1814,7 @@ def main():
     execucao = _normalizar_execucao(execucao)
 
     base_dir = os.path.dirname(log_path)
+    status_payload = _carregar_status_teste(base_dir)
     logs_root = _resolver_logs_root_from_base_dir(base_dir)
     latest_log_capture = _resolver_latest_log_capture_from_base_dir(base_dir)
     metricas = calcular_metricas(execucao)
@@ -1615,6 +1847,7 @@ def main():
     else:
         st.caption("Raiz dos logs: nenhuma pasta logs/ encontrada para esta execucao.")
 
+    exibir_relatorio_falha(base_dir, selected, status_payload)
     exibir_metricas(metricas)
     exibir_timeline(execucao)
     exibir_comparacao_toggles(base_dir)

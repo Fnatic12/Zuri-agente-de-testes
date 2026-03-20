@@ -23,6 +23,7 @@ def export_json(report: dict[str, Any], out_dir: Path) -> Path:
 
 def export_markdown(report: dict[str, Any], out_dir: Path) -> Path:
     path = out_dir / "failure_report.md"
+    radio_log = report.get("radio_log") or {}
     lines = [
         f"# Failure Report - {report['test']['category']}/{report['test']['name']}",
         "",
@@ -40,8 +41,17 @@ def export_markdown(report: dict[str, Any], out_dir: Path) -> Path:
     lines.extend(
         [
             "",
+            "## Test Result",
+            report["test_result"],
+            "",
+            "## Expected Result",
+            report["expected_result"],
+            "",
             "## Actual Results",
             report["actual_results"],
+            "",
+            "## Radio Log",
+            radio_log.get("summary", "Nenhum log de radio registrado."),
             "",
             "## Occurrence Rate",
             report["occurrence_rate"]["label"],
@@ -58,6 +68,20 @@ def export_markdown(report: dict[str, Any], out_dir: Path) -> Path:
     )
     for key, value in report["version_information"].items():
         lines.append(f"- {key}: {value}")
+    if radio_log.get("capture_dir"):
+        lines.extend(
+            [
+                "",
+                "### Radio Log Details",
+                f"- status: {radio_log.get('status')}",
+                f"- capture_dir: {radio_log.get('capture_dir')}",
+                f"- sequence: {radio_log.get('sequence') or '-'}",
+                f"- error: {radio_log.get('error') or '-'}",
+            ]
+        )
+    if radio_log.get("files"):
+        lines.extend(["", "### Radio Log Files"])
+        lines.extend(f"- {item}" for item in radio_log["files"])
     lines.extend(["", "## Failed Steps"])
     for step in report["failed_steps"]:
         lines.append(
@@ -77,7 +101,10 @@ def export_csv(report: dict[str, Any], out_dir: Path) -> Path:
                 "Precondition",
                 "Short text",
                 "Operation steps",
+                "Test Result",
+                "Expected Result",
                 "Actual Results",
+                "Radio Log",
                 "Occurrence Rate",
                 "Recovery Conditions",
                 "Bug Occurrence Time",
@@ -89,7 +116,10 @@ def export_csv(report: dict[str, Any], out_dir: Path) -> Path:
                 report["precondition"],
                 report["short_text"],
                 " | ".join(report["operation_steps"]),
+                report["test_result"],
+                report["expected_result"],
                 report["actual_results"],
+                report.get("radio_log", {}).get("summary"),
                 report["occurrence_rate"]["label"],
                 report["recovery_conditions"],
                 report["bug_occurrence_time"]["first_failure_timestamp"],

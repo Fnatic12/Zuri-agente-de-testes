@@ -741,6 +741,83 @@ def salvar_status(status, categoria, nome_teste, serial=None):
     except Exception as e:
         print(f"ERRO: falha ao salvar status: {e}")
 
+
+def _failure_report_pointer_path(categoria, nome_teste):
+    return os.path.join(_status_dir(categoria, nome_teste), "failure_report_latest.json")
+
+
+def limpar_relatorio_falha_automatico(categoria, nome_teste):
+    pointer_path = _failure_report_pointer_path(categoria, nome_teste)
+    if os.path.exists(pointer_path):
+        try:
+            os.remove(pointer_path)
+        except Exception:
+            pass
+
+
+def gerar_relatorio_falha_automatico(categoria, nome_teste, log_path, similarity_threshold=SIMILARIDADE_HOME_OK):
+    try:
+        from KPM.gerar_falha import gerar_relatorio_falhas
+    except Exception as exc:
+        return {
+            "status": "falha",
+            "error": f"Falha ao importar gerador de relatorio: {exc}",
+        }
+
+    try:
+        result = gerar_relatorio_falhas(
+            categoria,
+            nome_teste,
+            log_path,
+            similarity_threshold=similarity_threshold,
+        )
+    except Exception as exc:
+        return {
+            "status": "falha",
+            "error": f"Falha ao gerar relatorio estruturado: {exc}",
+        }
+
+    if not result:
+        return {
+            "status": "nao_gerado",
+            "error": "Nenhuma falha elegivel encontrada para gerar relatorio.",
+        }
+
+    json_path, md_path, csv_path = [str(path) for path in result]
+    report_payload = {}
+    try:
+        with open(json_path, "r", encoding="utf-8") as handle:
+            loaded = json.load(handle)
+        if isinstance(loaded, dict):
+            report_payload = loaded
+    except Exception:
+        report_payload = {}
+
+    pointer_payload = {
+        "status": "gerado",
+        "generated_at": report_payload.get("generated_at"),
+        "short_text": report_payload.get("short_text"),
+        "json_path": json_path,
+        "markdown_path": md_path,
+        "csv_path": csv_path,
+        "report_dir": os.path.dirname(json_path),
+    }
+    try:
+        atomic_write_json(_failure_report_pointer_path(categoria, nome_teste), pointer_payload)
+    except Exception:
+        pass
+
+    return {
+        "status": "gerado",
+        "generated_at": pointer_payload.get("generated_at"),
+        "short_text": pointer_payload.get("short_text"),
+        "json_path": json_path,
+        "markdown_path": md_path,
+        "csv_path": csv_path,
+        "report_dir": pointer_payload.get("report_dir"),
+        "error": None,
+    }
+
 def inicializar_status_bancada(bancada_key, categoria, teste_nome, total_acoes):
     agora = datetime.now().isoformat()
     anterior = _carregar_payload_bancada(categoria, teste_nome, bancada_key)
@@ -766,11 +843,19 @@ def inicializar_status_bancada(bancada_key, categoria, teste_nome, total_acoes):
         "similaridade_media": 0.0,
         "ultima_similaridade": None,
         "ultimo_screenshot": None,
-        "resultado_final": anterior.get("resultado_final") or "pendente",
-        "log_capture_status": anterior.get("log_capture_status") or "nao_necessario",
-        "log_capture_dir": anterior.get("log_capture_dir"),
-        "log_capture_error": anterior.get("log_capture_error"),
-        "log_capture_sequence": anterior.get("log_capture_sequence"),
+        "resultado_final": "pendente",
+        "log_capture_status": "nao_necessario",
+        "log_capture_dir": None,
+        "log_capture_error": None,
+        "log_capture_sequence": None,
+        "failure_report_status": "nao_gerado",
+        "failure_report_dir": None,
+        "failure_report_json": None,
+        "failure_report_markdown": None,
+        "failure_report_csv": None,
+        "failure_report_short_text": None,
+        "failure_report_generated_at": None,
+        "failure_report_error": None,
         }
     }
     salvar_status(status, categoria, teste_nome, serial=bancada_key)
@@ -833,6 +918,14 @@ def atualizar_status_bancada(
         "log_capture_dir": anterior.get("log_capture_dir"),
         "log_capture_error": anterior.get("log_capture_error"),
         "log_capture_sequence": anterior.get("log_capture_sequence"),
+        "failure_report_status": anterior.get("failure_report_status") or "nao_gerado",
+        "failure_report_dir": anterior.get("failure_report_dir"),
+        "failure_report_json": anterior.get("failure_report_json"),
+        "failure_report_markdown": anterior.get("failure_report_markdown"),
+        "failure_report_csv": anterior.get("failure_report_csv"),
+        "failure_report_short_text": anterior.get("failure_report_short_text"),
+        "failure_report_generated_at": anterior.get("failure_report_generated_at"),
+        "failure_report_error": anterior.get("failure_report_error"),
         }
     }
     salvar_status(status, categoria, teste_nome, serial=bancada_key)
@@ -848,6 +941,14 @@ def finalizar_status_bancada(
     log_capture_dir=None,
     log_capture_error=None,
     log_capture_sequence=None,
+    failure_report_status=None,
+    failure_report_dir=None,
+    failure_report_json=None,
+    failure_report_markdown=None,
+    failure_report_csv=None,
+    failure_report_short_text=None,
+    failure_report_generated_at=None,
+    failure_report_error=None,
 ):
     anterior = _carregar_payload_bancada(categoria, teste_nome, bancada_key)
     agora = datetime.now().isoformat()
@@ -878,6 +979,14 @@ def finalizar_status_bancada(
         "log_capture_dir": log_capture_dir if log_capture_dir is not None else anterior.get("log_capture_dir"),
         "log_capture_error": log_capture_error if log_capture_error is not None else anterior.get("log_capture_error"),
         "log_capture_sequence": log_capture_sequence if log_capture_sequence is not None else anterior.get("log_capture_sequence"),
+        "failure_report_status": failure_report_status or anterior.get("failure_report_status") or "nao_gerado",
+        "failure_report_dir": failure_report_dir if failure_report_dir is not None else anterior.get("failure_report_dir"),
+        "failure_report_json": failure_report_json if failure_report_json is not None else anterior.get("failure_report_json"),
+        "failure_report_markdown": failure_report_markdown if failure_report_markdown is not None else anterior.get("failure_report_markdown"),
+        "failure_report_csv": failure_report_csv if failure_report_csv is not None else anterior.get("failure_report_csv"),
+        "failure_report_short_text": failure_report_short_text if failure_report_short_text is not None else anterior.get("failure_report_short_text"),
+        "failure_report_generated_at": failure_report_generated_at if failure_report_generated_at is not None else anterior.get("failure_report_generated_at"),
+        "failure_report_error": failure_report_error if failure_report_error is not None else anterior.get("failure_report_error"),
         "erro_motivo": motivo,
         }
     }
@@ -924,6 +1033,14 @@ def atualizar_status_captura_logs(
         "log_capture_dir": log_capture_dir if log_capture_dir is not None else anterior.get("log_capture_dir"),
         "log_capture_error": log_capture_error if log_capture_error is not None else anterior.get("log_capture_error"),
         "log_capture_sequence": log_capture_sequence if log_capture_sequence is not None else anterior.get("log_capture_sequence"),
+        "failure_report_status": anterior.get("failure_report_status") or "nao_gerado",
+        "failure_report_dir": anterior.get("failure_report_dir"),
+        "failure_report_json": anterior.get("failure_report_json"),
+        "failure_report_markdown": anterior.get("failure_report_markdown"),
+        "failure_report_csv": anterior.get("failure_report_csv"),
+        "failure_report_short_text": anterior.get("failure_report_short_text"),
+        "failure_report_generated_at": anterior.get("failure_report_generated_at"),
+        "failure_report_error": anterior.get("failure_report_error"),
         "erro_motivo": anterior.get("erro_motivo"),
         }
     }
@@ -963,6 +1080,14 @@ def main():
         capture_dir = None
         capture_error = None
         capture_sequence = None
+        failure_report_status = "nao_gerado"
+        failure_report_dir = None
+        failure_report_json = None
+        failure_report_markdown = None
+        failure_report_csv = None
+        failure_report_short_text = None
+        failure_report_generated_at = None
+        failure_report_error = None
 
         if capturar_logs:
             print_color("ðŸ§¾ Falha detectada â€” iniciando captura de logs da peca...", "yellow")
@@ -1002,6 +1127,22 @@ def main():
             else:
                 print_color(f"âŒ Captura de logs falhou: {capture_error}", "red")
 
+        if resultado_final == "reprovado":
+            report_result = gerar_relatorio_falha_automatico(categoria, nome_teste, log_path)
+            failure_report_status = report_result.get("status") or "falha"
+            failure_report_dir = report_result.get("report_dir")
+            failure_report_json = report_result.get("json_path")
+            failure_report_markdown = report_result.get("markdown_path")
+            failure_report_csv = report_result.get("csv_path")
+            failure_report_short_text = report_result.get("short_text")
+            failure_report_generated_at = report_result.get("generated_at")
+            failure_report_error = report_result.get("error")
+
+            if failure_report_status == "gerado":
+                print_color(f"ðŸ“„ Relatorio estruturado de falha gerado em {failure_report_dir}", "green")
+            else:
+                print_color(f"âš ï¸ Nao foi possivel gerar relatorio estruturado: {failure_report_error}", "yellow")
+
         try:
             finalizar_status_bancada(
                 bancada_key,
@@ -1014,6 +1155,14 @@ def main():
                 log_capture_dir=capture_dir,
                 log_capture_error=capture_error,
                 log_capture_sequence=capture_sequence,
+                failure_report_status=failure_report_status,
+                failure_report_dir=failure_report_dir,
+                failure_report_json=failure_report_json,
+                failure_report_markdown=failure_report_markdown,
+                failure_report_csv=failure_report_csv,
+                failure_report_short_text=failure_report_short_text,
+                failure_report_generated_at=failure_report_generated_at,
+                failure_report_error=failure_report_error,
             )
         except Exception as exc:
             print_color(f"âš ï¸ Falha ao atualizar status final: {exc}", "yellow")
@@ -1042,6 +1191,7 @@ def main():
         print_color(f"âš ï¸ Falha ao preparar limpeza preventiva dos logs: {exc}", "yellow")
 
     teste_dir = os.path.join(DATA_ROOT, categoria, nome_teste)
+    limpar_relatorio_falha_automatico(categoria, nome_teste)
     dataset_path = os.path.join(teste_dir, "dataset.csv")
     frames_dir = os.path.join(teste_dir, "frames")
     resultados_dir = os.path.join(teste_dir, "resultados")

@@ -30,12 +30,16 @@ class StreamlitApp:
     name: str
     script_path: Path
     port: int
+    open_on_ready: bool = False
     process: subprocess.Popen | None = None
 
 
 APPS = [
-    StreamlitApp("Menu Chat", PROJECT_ROOT / "app" / "streamlit" / "menu_chat.py", 8502),
-    StreamlitApp("Menu Tester", PROJECT_ROOT / "app" / "streamlit" / "menu_tester.py", 8503),
+    StreamlitApp("Menu Chat", PROJECT_ROOT / "app" / "streamlit" / "menu_chat.py", 8502, open_on_ready=True),
+    StreamlitApp("Menu Tester", PROJECT_ROOT / "app" / "streamlit" / "menu_tester.py", 8503, open_on_ready=True),
+    StreamlitApp("Dashboard", PROJECT_ROOT / "Dashboard" / "visualizador_execucao.py", 8504),
+    StreamlitApp("Painel de Logs", PROJECT_ROOT / "Dashboard" / "painel_logs_radio.py", 8505),
+    StreamlitApp("Controle de Falhas", PROJECT_ROOT / "Dashboard" / "controle_falhas.py", 8506),
 ]
 LOCK_PATH = PROJECT_ROOT / ".streamlit" / "dev_streamlit_watcher.lock"
 
@@ -195,6 +199,8 @@ def _wait_for_port(port: int, timeout_s: float = STARTUP_TIMEOUT_S) -> bool:
 
 def _open_initial_urls() -> None:
     for app in APPS:
+        if not app.open_on_ready:
+            continue
         if _wait_for_port(app.port):
             try:
                 webbrowser.open_new_tab(f"http://localhost:{app.port}")

@@ -4,15 +4,28 @@ import subprocess
 import sys
 import time
 import webbrowser
+from dataclasses import dataclass
 from pathlib import Path
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-PORTS = (8502, 8503)
+
+
+@dataclass(frozen=True)
+class StreamlitApp:
+    script_path: Path
+    port: int
+    open_on_ready: bool = False
+
+
 APPS = (
-    PROJECT_ROOT / "app" / "streamlit" / "menu_chat.py",
-    PROJECT_ROOT / "app" / "streamlit" / "menu_tester.py",
+    StreamlitApp(PROJECT_ROOT / "app" / "streamlit" / "menu_chat.py", 8502, open_on_ready=True),
+    StreamlitApp(PROJECT_ROOT / "app" / "streamlit" / "menu_tester.py", 8503, open_on_ready=True),
+    StreamlitApp(PROJECT_ROOT / "Dashboard" / "visualizador_execucao.py", 8504),
+    StreamlitApp(PROJECT_ROOT / "Dashboard" / "painel_logs_radio.py", 8505),
+    StreamlitApp(PROJECT_ROOT / "Dashboard" / "controle_falhas.py", 8506),
 )
+PORTS = tuple(app.port for app in APPS)
 
 
 def _build_env() -> dict[str, str]:
@@ -107,13 +120,15 @@ def _wait_for_port(port: int, timeout_s: float = 45.0) -> bool:
 
 def main() -> None:
     _kill_existing_ports()
-    for script_path, port in zip(APPS, PORTS, strict=True):
-        _start_streamlit(script_path, port)
+    for app in APPS:
+        _start_streamlit(app.script_path, app.port)
 
-    for port in PORTS:
-        if _wait_for_port(port):
+    for app in APPS:
+        if not app.open_on_ready:
+            continue
+        if _wait_for_port(app.port):
             try:
-                webbrowser.open_new_tab(f"http://localhost:{port}")
+                webbrowser.open_new_tab(f"http://localhost:{app.port}")
             except Exception:
                 pass
 

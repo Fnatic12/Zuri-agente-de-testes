@@ -66,9 +66,22 @@ def _guess_status_payload(test_path: Path) -> dict[str, Any]:
     candidates = sorted(test_path.glob("status_*.json"))
     if not candidates:
         return {}
-    payload = _load_optional_json(candidates[0])
+    raw_payload = _load_optional_json(candidates[0])
+    serial = candidates[0].stem.replace("status_", "", 1)
+
+    payload: dict[str, Any] = {}
+    nested = raw_payload.get(serial) if isinstance(raw_payload, dict) else None
+    if isinstance(nested, dict):
+        payload.update(nested)
+
+    if isinstance(raw_payload, dict):
+        for key, value in raw_payload.items():
+            if isinstance(value, dict):
+                continue
+            payload.setdefault(key, value)
+
     payload.setdefault("_source_file", str(candidates[0]))
-    payload.setdefault("serial", candidates[0].stem.replace("status_", "", 1))
+    payload.setdefault("serial", serial)
     return payload
 
 
@@ -116,6 +129,61 @@ def _build_actual_results(failed_steps: list[dict[str, Any]]) -> str:
     return "\n".join(lines)
 
 
+def _build_dashboard_summary(
+    events: list[dict[str, Any]],
+    failed_steps: list[dict[str, Any]],
+    status_payload: dict[str, Any],
+) -> dict[str, Any]:
+    total_actions = len(events)
+    failed_actions = len(failed_steps)
+    passed_actions = max(0, total_actions - failed_actions)
+
+    similarities = []
+    for event in events:
+        try:
+            similarities.append(float(event.get("similaridade", 0.0) or 0.0))
+        except Exception:
+            continue
+
+    average_similarity = round(sum(similarities) / len(similarities), 4) if similarities else 0.0
+    return {
+        "total_actions": total_actions,
+        "passed_actions": passed_actions,
+        "failed_actions": failed_actions,
+        "average_similarity": average_similarity,
+        "resultado_final": _fix_text(status_payload.get("resultado_final") or "reprovado").lower(),
+        "log_capture_status": _fix_text(status_payload.get("log_capture_status") or "nao_necessario").lower(),
+    }
+
+
+def _build_test_result(
+    failed_steps: list[dict[str, Any]],
+    dashboard_summary: dict[str, Any],
+) -> str:
+    first_failure = failed_steps[0]
+    return (
+        f"Teste reprovado com {dashboard_summary['failed_actions']} divergencia(s) visual(is) "
+        f"em {dashboard_summary['total_actions']} acao(oes). "
+        f"A primeira falha ocorreu na acao {first_failure['action_id']} "
+        f"({first_failure['action_type']}) com similaridade {first_failure['similarity']:.3f}."
+    )
+
+
+def _build_expected_result(
+    failed_steps: list[dict[str, Any]],
+    similarity_threshold: float,
+) -> str:
+    expected_steps = [
+        f"Acao {step['action_id']} deveria concluir com status OK usando o baseline {step['expected_screenshot']}."
+        for step in failed_steps
+    ]
+    return (
+        f"O teste deveria terminar aprovado, sem divergencias visuais, "
+        f"com similaridade minima de {similarity_threshold:.2f} em cada validacao comparada.\n"
+        + "\n".join(expected_steps)
+    )
+
+
 def _build_occurrence_rate(context: dict[str, Any]) -> dict[str, Any]:
     if context.get("occurrence_rate"):
         return context["occurrence_rate"]
@@ -149,13 +217,64 @@ def _build_version_information(context: dict[str, Any], status_payload: dict[str
     }
 
 
+def _relative_file_list(root_dir: Path, limit: int = 40) -> list[str]:
+    if not root_dir.exists() or not root_dir.is_dir():
+        return []
+    files: list[str] = []
+    for path in sorted(root_dir.rglob("*")):
+        if not path.is_file():
+            continue
+        files.append(str(path.relative_to(root_dir)).replace("\\", "/"))
+        if len(files) >= limit:
+            break
+    return files
+
+
+def _build_radio_log(test_path: Path, status_payload: dict[str, Any]) -> dict[str, Any]:
+    capture_status = _fix_text(status_payload.get("log_capture_status") or "nao_necessario").lower()
+    capture_dir_rel = _fix_text(status_payload.get("log_capture_dir"))
+    capture_error = _fix_text(status_payload.get("log_capture_error"))
+    capture_sequence = _fix_text(status_payload.get("log_capture_sequence"))
+
+    capture_dir = test_path / capture_dir_rel if capture_dir_rel else None
+    metadata_path = capture_dir / "capture_metadata.json" if capture_dir else None
+    metadata = _load_optional_json(metadata_path) if metadata_path else {}
+    files = _relative_file_list(capture_dir) if capture_dir else []
+
+    if capture_dir and capture_dir.exists():
+        summary = (
+            f"Captura de logs finalizada com status '{capture_status}' em {capture_dir}. "
+            f"Foram indexados {len(files)} arquivo(s) principais para a falha."
+        )
+    elif capture_status == "nao_necessario":
+        summary = "Nenhuma captura de logs foi necessaria para esta execucao."
+    else:
+        summary = (
+            f"Captura de logs registrada com status '{capture_status}', "
+            f"mas a pasta de artefatos nao foi localizada."
+        )
+
+    return {
+        "status": capture_status,
+        "capture_dir": str(capture_dir.resolve()) if capture_dir and capture_dir.exists() else "",
+        "capture_dir_relative": capture_dir_rel,
+        "metadata_path": str(metadata_path.resolve()) if metadata_path and metadata_path.exists() else "",
+        "sequence": capture_sequence,
+        "error": capture_error,
+        "summary": summary,
+        "metadata": metadata,
+        "files": files,
+    }
+
+
 def build_failure_report(
     category: str,
     test_name: str,
     log_path: Path,
     similarity_threshold: float = 0.85,
 ) -> dict[str, Any] | None:
-    events = load_json(log_path)
+    raw_events = load_json(log_path)
+    events = raw_events.get("execucao") if isinstance(raw_events, dict) else raw_events
     if not isinstance(events, list) or not events:
         return None
 
@@ -195,6 +314,10 @@ def build_failure_report(
     first_failure = failed_steps[0]
     report_time = datetime.now().isoformat()
     operation_steps = _build_operation_steps(events)
+    dashboard_summary = _build_dashboard_summary(events, failed_steps, status_payload)
+    test_result = _build_test_result(failed_steps, dashboard_summary)
+    expected_result = _build_expected_result(failed_steps, similarity_threshold)
+    radio_log = _build_radio_log(test_path, status_payload)
 
     report = {
         "schema_version": "1.0",
@@ -213,10 +336,14 @@ def build_failure_report(
             "first_failed_action_id": first_failure["action_id"],
             "first_failed_similarity": first_failure["similarity"],
         },
+        "dashboard_summary": dashboard_summary,
         "precondition": _build_precondition(category, test_name, test_meta, context | status_payload),
         "short_text": _build_short_text(category, test_name, failed_steps),
         "operation_steps": operation_steps,
+        "test_result": test_result,
+        "expected_result": expected_result,
         "actual_results": _build_actual_results(failed_steps),
+        "radio_log": radio_log,
         "occurrence_rate": _build_occurrence_rate(context),
         "recovery_conditions": _build_recovery_conditions(context),
         "bug_occurrence_time": {
@@ -228,6 +355,7 @@ def build_failure_report(
             "failed_screenshots": [step["actual_screenshot"] for step in failed_steps],
             "expected_screenshots": [step["expected_screenshot"] for step in failed_steps],
             "result_image": str((test_path / "resultado_final.png").resolve()),
+            "radio_log_dir": radio_log["capture_dir"],
         },
         "failed_steps": failed_steps,
         "source_files": {
