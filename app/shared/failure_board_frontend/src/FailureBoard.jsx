@@ -20,6 +20,11 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+const PREMIUM_DROP_ANIMATION = {
+  duration: 220,
+  easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+};
+
 function deepCloneContainers(items) {
   return (items || []).map((container) => ({
     ...container,
@@ -321,7 +326,7 @@ function FailureBoardComponent(props) {
             />
           ))}
         </div>
-        <DragOverlay>
+        <DragOverlay dropAnimation={PREMIUM_DROP_ANIMATION}>
           {activeItem ? (
             <div className="failure-card dragging overlay">
               <div className="failure-card-top">

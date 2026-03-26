@@ -22,6 +22,22 @@ if not exist "%REQ_FILE%" (
     goto :fail
 )
 
+if exist "%VENV_PY%" (
+    call :venv_python_ok
+    if errorlevel 1 (
+        echo [VWAIT] .venv encontrada, mas o Python dela esta invalido ou orfao.
+        echo [VWAIT] Removendo .venv para recriar com um Python valido...
+        rmdir /s /q "%VENV_DIR%" >nul 2>nul
+        if exist "%VENV_DIR%" (
+            echo [VWAIT] Nao foi possivel remover a .venv antiga.
+            echo [VWAIT] Feche terminais, editores ou processos que possam estar usando o ambiente.
+            goto :fail
+        )
+    ) else (
+        echo [VWAIT] .venv ja existe e esta valida.
+    )
+)
+
 if not exist "%VENV_PY%" (
     echo [VWAIT] Criando ambiente virtual em .venv...
     if /i "%PYTHON_KIND%"=="launcher" (
@@ -33,8 +49,6 @@ if not exist "%VENV_PY%" (
         echo [VWAIT] Falha ao criar .venv.
         goto :fail
     )
-) else (
-    echo [VWAIT] .venv ja existe.
 )
 
 echo [VWAIT] Atualizando pip...
@@ -62,22 +76,33 @@ goto :end
 :resolve_python
 where py >nul 2>nul
 if not errorlevel 1 (
-    set "PYTHON_KIND=launcher"
-    exit /b 0
+    py -3 -c "import sys; print(sys.executable)" >nul 2>nul
+    if not errorlevel 1 (
+        set "PYTHON_KIND=launcher"
+        exit /b 0
+    )
 )
 
 where python >nul 2>nul
 if not errorlevel 1 (
     for /f "delims=" %%I in ('where python') do (
-        set "PYTHON_KIND=path"
-        set "PYTHON_EXE=%%~fI"
-        exit /b 0
+        "%%~fI" -c "import sys; print(sys.executable)" >nul 2>nul
+        if not errorlevel 1 (
+            set "PYTHON_KIND=path"
+            set "PYTHON_EXE=%%~fI"
+            exit /b 0
+        )
     )
 )
 
-echo [VWAIT] Python 3 nao encontrado.
-echo [VWAIT] Instale o Python 3.11+ e marque a opcao Add Python to PATH.
+echo [VWAIT] Python 3 nao encontrado ou esta quebrado neste Windows.
+echo [VWAIT] Instale ou repare o Python 3.11+ e marque a opcao Add Python to PATH.
 exit /b 1
+
+:venv_python_ok
+if not exist "%VENV_PY%" exit /b 1
+"%VENV_PY%" -c "import sys; print(sys.executable)" >nul 2>nul
+exit /b %ERRORLEVEL%
 
 :ensure_adb
 if defined ADB_PATH if exist "%ADB_PATH%" (

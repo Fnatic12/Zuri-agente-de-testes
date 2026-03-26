@@ -34,6 +34,41 @@ def titulo_painel(titulo: str, subtitulo: str = "") -> None:
         <style>
         :root {{
             color-scheme: dark;
+            --motion-quick: 170ms;
+            --motion-smooth: 240ms;
+            --motion-curve: cubic-bezier(0.22, 1, 0.36, 1);
+        }}
+        @keyframes panel-fade-slide {{
+            from {{
+                opacity: 0;
+                transform: translate3d(0, 10px, 0);
+            }}
+            to {{
+                opacity: 1;
+                transform: translate3d(0, 0, 0);
+            }}
+        }}
+        @keyframes modal-overlay-in {{
+            from {{
+                opacity: 0;
+                backdrop-filter: blur(0);
+                -webkit-backdrop-filter: blur(0);
+            }}
+            to {{
+                opacity: 1;
+                backdrop-filter: blur(6px);
+                -webkit-backdrop-filter: blur(6px);
+            }}
+        }}
+        @keyframes modal-surface-in {{
+            from {{
+                opacity: 0;
+                transform: translate3d(0, 14px, 0) scale(0.985);
+            }}
+            to {{
+                opacity: 1;
+                transform: translate3d(0, 0, 0) scale(1);
+            }}
         }}
         html, body, [class*="css"]  {{
             background: #0B0C10 !important;
@@ -59,6 +94,19 @@ def titulo_painel(titulo: str, subtitulo: str = "") -> None:
         .block-container {{
             padding-top: 1.1rem;
             max-width: 1320px;
+            animation: panel-fade-slide 260ms var(--motion-curve) both;
+        }}
+        section[data-testid="stSidebar"] {{
+            background: linear-gradient(180deg, rgba(12, 18, 31, 0.92), rgba(8, 12, 22, 0.94)) !important;
+            border-right: 1px solid rgba(96, 165, 250, 0.12) !important;
+            box-shadow: 18px 0 36px rgba(2, 6, 23, 0.22) !important;
+            backdrop-filter: blur(10px) saturate(124%);
+            -webkit-backdrop-filter: blur(10px) saturate(124%);
+            transition:
+                transform var(--motion-smooth) var(--motion-curve),
+                opacity var(--motion-smooth) ease,
+                box-shadow var(--motion-smooth) ease,
+                border-color var(--motion-smooth) ease;
         }}
         .main-title {{
             font-size: 2.05rem;
@@ -89,7 +137,12 @@ def titulo_painel(titulo: str, subtitulo: str = "") -> None:
             box-shadow: 0 18px 32px rgba(2, 6, 23, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(18px) saturate(150%);
             -webkit-backdrop-filter: blur(18px) saturate(150%);
-            transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 200ms ease, border-color 200ms ease;
+            transition:
+                transform var(--motion-smooth) var(--motion-curve),
+                box-shadow var(--motion-smooth) ease,
+                border-color var(--motion-smooth) ease,
+                background var(--motion-quick) ease;
+            will-change: transform, box-shadow;
         }}
         .clean-card::before {{
             content: "";
@@ -99,7 +152,7 @@ def titulo_painel(titulo: str, subtitulo: str = "") -> None:
             pointer-events: none;
         }}
         .clean-card:hover {{
-            transform: translateY(-2px);
+            transform: translate3d(0, -2px, 0);
             border-color: rgba(125, 211, 252, 0.24);
             box-shadow: 0 24px 38px rgba(2, 6, 23, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.04);
         }}
@@ -123,18 +176,43 @@ def titulo_painel(titulo: str, subtitulo: str = "") -> None:
             box-shadow: 0 12px 28px rgba(2, 6, 23, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.03) !important;
             backdrop-filter: blur(18px) saturate(140%);
             -webkit-backdrop-filter: blur(18px) saturate(140%);
-            transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+            transition:
+                transform var(--motion-quick) var(--motion-curve),
+                border-color var(--motion-quick) ease,
+                box-shadow var(--motion-quick) ease,
+                background var(--motion-quick) ease;
+        }}
+        [data-testid="stTextInputRootElement"] > div:hover,
+        [data-testid="stSelectbox"] div[data-baseweb="select"] > div:hover,
+        [data-testid="stTextArea"] textarea:hover {{
+            transform: translate3d(0, -1px, 0);
+            border-color: rgba(118, 151, 194, 0.42) !important;
         }}
         [data-testid="stTextInputRootElement"] > div:focus-within,
         [data-testid="stSelectbox"] div[data-baseweb="select"] > div:focus-within,
         [data-testid="stTextArea"] textarea:focus {{
             border-color: rgba(96, 165, 250, 0.44) !important;
             box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.14), 0 18px 34px rgba(2, 6, 23, 0.22) !important;
+            transform: translate3d(0, -1px, 0);
         }}
         [data-testid="stTextInputRootElement"] input,
         [data-testid="stTextArea"] textarea,
         [data-testid="stSelectbox"] * {{
             color: #e8edf6 !important;
+        }}
+        div[data-baseweb="popover"] > div {{
+            border-radius: 18px !important;
+            border: 1px solid rgba(96, 165, 250, 0.14) !important;
+            box-shadow: 0 24px 42px rgba(2, 6, 23, 0.28) !important;
+            backdrop-filter: blur(16px) saturate(136%);
+            -webkit-backdrop-filter: blur(16px) saturate(136%);
+            animation: panel-fade-slide 180ms var(--motion-curve) both;
+        }}
+        [data-testid="stDialog"] {{
+            background: rgba(5, 9, 18, 0.18) !important;
+            backdrop-filter: blur(6px) saturate(118%);
+            -webkit-backdrop-filter: blur(6px) saturate(118%);
+            animation: modal-overlay-in 180ms ease-out both;
         }}
         [data-testid="stDialog"] > div {{
             background: linear-gradient(180deg, rgba(14, 20, 34, 0.96), rgba(9, 14, 25, 0.94)) !important;
@@ -143,6 +221,8 @@ def titulo_painel(titulo: str, subtitulo: str = "") -> None:
             box-shadow: 0 36px 80px rgba(2, 6, 23, 0.46) !important;
             backdrop-filter: blur(24px) saturate(140%);
             -webkit-backdrop-filter: blur(24px) saturate(140%);
+            animation: modal-surface-in 240ms var(--motion-curve) both;
+            transform-origin: top center;
         }}
         [data-testid="stDialog"] [data-testid="stVerticalBlock"] {{
             gap: 0.65rem;
@@ -151,12 +231,27 @@ def titulo_painel(titulo: str, subtitulo: str = "") -> None:
         [data-testid="stForm"] button[kind="primary"] {{
             border-radius: 14px !important;
             transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 180ms ease, filter 180ms ease !important;
+            will-change: transform, box-shadow;
         }}
         [data-testid="stForm"] button[kind="secondary"]:hover,
         [data-testid="stForm"] button[kind="primary"]:hover {{
-            transform: translateY(-1px);
+            transform: translate3d(0, -1px, 0);
             box-shadow: 0 14px 24px rgba(2, 6, 23, 0.24) !important;
             filter: saturate(112%);
+        }}
+        [data-testid="stForm"] button[kind="secondary"]:active,
+        [data-testid="stForm"] button[kind="primary"]:active {{
+            transform: translate3d(0, 0, 0);
+        }}
+        @media (prefers-reduced-motion: reduce) {{
+            *,
+            *::before,
+            *::after {{
+                animation-duration: 1ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 1ms !important;
+                scroll-behavior: auto !important;
+            }}
         }}
         </style>
         <h1 class="main-title">{titulo}</h1>

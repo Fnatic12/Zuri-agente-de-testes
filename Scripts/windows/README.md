@@ -16,12 +16,14 @@ Scripts\windows\iniciar_vwait.bat
 
 O setup:
 - cria `.venv`
+- recria `.venv` quebrada ou orfa quando o Python base do Windows mudou
 - instala as dependencias do runtime
 - valida o ADB
 
 O launcher:
 - sobe `Menu Chat` em `http://localhost:8502`
 - sobe `Menu Tester` em `http://localhost:8503`
+- repara o ambiente automaticamente antes de abrir, quando possivel
 
 ## Visual QA
 

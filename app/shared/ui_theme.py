@@ -17,10 +17,31 @@ def apply_dark_background(hide_header: bool = True) -> None:
         :root {{
             --chat-sidebar-offset: 260px;
             --chat-gutter: 1rem;
+            --motion-quick: 170ms;
+            --motion-smooth: 240ms;
+            --motion-curve: cubic-bezier(0.22, 1, 0.36, 1);
             --app-bg:
                 radial-gradient(circle at 14% 8%, rgba(34, 90, 170, 0.22) 0%, rgba(34, 90, 170, 0.08) 20%, transparent 42%),
                 radial-gradient(circle at 84% 18%, rgba(24, 120, 210, 0.14) 0%, rgba(24, 120, 210, 0.05) 18%, transparent 36%),
                 linear-gradient(180deg, #07111c 0%, #050b15 42%, #03070d 100%);
+        }}
+        @keyframes ui-fade-slide {{
+            from {{
+                opacity: 0;
+                transform: translate3d(0, 10px, 0);
+            }}
+            to {{
+                opacity: 1;
+                transform: translate3d(0, 0, 0);
+            }}
+        }}
+        @keyframes ui-soft-fade {{
+            from {{
+                opacity: 0;
+            }}
+            to {{
+                opacity: 1;
+            }}
         }}
         html, body, [class*="css"] {{
             background: var(--app-bg) !important;
@@ -44,6 +65,7 @@ def apply_dark_background(hide_header: bool = True) -> None:
             background: transparent !important;
             padding-top: 0 !important;
             margin-top: 0 !important;
+            animation: ui-soft-fade 220ms ease-out both;
         }}
         [data-testid="stMain"] {{
             background: transparent !important;
@@ -51,6 +73,16 @@ def apply_dark_background(hide_header: bool = True) -> None:
         section[data-testid="stSidebar"] {{
             background: linear-gradient(180deg, #08101b 0%, #070d16 52%, #050a12 100%) !important;
             border-right: 1px solid rgba(103, 168, 255, 0.08) !important;
+            box-shadow: 20px 0 38px rgba(0, 0, 0, 0.22) !important;
+            backdrop-filter: blur(10px) saturate(122%);
+            -webkit-backdrop-filter: blur(10px) saturate(122%);
+            transition:
+                transform var(--motion-smooth) var(--motion-curve),
+                opacity var(--motion-smooth) ease,
+                box-shadow var(--motion-smooth) ease,
+                border-color var(--motion-smooth) ease,
+                background var(--motion-smooth) ease;
+            will-change: transform, opacity;
         }}
         section[data-testid="stSidebar"][aria-expanded="false"] {{
             min-width: var(--chat-sidebar-offset) !important;
@@ -63,12 +95,17 @@ def apply_dark_background(hide_header: bool = True) -> None:
             max-width: var(--chat-sidebar-offset) !important;
             width: var(--chat-sidebar-offset) !important;
             margin-left: 0 !important;
+            transition:
+                transform var(--motion-smooth) var(--motion-curve),
+                opacity var(--motion-smooth) ease,
+                width var(--motion-smooth) var(--motion-curve);
         }}
         section[data-testid="stSidebar"] > div {{
             background: transparent !important;
         }}
         [data-testid="stMainBlockContainer"] {{
             padding-top: 0.6rem !important;
+            animation: ui-fade-slide 260ms var(--motion-curve) both;
         }}
         [data-testid="stBottomBlockContainer"],
         [data-testid="stBottom"],
@@ -141,6 +178,20 @@ def apply_dark_background(hide_header: bool = True) -> None:
             max-width: 980px !important;
             margin-left: auto !important;
             margin-right: auto !important;
+            transition:
+                transform var(--motion-smooth) var(--motion-curve),
+                box-shadow var(--motion-smooth) ease,
+                border-color var(--motion-quick) ease,
+                background var(--motion-quick) ease;
+            will-change: transform, box-shadow;
+        }}
+        [data-testid="stChatInput"] form:hover,
+        [data-testid="stChatInput"] form:focus-within {{
+            transform: translate3d(0, -1px, 0);
+            border-color: rgba(120, 175, 255, 0.28) !important;
+            box-shadow: 0 18px 34px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(120, 175, 255, 0.08) !important;
+            backdrop-filter: blur(10px) saturate(122%);
+            -webkit-backdrop-filter: blur(10px) saturate(122%);
         }}
         [data-testid="stChatInput"] form > div,
         [data-testid="stChatInput"] form > div > div,
@@ -169,6 +220,23 @@ def apply_dark_background(hide_header: bool = True) -> None:
         [data-testid="stChatInput"] button svg {{
             border-radius: 999px !important;
         }}
+        button,
+        [data-baseweb="button"],
+        [data-testid="stTextInputRootElement"] > div,
+        [data-testid="stTextArea"] textarea,
+        [data-testid="stSelectbox"] div[data-baseweb="select"] > div {{
+            transition:
+                transform var(--motion-quick) var(--motion-curve),
+                box-shadow var(--motion-quick) ease,
+                border-color var(--motion-quick) ease,
+                background var(--motion-quick) ease,
+                filter var(--motion-quick) ease;
+        }}
+        [data-testid="stTextInputRootElement"] > div:hover,
+        [data-testid="stTextArea"] textarea:hover,
+        [data-testid="stSelectbox"] div[data-baseweb="select"] > div:hover {{
+            transform: translate3d(0, -1px, 0);
+        }}
         .stApp::before {{
             content: "";
             position: fixed;
@@ -195,6 +263,16 @@ def apply_dark_background(hide_header: bool = True) -> None:
             }}
             [data-testid="stMainBlockContainer"] {{
                 padding-bottom: 8.5rem !important;
+            }}
+        }}
+        @media (prefers-reduced-motion: reduce) {{
+            *,
+            *::before,
+            *::after {{
+                animation-duration: 1ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 1ms !important;
+                scroll-behavior: auto !important;
             }}
         }}
         </style>
@@ -226,7 +304,8 @@ def apply_panel_button_theme() -> None:
             line-height: 1.32;
             letter-spacing: 0.01em;
             box-shadow: 0 12px 26px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-            transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+            transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.16s ease, box-shadow 0.18s ease, background 0.16s ease, filter 0.16s ease;
+            will-change: transform, box-shadow;
         }
         div.stButton > button p {
             margin: 0;
@@ -239,14 +318,19 @@ def apply_panel_button_theme() -> None:
             max-width: none;
         }
         div.stButton > button:hover:not(:disabled) {
-            transform: translateY(-1px);
+            transform: translate3d(0, -1px, 0);
             border-color: rgba(106, 176, 255, 0.56);
             background: linear-gradient(180deg, rgba(31, 41, 58, 0.98) 0%, rgba(20, 28, 40, 1) 100%);
             box-shadow: 0 16px 30px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(106, 176, 255, 0.12);
+            filter: saturate(1.06);
         }
         div.stButton > button:focus:not(:active) {
             border-color: rgba(106, 176, 255, 0.72);
             box-shadow: 0 0 0 0.2rem rgba(72, 140, 220, 0.22), 0 16px 30px rgba(0, 0, 0, 0.28);
+        }
+        div.stButton > button:active:not(:disabled) {
+            transform: translate3d(0, 0, 0);
+            box-shadow: 0 10px 18px rgba(0, 0, 0, 0.24);
         }
         div.stButton > button:disabled {
             opacity: 0.58;

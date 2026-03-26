@@ -25,6 +25,9 @@ O setup instala as dependencias Python do runtime, mas o tester ainda precisa te
 - Python 3.11+
 - ADB (`adb.exe`)
 
+Se o Python do Windows for removido, atualizado ou movido, a `.venv` pode ficar orfa.
+Nesse caso, rode `Scripts\windows\setup_vwait.bat` novamente para o projeto recriar o ambiente.
+
 O setup aceita ADB nestes formatos:
 - `ADB_PATH` definido no Windows
 - `adb.exe` no `PATH`
