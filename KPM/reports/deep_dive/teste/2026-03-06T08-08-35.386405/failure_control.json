@@ -1,6 +1,6 @@
 {
-  "workflow_status": "novo",
-  "jira_sync_status": "nao_enviado",
+  "workflow_status": "resolvido",
+  "jira_sync_status": "enviado",
   "jira_issue_key": "",
   "jira_issue_url": "",
   "jira_issue_status": "",
@@ -9,5 +9,5 @@
   "root_cause": "",
   "notes": "",
   "created_at": "2026-03-06T08:08:35.386405",
-  "updated_at": "2026-03-20T15:14:12.300993"
+  "updated_at": "2026-03-30T14:28:29.665698"
 }

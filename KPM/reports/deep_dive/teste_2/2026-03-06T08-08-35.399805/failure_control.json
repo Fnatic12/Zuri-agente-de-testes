@@ -1,5 +1,5 @@
 {
-  "workflow_status": "enviado_para_jira",
+  "workflow_status": "resolvido",
   "jira_sync_status": "enviado",
   "jira_issue_key": "",
   "jira_issue_url": "",
@@ -9,5 +9,5 @@
   "root_cause": "",
   "notes": "",
   "created_at": "2026-03-06T08:08:35.399805",
-  "updated_at": "2026-03-20T15:03:17.550476"
+  "updated_at": "2026-03-30T14:06:43.644754"
 }

@@ -1,29 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { Streamlit, withStreamlitConnection } from "streamlit-component-lib";
-import {
-  DndContext,
-  DragOverlay,
-  KeyboardSensor,
-  MouseSensor,
-  TouchSensor,
-  closestCenter,
-  useDroppable,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  arrayMove,
-  rectSortingStrategy,
-  sortableKeyboardCoordinates,
-  useSortable,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-
-const PREMIUM_DROP_ANIMATION = {
-  duration: 220,
-  easing: "cubic-bezier(0.22, 1, 0.36, 1)",
-};
 
 function deepCloneContainers(items) {
   return (items || []).map((container) => ({
@@ -32,12 +8,17 @@ function deepCloneContainers(items) {
   }));
 }
 
-function findContainerIndex(containers, itemId) {
-  return containers.findIndex((container) => (container.items || []).some((item) => item.id === itemId));
+function findContainerId(containers, itemId) {
+  for (const container of containers || []) {
+    if ((container.items || []).some((item) => item.id === itemId)) {
+      return container.id;
+    }
+  }
+  return null;
 }
 
 function getItemById(containers, itemId) {
-  for (const container of containers) {
+  for (const container of containers || []) {
     const match = (container.items || []).find((item) => item.id === itemId);
     if (match) {
       return match;
@@ -55,14 +36,93 @@ function buildPayload(event, containers, itemId = "") {
   };
 }
 
-function BoardCard({ item, suppressClickRef, onCardClick, onClaimClick }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
+function sameDropTarget(left, right) {
+  if (!left && !right) {
+    return true;
+  }
+  if (!left || !right) {
+    return false;
+  }
+  return left.laneId === right.laneId && left.index === right.index;
+}
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
+function clampIndex(index, max) {
+  const numericIndex = Number.isFinite(index) ? Number(index) : max;
+  return Math.max(0, Math.min(max, numericIndex));
+}
 
+function moveCard(containers, itemId, targetLaneId, targetIndex) {
+  if (!itemId || !targetLaneId) {
+    return containers;
+  }
+
+  const sourceLaneId = findContainerId(containers, itemId);
+  if (!sourceLaneId) {
+    return containers;
+  }
+
+  const sourceLane = containers.find((container) => container.id === sourceLaneId);
+  const targetLane = containers.find((container) => container.id === targetLaneId);
+  if (!sourceLane || !targetLane) {
+    return containers;
+  }
+
+  const sourceItems = sourceLane.items || [];
+  const targetItems = targetLane.items || [];
+  const sourceIndex = sourceItems.findIndex((item) => item.id === itemId);
+  if (sourceIndex < 0) {
+    return containers;
+  }
+
+  let insertIndex = clampIndex(targetIndex, targetItems.length);
+  if (sourceLaneId === targetLaneId && sourceIndex < insertIndex) {
+    insertIndex -= 1;
+  }
+
+  if (sourceLaneId === targetLaneId && sourceIndex === insertIndex) {
+    return containers;
+  }
+
+  const nextContainers = deepCloneContainers(containers);
+  const nextSourceLane = nextContainers.find((container) => container.id === sourceLaneId);
+  const nextTargetLane = nextContainers.find((container) => container.id === targetLaneId);
+  if (!nextSourceLane || !nextTargetLane) {
+    return containers;
+  }
+
+  const nextSourceItems = nextSourceLane.items || [];
+  const nextSourceIndex = nextSourceItems.findIndex((item) => item.id === itemId);
+  if (nextSourceIndex < 0) {
+    return containers;
+  }
+
+  const [movedItem] = nextSourceItems.splice(nextSourceIndex, 1);
+  if (!movedItem) {
+    return containers;
+  }
+
+  const nextTargetItems = nextTargetLane.items || [];
+  const boundedIndex = clampIndex(insertIndex, nextTargetItems.length);
+  nextTargetItems.splice(boundedIndex, 0, movedItem);
+  return nextContainers;
+}
+
+function DropIndicator() {
+  return <div className="drop-indicator" aria-hidden="true" />;
+}
+
+function BoardCard({
+  item,
+  laneId,
+  index,
+  isDragSource,
+  suppressClickRef,
+  onCardClick,
+  onClaimClick,
+  onCardDragStart,
+  onCardDragEnd,
+  onCardDragOver,
+}) {
   const handleClick = () => {
     if (suppressClickRef.current) {
       return;
@@ -84,19 +144,43 @@ function BoardCard({ item, suppressClickRef, onCardClick, onClaimClick }) {
     onClaimClick(item.id);
   };
 
-  const stopDragPropagation = (event) => {
+  const stopCardDrag = (event) => {
     event.stopPropagation();
+  };
+
+  const handleDragStart = (event) => {
+    event.stopPropagation();
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", String(item.id));
+    }
+    onCardDragStart(item.id, laneId, index);
+  };
+
+  const handleDragEnd = () => {
+    onCardDragEnd();
+  };
+
+  const handleDragOver = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = "move";
+    }
+    const rect = event.currentTarget.getBoundingClientRect();
+    const shouldInsertAfter = event.clientY > rect.top + rect.height / 2;
+    onCardDragOver(laneId, shouldInsertAfter ? index + 1 : index);
   };
 
   return (
     <div
-      ref={setNodeRef}
-      className={`failure-card ${isDragging ? "dragging" : ""}`}
-      style={style}
-      {...attributes}
-      {...listeners}
+      className={`failure-card ${isDragSource ? "drag-source" : ""}`}
+      draggable
       onClick={handleClick}
       onKeyDown={handleKeyDown}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onDragOver={handleDragOver}
       role="button"
       tabIndex={0}
     >
@@ -105,8 +189,10 @@ function BoardCard({ item, suppressClickRef, onCardClick, onClaimClick }) {
         <div className="failure-card-actions">
           <button
             className={`assignee-badge ${item.assignee ? "filled" : ""}`}
+            draggable={false}
             onClick={handleClaimClick}
-            onPointerDown={stopDragPropagation}
+            onMouseDown={stopCardDrag}
+            onPointerDown={stopCardDrag}
             title={item.assignee ? `Assinado por ${item.assignee}` : "Assinar ticket"}
             type="button"
           >
@@ -125,26 +211,59 @@ function BoardCard({ item, suppressClickRef, onCardClick, onClaimClick }) {
   );
 }
 
-function Lane({ container, suppressClickRef, onCardClick, onClaimClick }) {
-  const { setNodeRef } = useDroppable({ id: container.id });
-  const itemIds = (container.items || []).map((item) => item.id);
+function Lane({
+  container,
+  activeDrag,
+  dropTarget,
+  suppressClickRef,
+  onCardClick,
+  onClaimClick,
+  onCardDragStart,
+  onCardDragEnd,
+  onLaneDragOver,
+  onLaneDrop,
+}) {
+  const items = container.items || [];
+  const isActiveTarget = activeDrag && dropTarget?.laneId === container.id;
+
+  const handleLaneDragOver = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = "move";
+    }
+    onLaneDragOver(container.id, items.length);
+  };
+
+  const handleLaneDrop = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    onLaneDrop(container.id);
+  };
 
   return (
-    <div className={`lane-shell lane-${String(container.id || "").toLowerCase()}`} ref={setNodeRef}>
+    <div className={`lane-shell lane-${String(container.id || "").toLowerCase()}`}>
       <div className={`lane-header lane-header-${String(container.id || "").toLowerCase()}`}>{container.header}</div>
-      <SortableContext items={itemIds} strategy={rectSortingStrategy}>
-        <div className="lane-body">
-          {(container.items || []).map((item) => (
+      <div className={`lane-body ${isActiveTarget ? "drag-target" : ""}`} onDragOver={handleLaneDragOver} onDrop={handleLaneDrop}>
+        {items.map((item, index) => (
+          <Fragment key={item.id}>
+            {dropTarget?.laneId === container.id && dropTarget.index === index ? <DropIndicator /> : null}
             <BoardCard
-              key={item.id}
               item={item}
+              laneId={container.id}
+              index={index}
+              isDragSource={activeDrag?.itemId === item.id}
               suppressClickRef={suppressClickRef}
               onCardClick={onCardClick}
               onClaimClick={onClaimClick}
+              onCardDragStart={onCardDragStart}
+              onCardDragEnd={onCardDragEnd}
+              onCardDragOver={onLaneDragOver}
             />
-          ))}
-        </div>
-      </SortableContext>
+          </Fragment>
+        ))}
+        {dropTarget?.laneId === container.id && dropTarget.index === items.length ? <DropIndicator /> : null}
+      </div>
     </div>
   );
 }
@@ -152,30 +271,47 @@ function Lane({ container, suppressClickRef, onCardClick, onClaimClick }) {
 function FailureBoardComponent(props) {
   const args = props?.args ?? {};
   const itemsArg = args.items ?? [];
-  const initialItems = useMemo(() => deepCloneContainers(itemsArg), [itemsArg]);
+  const itemsSignature = useMemo(() => JSON.stringify(itemsArg || []), [itemsArg]);
+  const initialItems = useMemo(() => deepCloneContainers(itemsArg), [itemsSignature]);
   const [containers, setContainers] = useState(initialItems);
-  const [activeId, setActiveId] = useState(null);
+  const [activeDrag, setActiveDrag] = useState(null);
+  const [dropTarget, setDropTarget] = useState(null);
   const rootRef = useRef(null);
   const suppressClickRef = useRef(false);
+  const committedContainersRef = useRef(initialItems);
+  const dropHandledRef = useRef(false);
+  const frameHeightRef = useRef(0);
 
   const syncFrameHeight = () => {
     window.requestAnimationFrame(() => {
-      const rootHeight = rootRef.current?.scrollHeight ?? 0;
-      const documentHeight = document.documentElement?.scrollHeight ?? 0;
-      const nextHeight = Math.max(rootHeight, documentHeight, 0) + 6;
-      if (nextHeight > 0) {
+      const rootNode = rootRef.current;
+      if (!rootNode) {
+        return;
+      }
+
+      const rootRectHeight = Math.ceil(rootNode.getBoundingClientRect?.().height ?? 0);
+      const rootScrollHeight = Math.ceil(rootNode.scrollHeight ?? 0);
+      const nextHeight = Math.max(rootRectHeight, rootScrollHeight, 0) + 4;
+
+      if (nextHeight > 0 && Math.abs(nextHeight - frameHeightRef.current) > 1) {
+        frameHeightRef.current = nextHeight;
         Streamlit.setFrameHeight(nextHeight);
       }
     });
   };
 
   useEffect(() => {
-    setContainers(deepCloneContainers(itemsArg));
-  }, [itemsArg]);
+    if (activeDrag) {
+      return;
+    }
+    const nextContainers = deepCloneContainers(itemsArg);
+    committedContainersRef.current = nextContainers;
+    setContainers(nextContainers);
+  }, [itemsSignature, itemsArg, activeDrag]);
 
   useEffect(() => {
     syncFrameHeight();
-  }, [containers, activeId]);
+  }, [containers, activeDrag, dropTarget]);
 
   useEffect(() => {
     if (!rootRef.current || typeof ResizeObserver === "undefined") {
@@ -193,17 +329,21 @@ function FailureBoardComponent(props) {
     };
   }, []);
 
-  const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-  );
-
-  const activeItem = activeId ? getItemById(containers, activeId) : null;
-
   const pushValue = (payload) => {
     Streamlit.setComponentValue(payload);
     syncFrameHeight();
+  };
+
+  const releaseClickSuppression = () => {
+    window.setTimeout(() => {
+      suppressClickRef.current = false;
+    }, 320);
+  };
+
+  const clearDragInteraction = () => {
+    setActiveDrag(null);
+    setDropTarget(null);
+    releaseClickSuppression();
   };
 
   const handleCardClick = (itemId) => {
@@ -214,138 +354,80 @@ function FailureBoardComponent(props) {
     pushValue(buildPayload("claim", containers, itemId));
   };
 
-  const handleDragStart = (event) => {
+  const handleCardDragStart = (itemId, laneId, index) => {
     suppressClickRef.current = true;
-    setActiveId(event.active.id);
+    dropHandledRef.current = false;
+    setActiveDrag({ itemId, laneId, index });
+    setDropTarget({ laneId, index });
   };
 
-  const releaseClickSuppression = () => {
+  const handleCardDragEnd = () => {
+    if (dropHandledRef.current) {
+      return;
+    }
+    setContainers(committedContainersRef.current);
+    clearDragInteraction();
+  };
+
+  const handleLaneDragOver = (laneId, index) => {
+    if (!activeDrag) {
+      return;
+    }
+    const nextTarget = { laneId, index };
+    if (!sameDropTarget(dropTarget, nextTarget)) {
+      setDropTarget(nextTarget);
+    }
+  };
+
+  const handleLaneDrop = (laneId) => {
+    if (!activeDrag) {
+      return;
+    }
+
+    dropHandledRef.current = true;
+    const fallbackLane = containers.find((container) => container.id === laneId);
+    const target = dropTarget?.laneId === laneId
+      ? dropTarget
+      : { laneId, index: (fallbackLane?.items || []).length };
+
+    const nextContainers = moveCard(
+      committedContainersRef.current,
+      activeDrag.itemId,
+      target.laneId,
+      target.index
+    );
+
+    if (nextContainers !== committedContainersRef.current) {
+      committedContainersRef.current = nextContainers;
+      setContainers(nextContainers);
+      pushValue(buildPayload("reorder", nextContainers, activeDrag.itemId));
+    }
+
+    clearDragInteraction();
     window.setTimeout(() => {
-      suppressClickRef.current = false;
-    }, 420);
-  };
-
-  const handleDragCancel = () => {
-    setActiveId(null);
-    releaseClickSuppression();
-  };
-
-  const handleDragOver = (event) => {
-    const { active, over } = event;
-    if (!over) {
-      return;
-    }
-
-    const overIsContainer = containers.some((container) => container.id === over.id);
-    const activeContainerIndex = findContainerIndex(containers, active.id);
-    const overContainerIndex = overIsContainer
-      ? containers.findIndex((container) => container.id === over.id)
-      : findContainerIndex(containers, over.id);
-
-    if (activeContainerIndex < 0 || overContainerIndex < 0 || activeContainerIndex === overContainerIndex) {
-      return;
-    }
-
-    const nextContainers = deepCloneContainers(containers);
-    const sourceItems = nextContainers[activeContainerIndex].items;
-    const activeItemIndex = sourceItems.findIndex((item) => item.id === active.id);
-    if (activeItemIndex < 0) {
-      return;
-    }
-
-    const [movedItem] = sourceItems.splice(activeItemIndex, 1);
-    const targetItems = nextContainers[overContainerIndex].items;
-
-    if (overIsContainer) {
-      targetItems.push(movedItem);
-    } else {
-      const overIndex = targetItems.findIndex((item) => item.id === over.id);
-      targetItems.splice(overIndex >= 0 ? overIndex : targetItems.length, 0, movedItem);
-    }
-
-    setContainers(nextContainers);
-  };
-
-  const handleDragEnd = (event) => {
-    const { active, over } = event;
-    setActiveId(null);
-
-    if (!over) {
-      releaseClickSuppression();
-      return;
-    }
-
-    const overIsContainer = containers.some((container) => container.id === over.id);
-    const activeContainerIndex = findContainerIndex(containers, active.id);
-    const overContainerIndex = overIsContainer
-      ? containers.findIndex((container) => container.id === over.id)
-      : findContainerIndex(containers, over.id);
-
-    if (activeContainerIndex < 0 || overContainerIndex < 0) {
-      releaseClickSuppression();
-      return;
-    }
-
-    const nextContainers = deepCloneContainers(containers);
-
-    if (activeContainerIndex === overContainerIndex && !overIsContainer) {
-      const activeIndex = nextContainers[activeContainerIndex].items.findIndex((item) => item.id === active.id);
-      const overIndex = nextContainers[overContainerIndex].items.findIndex((item) => item.id === over.id);
-      if (activeIndex >= 0 && overIndex >= 0 && activeIndex !== overIndex) {
-        nextContainers[activeContainerIndex].items = arrayMove(
-          nextContainers[activeContainerIndex].items,
-          activeIndex,
-          overIndex
-        );
-      }
-    }
-
-    setContainers(nextContainers);
-    pushValue(buildPayload("reorder", nextContainers, active.id));
-    releaseClickSuppression();
+      dropHandledRef.current = false;
+    }, 0);
   };
 
   return (
     <div className="board-root" ref={rootRef}>
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-        onDragCancel={handleDragCancel}
-      >
-        <div className="board-grid">
-          {containers.map((container) => (
-            <Lane
-              key={container.id}
-              container={container}
-              suppressClickRef={suppressClickRef}
-              onCardClick={handleCardClick}
-              onClaimClick={handleClaimClick}
-            />
-          ))}
-        </div>
-        <DragOverlay dropAnimation={PREMIUM_DROP_ANIMATION}>
-          {activeItem ? (
-            <div className="failure-card dragging overlay">
-              <div className="failure-card-top">
-                <div className="failure-card-title">{activeItem.title}</div>
-                <div className="failure-card-actions">
-                <div className={`assignee-badge ${activeItem.assignee ? "filled" : ""}`}>
-                  {activeItem.assigneeInitials || "+"}
-                </div>
-                <div className="drag-handle">::</div>
-                </div>
-              </div>
-              <div className="failure-card-content static">
-                <div className="failure-card-summary">{activeItem.summary}</div>
-                <div className="failure-card-meta">{activeItem.meta}</div>
-              </div>
-            </div>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+      <div className="board-grid">
+        {containers.map((container) => (
+          <Lane
+            key={container.id}
+            container={container}
+            activeDrag={activeDrag}
+            dropTarget={dropTarget}
+            suppressClickRef={suppressClickRef}
+            onCardClick={handleCardClick}
+            onClaimClick={handleClaimClick}
+            onCardDragStart={handleCardDragStart}
+            onCardDragEnd={handleCardDragEnd}
+            onLaneDragOver={handleLaneDragOver}
+            onLaneDrop={handleLaneDrop}
+          />
+        ))}
+      </div>
     </div>
   );
 }

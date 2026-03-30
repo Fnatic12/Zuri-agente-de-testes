@@ -25,12 +25,98 @@ JIRA_SYNC_STATUS_OPTIONS = (
     "erro",
 )
 PRIORITY_OPTIONS = ("baixa", "media", "alta", "critica")
+_RESOLVED_ISSUE_STATUS_MARKERS = (
+    "done",
+    "closed",
+    "resolved",
+    "resolvido",
+    "fechado",
+    "encerrado",
+    "concluido",
+    "concluído",
+    "homologado",
+    "finalizado",
+)
+_DISCARDED_ISSUE_STATUS_MARKERS = (
+    "descartado",
+    "cancelado",
+    "cancelled",
+    "duplicado",
+    "duplicate",
+    "won't fix",
+    "wont fix",
+    "won't do",
+    "wont do",
+    "rejected",
+    "rejeitado",
+    "invalid",
+    "inválido",
+)
 
 
 def _clean_text(value: Any) -> str:
     if value is None:
         return ""
     return str(value).strip()
+
+
+def _normalize_status_token(value: Any) -> str:
+    text = _clean_text(value).lower()
+    text = text.replace("_", " ").replace("-", " ")
+    return " ".join(text.split())
+
+
+def _classify_issue_status(value: Any) -> str:
+    token = _normalize_status_token(value)
+    if not token:
+        return ""
+    if any(marker in token for marker in _DISCARDED_ISSUE_STATUS_MARKERS):
+        return "discarded"
+    if any(marker in token for marker in _RESOLVED_ISSUE_STATUS_MARKERS):
+        return "resolved"
+    return "opened"
+
+
+def _derive_tracking_statuses(merged: dict[str, Any], base: dict[str, Any]) -> None:
+    workflow_status = _clean_text(merged.get("workflow_status")).lower()
+    jira_sync_status = _clean_text(merged.get("jira_sync_status")).lower()
+    jira_issue_key = _clean_text(merged.get("jira_issue_key"))
+    jira_issue_url = _clean_text(merged.get("jira_issue_url"))
+    jira_issue_status = _clean_text(merged.get("jira_issue_status"))
+
+    issue_status_bucket = _classify_issue_status(jira_issue_status)
+    has_opened_ticket = bool(jira_issue_key or jira_issue_url or issue_status_bucket)
+
+    if issue_status_bucket == "discarded":
+        merged["workflow_status"] = "descartado"
+        merged["jira_sync_status"] = "enviado"
+        return
+
+    if issue_status_bucket == "resolved":
+        merged["workflow_status"] = "resolvido"
+        merged["jira_sync_status"] = "enviado"
+        return
+
+    if has_opened_ticket:
+        merged["jira_sync_status"] = "enviado"
+        if workflow_status in {
+            "",
+            base["workflow_status"],
+            "novo",
+            "triagem",
+            "pronto_para_jira",
+        }:
+            merged["workflow_status"] = "enviado_para_jira"
+        return
+
+    if jira_sync_status == "enviado" and workflow_status in {
+        "",
+        base["workflow_status"],
+        "novo",
+        "triagem",
+        "pronto_para_jira",
+    }:
+        merged["workflow_status"] = "enviado_para_jira"
 
 
 def _load_optional_json(path: Path) -> dict[str, Any]:
@@ -97,6 +183,8 @@ def normalize_failure_control(payload: dict[str, Any], report: dict[str, Any]) -
         "updated_at",
     ):
         merged[key] = _clean_text(merged.get(key))
+
+    _derive_tracking_statuses(merged, base)
 
     if not merged["created_at"]:
         merged["created_at"] = base["created_at"]

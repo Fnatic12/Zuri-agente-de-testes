@@ -76,3 +76,53 @@ def test_update_failure_control_persists_user_tracking_fields(tmp_path):
     records = list_failure_records(tmp_path)
     assert records[0]["jira_issue_key"] == "QA-123"
     assert records[0]["workflow_status"] == "enviado_para_jira"
+
+
+def test_list_failure_records_infers_sent_lane_from_opened_jira_ticket(tmp_path):
+    report_dir = tmp_path / "hmi" / "teste_c" / "2026-03-30T09-00-00"
+    report = {
+        "generated_at": "2026-03-30T09:00:00",
+        "short_text": "Falha com ticket aberto automaticamente.",
+        "test": {"category": "hmi", "name": "teste_c", "test_dir": str(tmp_path / "Data" / "hmi" / "teste_c")},
+    }
+    _write_json(report_dir / "failure_report.json", report)
+    _write_json(
+        report_dir / CONTROL_FILENAME,
+        {
+            "workflow_status": "novo",
+            "jira_sync_status": "nao_enviado",
+            "jira_issue_key": "AUTO-321",
+            "jira_issue_url": "https://jira.exemplo.local/browse/AUTO-321",
+            "jira_issue_status": "To Do",
+        },
+    )
+
+    records = list_failure_records(tmp_path)
+
+    assert records[0]["jira_issue_key"] == "AUTO-321"
+    assert records[0]["jira_sync_status"] == "enviado"
+    assert records[0]["workflow_status"] == "enviado_para_jira"
+
+
+def test_list_failure_records_infers_resolved_lane_from_issue_status(tmp_path):
+    report_dir = tmp_path / "radio" / "teste_d" / "2026-03-30T10-00-00"
+    report = {
+        "generated_at": "2026-03-30T10:00:00",
+        "short_text": "Falha resolvida no Jira.",
+        "test": {"category": "radio", "name": "teste_d", "test_dir": str(tmp_path / "Data" / "radio" / "teste_d")},
+    }
+    _write_json(report_dir / "failure_report.json", report)
+    _write_json(
+        report_dir / CONTROL_FILENAME,
+        {
+            "workflow_status": "enviado_para_jira",
+            "jira_sync_status": "enviado",
+            "jira_issue_key": "AUTO-654",
+            "jira_issue_status": "Done",
+        },
+    )
+
+    records = list_failure_records(tmp_path)
+
+    assert records[0]["jira_sync_status"] == "enviado"
+    assert records[0]["workflow_status"] == "resolvido"

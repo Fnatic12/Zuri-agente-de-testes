@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 import os
+from datetime import datetime, timezone
+from io import BytesIO
 from typing import Any
+from xml.sax.saxutils import escape
+from zipfile import ZIP_DEFLATED, ZipFile
 
 import streamlit as st
 
@@ -20,6 +24,24 @@ LANE_NEW = "Novas"
 LANE_SENT = "Enviadas"
 LANE_RESOLVED = "Resolvidas"
 LANES = (LANE_NEW, LANE_SENT, LANE_RESOLVED)
+EXPORT_HEADERS = (
+    "Record ID",
+    "Coluna",
+    "Categoria",
+    "Teste",
+    "Resumo",
+    "Workflow",
+    "Sync Jira",
+    "Issue",
+    "Status issue",
+    "Responsavel",
+    "Prioridade",
+    "Resultado final",
+    "Status logs",
+    "Gerado em",
+    "Atualizado em",
+    "URL issue",
+)
 
 
 def apply_panel_button_theme() -> None:
@@ -276,9 +298,14 @@ def _kpi_card(label: str, value: str) -> None:
 def _lane_from_record(record: dict[str, Any]) -> str:
     workflow = str(record.get("workflow_status") or "").strip().lower()
     jira_sync = str(record.get("jira_sync_status") or "").strip().lower()
+    jira_issue_key = str(record.get("jira_issue_key") or "").strip()
+    jira_issue_url = str(record.get("jira_issue_url") or "").strip()
+    jira_issue_status = str(record.get("jira_issue_status") or "").strip()
     if workflow in {"resolvido", "descartado"}:
         return LANE_RESOLVED
-    if workflow == "enviado_para_jira" or jira_sync == "enviado":
+    if workflow in {"enviado_para_jira", "em_correcao"}:
+        return LANE_SENT
+    if jira_sync == "enviado" or jira_issue_key or jira_issue_url or jira_issue_status:
         return LANE_SENT
     return LANE_NEW
 
@@ -370,6 +397,164 @@ def _build_board_payload(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
         {"id": lane, "header": lane, "items": lane_groups[lane]}
         for lane in LANES
     ]
+
+
+def _ticket_export_rows(records: list[dict[str, Any]]) -> list[list[str]]:
+    rows: list[list[str]] = []
+    for record in records:
+        rows.append(
+            [
+                str(record.get("record_id") or ""),
+                _lane_from_record(record),
+                str(record.get("category") or ""),
+                str(record.get("test_name") or ""),
+                str(record.get("short_text") or ""),
+                str(record.get("workflow_status") or ""),
+                str(record.get("jira_sync_status") or ""),
+                str(record.get("jira_issue_key") or ""),
+                str(record.get("jira_issue_status") or ""),
+                str(record.get("assignee") or ""),
+                str(record.get("priority") or ""),
+                str(record.get("resultado_final") or ""),
+                str(record.get("log_capture_status") or ""),
+                _compact_timestamp(record.get("generated_at")),
+                _compact_timestamp(record.get("updated_at")),
+                str(record.get("jira_issue_url") or ""),
+            ]
+        )
+    return rows
+
+
+def _excel_column_name(column_number: int) -> str:
+    label = ""
+    current = max(1, int(column_number))
+    while current:
+        current, remainder = divmod(current - 1, 26)
+        label = chr(65 + remainder) + label
+    return label
+
+
+def _xlsx_inline_cell(cell_ref: str, value: Any) -> str:
+    raw_text = str(value or "")
+    clean_text = "".join(ch for ch in raw_text if ch in ("\n", "\t") or ord(ch) >= 32)
+    preserve_attr = ' xml:space="preserve"' if clean_text != clean_text.strip() or "\n" in clean_text else ""
+    return (
+        f'<c r="{cell_ref}" t="inlineStr">'
+        f"<is><t{preserve_attr}>{escape(clean_text)}</t></is>"
+        "</c>"
+    )
+
+
+def _xlsx_row(row_number: int, values: list[Any]) -> str:
+    cells = [
+        _xlsx_inline_cell(f"{_excel_column_name(column_index)}{row_number}", value)
+        for column_index, value in enumerate(values, start=1)
+    ]
+    return f'<row r="{row_number}">{"".join(cells)}</row>'
+
+
+def _build_status_workbook(records: list[dict[str, Any]]) -> bytes:
+    rows = [list(EXPORT_HEADERS), *_ticket_export_rows(records)]
+    last_col = _excel_column_name(len(EXPORT_HEADERS))
+    last_row = max(1, len(rows))
+    sheet_ref = f"A1:{last_col}{last_row}"
+    sheet_data = "".join(_xlsx_row(row_number, row_values) for row_number, row_values in enumerate(rows, start=1))
+    stamp = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+    worksheet_xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+        f'<dimension ref="{sheet_ref}"/>'
+        '<sheetViews><sheetView workbookViewId="0">'
+        '<pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/>'
+        "</sheetView></sheetViews>"
+        '<sheetFormatPr defaultRowHeight="18"/>'
+        f"<sheetData>{sheet_data}</sheetData>"
+        f'<autoFilter ref="{sheet_ref}"/>'
+        "</worksheet>"
+    )
+    workbook_xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
+        'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+        '<sheets><sheet name="Tickets" sheetId="1" r:id="rId1"/></sheets>'
+        "</workbook>"
+    )
+    styles_xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+        '<fonts count="1"><font><sz val="11"/><name val="Calibri"/><family val="2"/></font></fonts>'
+        '<fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>'
+        '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'
+        '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+        '<cellXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/></cellXfs>'
+        '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>'
+        "</styleSheet>"
+    )
+    content_types_xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+        '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+        '<Default Extension="xml" ContentType="application/xml"/>'
+        '<Override PartName="/xl/workbook.xml" '
+        'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+        '<Override PartName="/xl/worksheets/sheet1.xml" '
+        'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+        '<Override PartName="/xl/styles.xml" '
+        'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'
+        '<Override PartName="/docProps/core.xml" '
+        'ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>'
+        '<Override PartName="/docProps/app.xml" '
+        'ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>'
+        "</Types>"
+    )
+    root_rels_xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'
+        '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/>'
+        '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/>'
+        "</Relationships>"
+    )
+    workbook_rels_xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'
+        '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'
+        "</Relationships>"
+    )
+    app_xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" '
+        'xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes">'
+        "<Application>VWAIT</Application>"
+        "</Properties>"
+    )
+    core_xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" '
+        'xmlns:dc="http://purl.org/dc/elements/1.1/" '
+        'xmlns:dcterms="http://purl.org/dc/terms/" '
+        'xmlns:dcmitype="http://purl.org/dc/dcmitype/" '
+        'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'
+        "<dc:creator>VWAIT</dc:creator>"
+        "<cp:lastModifiedBy>VWAIT</cp:lastModifiedBy>"
+        f'<dcterms:created xsi:type="dcterms:W3CDTF">{stamp}</dcterms:created>'
+        f'<dcterms:modified xsi:type="dcterms:W3CDTF">{stamp}</dcterms:modified>'
+        "</cp:coreProperties>"
+    )
+
+    output = BytesIO()
+    with ZipFile(output, "w", compression=ZIP_DEFLATED) as workbook:
+        workbook.writestr("[Content_Types].xml", content_types_xml)
+        workbook.writestr("_rels/.rels", root_rels_xml)
+        workbook.writestr("docProps/app.xml", app_xml)
+        workbook.writestr("docProps/core.xml", core_xml)
+        workbook.writestr("xl/workbook.xml", workbook_xml)
+        workbook.writestr("xl/_rels/workbook.xml.rels", workbook_rels_xml)
+        workbook.writestr("xl/styles.xml", styles_xml)
+        workbook.writestr("xl/worksheets/sheet1.xml", worksheet_xml)
+    return output.getvalue()
 
 
 def _persist_board_changes(
@@ -540,6 +725,14 @@ def main() -> None:
 
     st.caption(
         "Clique e arraste o card para mover a falha, clique no card para editar e use a bolinha para assinar o ticket."
+    )
+    export_filename = f"controle_falhas_status_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    st.download_button(
+        "Extrair status em Excel",
+        data=_build_status_workbook(filtered),
+        file_name=export_filename,
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        help="Exporta os tickets visiveis na busca atual com a coluna e os status associados.",
     )
     board_payload = _build_board_payload(filtered)
     event = render_failure_board(board_payload, key="failure_control_board")
