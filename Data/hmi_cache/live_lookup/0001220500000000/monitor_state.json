@@ -1,0 +1,10 @@
+{
+  "pid": 16164,
+  "serial": "0001220500000000",
+  "started_at": "2026-04-02T15:22:13.539825",
+  "output_dir": "C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\hmi_cache\\live_lookup\\0001220500000000\\screenshots",
+  "index_path": "C:\\Users\\Automation01\\Desktop\\zuri_agente\\Data\\hmi_cache\\biblioteca_hmi.json",
+  "monitor_mode": "host_click",
+  "target_width": 1600,
+  "target_height": 900
+}

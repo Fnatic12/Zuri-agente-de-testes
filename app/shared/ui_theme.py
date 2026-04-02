@@ -16,6 +16,7 @@ def apply_dark_background(hide_header: bool = True) -> None:
         <style>
         :root {{
             --chat-sidebar-offset: 260px;
+            --chat-sidebar-collapsed-width: 2.75rem;
             --chat-gutter: 1rem;
             --motion-quick: 170ms;
             --motion-smooth: 240ms;
@@ -78,6 +79,7 @@ def apply_dark_background(hide_header: bool = True) -> None:
             -webkit-backdrop-filter: blur(10px) saturate(122%);
             transition:
                 transform var(--motion-smooth) var(--motion-curve),
+                width var(--motion-smooth) var(--motion-curve),
                 opacity var(--motion-smooth) ease,
                 box-shadow var(--motion-smooth) ease,
                 border-color var(--motion-smooth) ease,
@@ -85,20 +87,63 @@ def apply_dark_background(hide_header: bool = True) -> None:
             will-change: transform, opacity;
         }}
         section[data-testid="stSidebar"][aria-expanded="false"] {{
-            min-width: var(--chat-sidebar-offset) !important;
-            max-width: var(--chat-sidebar-offset) !important;
+            min-width: var(--chat-sidebar-collapsed-width) !important;
+            max-width: var(--chat-sidebar-collapsed-width) !important;
+            width: var(--chat-sidebar-collapsed-width) !important;
             transform: translateX(0) !important;
             margin-left: 0 !important;
+            background: transparent !important;
+            border-right-color: transparent !important;
+            box-shadow: none !important;
+            opacity: 1 !important;
+            overflow: hidden !important;
         }}
         section[data-testid="stSidebar"][aria-expanded="false"] > div:first-child {{
-            min-width: var(--chat-sidebar-offset) !important;
-            max-width: var(--chat-sidebar-offset) !important;
-            width: var(--chat-sidebar-offset) !important;
+            min-width: var(--chat-sidebar-collapsed-width) !important;
+            max-width: var(--chat-sidebar-collapsed-width) !important;
+            width: var(--chat-sidebar-collapsed-width) !important;
             margin-left: 0 !important;
+            opacity: 1 !important;
+            overflow: hidden !important;
             transition:
                 transform var(--motion-smooth) var(--motion-curve),
                 opacity var(--motion-smooth) ease,
                 width var(--motion-smooth) var(--motion-curve);
+        }}
+        section[data-testid="stSidebar"][aria-expanded="false"] [data-testid="stSidebarContent"] > *:not([data-testid="stSidebarHeader"]) {{
+            display: none !important;
+        }}
+        section[data-testid="stSidebar"][aria-expanded="false"] [data-testid="stSidebarHeader"] {{
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            padding: 0.35rem 0 !important;
+            min-height: 3rem !important;
+            background: transparent !important;
+        }}
+        section[data-testid="stSidebar"][aria-expanded="false"] [data-testid="stSidebarHeader"] > *:not([data-testid="stSidebarCollapseButton"]) {{
+            display: none !important;
+        }}
+        section[data-testid="stSidebar"][aria-expanded="false"] [data-testid="stSidebarCollapseButton"] {{
+            display: flex !important;
+            justify-content: center !important;
+            width: 100% !important;
+        }}
+        section[data-testid="stSidebar"][aria-expanded="false"] [data-testid="stSidebarCollapseButton"] button {{
+            width: 2.25rem !important;
+            min-width: 2.25rem !important;
+            height: 2.25rem !important;
+            min-height: 2.25rem !important;
+            padding: 0 !important;
+            border-radius: 999px !important;
+            background: rgba(8, 16, 27, 0.82) !important;
+            border: 1px solid rgba(103, 168, 255, 0.16) !important;
+            box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22) !important;
+            transform: rotate(180deg) !important;
+        }}
+        section[data-testid="stSidebar"][aria-expanded="false"] [data-testid="stSidebarCollapseButton"] button:hover {{
+            background: rgba(14, 24, 38, 0.92) !important;
+            border-color: rgba(120, 175, 255, 0.28) !important;
         }}
         section[data-testid="stSidebar"] > div {{
             background: transparent !important;
@@ -151,6 +196,10 @@ def apply_dark_background(hide_header: bool = True) -> None:
             bottom: 0 !important;
             z-index: 100 !important;
             padding-bottom: 0.75rem !important;
+            transition: left var(--motion-smooth) var(--motion-curve) !important;
+        }}
+        .stApp:has(section[data-testid="stSidebar"][aria-expanded="false"]) [data-testid="stBottomBlockContainer"] {{
+            left: calc(var(--chat-sidebar-collapsed-width) + var(--chat-gutter)) !important;
         }}
         [data-testid="stMainBlockContainer"] {{
             padding-bottom: 8rem !important;

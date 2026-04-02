@@ -387,6 +387,7 @@ def normalizar_pos_fala(txt: str) -> str:
     return s
 
 def titulo_painel(titulo: str, subtitulo: str = ""):
+    subtitulo_html = f'<p class="subtitle">{subtitulo}</p>' if subtitulo else ""
     st.markdown(
         f"""
         <style>
@@ -408,10 +409,50 @@ def titulo_painel(titulo: str, subtitulo: str = ""):
         }}
         </style>
         <h1 class="main-title">{titulo}</h1>
-        <p class="subtitle">{subtitulo}</p>
+        {subtitulo_html}
         """,
         unsafe_allow_html=True
     )
+
+
+def saudacao_menu_chat(nome: str = "Victor") -> str:
+    hora = datetime.now().hour
+    if 5 <= hora < 12:
+        return f"Bom dia, {nome}"
+    if 12 <= hora < 18:
+        return f"Boa tarde, {nome}"
+    return f"Boa noite, {nome}"
+
+
+def render_saudacao_menu_chat(nome: str = "Victor") -> None:
+    saudacao = saudacao_menu_chat(nome)
+    st.markdown(
+        f"""
+        <style>
+        .claude-greeting-shell {{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 34vh;
+            padding: 2.4rem 0 1rem 0;
+            text-align: center;
+        }}
+        .claude-greeting {{
+            margin: 0;
+            font-size: clamp(10.4rem, 20vw, 16.8rem);
+            line-height: 0.96;
+            font-weight: 700;
+            letter-spacing: -0.04em;
+            color: #f3f5f7;
+        }}
+        </style>
+        <div class="claude-greeting-shell">
+            <h2 class="claude-greeting">{saudacao}</h2>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
 
 def printc(msg, color="white"):
     """
@@ -455,7 +496,7 @@ MENU_TESTER_PORT = 8503
 
 
 st.set_page_config(
-    page_title="Agente de Testes - VWAIT",
+    page_title="Inteligência Artificial - VWAIT",
     page_icon="",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -2510,9 +2551,9 @@ if pagina_pendente:
     st.session_state[NAV_RADIO_KEY] = pagina_pendente
     st.session_state[NAV_PENDING_KEY] = None
 
-st.sidebar.title("VWAIT - Menu")
+st.sidebar.title("Menu")
 pagina = st.sidebar.radio(
-    "Navegacao",
+    "",
     [PAGINA_CHAT, PAGINA_DASHBOARD, PAGINA_LOGS_RADIO, PAGINA_CONTROLE_FALHAS, PAGINA_MENU_TESTER, PAGINA_VALIDACAO_HMI],
     key=NAV_RADIO_KEY,
 )
@@ -2586,37 +2627,9 @@ with st.sidebar.expander("Bancadas (ADB)"):
 # === CHAT ===
 # ============
 if pagina == PAGINA_CHAT:
-    titulo_painel("VWAIT - Agente de Testes", "Digite <b>ajuda</b> para ver exemplos de comandos.")
-
-    # === EXEMPLOS DE PROMPTS ESTILIZADOS ===
-    st.markdown(
-        """
-        <div style="
-            background-color: rgba(50, 50, 50, 0.6);
-            border: 1px solid rgba(100, 100, 100, 0.5);
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 10px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-        ">
-            <h3 style="color:#E0E0E0; margin-bottom:8px;">Exemplos de comandos</h3>
-            <ul style="color:#CCCCCC; line-height:1.6; font-size:15px;">
-                <li><code>gravar audio_1 na bancada 1</code> - inicia gravacao do teste de audio na bancada 1</li>
-                <li><code>processar audio_1</code> - processa o dataset coletado</li>
-                <li><code>executar audio_1 na bancada 1</code> - roda o teste gravado</li>
-                <li><code>executar audio_1 na bancada 1 e executar video_2 na bancada 2</code> - roda testes em paralelo nas bancadas informadas</li>
-                <li><code>rodar todos os testes da categoria video</code> - executa todos os testes de uma categoria</li>
-                <li><code>capturar log na bancada 1</code> - captura os logs atuais do radio para o ultimo teste dessa bancada</li>
-                <li><code>abrir painel de logs</code> - abre o painel dedicado para explorar e analisar logs capturados</li>
-                <li><code>abrir controle de falhas</code> - abre o painel dedicado para triagem e acompanhamento das falhas</li>
-                <li><code>listar bancadas</code> - mostra bancadas ADB conectadas</li>
-                <li><code>ajuda</code> - exibe a lista completa de comandos</li>
-            </ul>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    titulo_painel("VWAIT - Inteligência Artificial")
+    if not st.session_state.chat_history:
+        render_saudacao_menu_chat("Victor")
 
     st.markdown(
         """
@@ -2626,26 +2639,38 @@ if pagina == PAGINA_CHAT:
             border: 0 !important;
             padding: 0 !important;
             margin: 0 0 1.2rem 0 !important;
+            width: 100% !important;
         }
         div[data-testid="stTextInput"] > div {
             background: rgba(36, 40, 54, 0.92) !important;
             border: 1px solid rgba(110, 150, 220, 0.18) !important;
             border-radius: 999px !important;
             box-shadow: 0 10px 26px rgba(0, 0, 0, 0.24) !important;
+            min-height: 3.6rem !important;
         }
         div[data-testid="stTextInput"] input {
             background: transparent !important;
             border: 0 !important;
             color: #e5e7eb !important;
+            font-size: 1.02rem !important;
+            min-height: 3.35rem !important;
+            padding-top: 0.55rem !important;
+            padding-bottom: 0.55rem !important;
         }
         div[data-testid="stTextInput"] input::placeholder {
             color: rgba(229, 231, 235, 0.58) !important;
         }
         div[data-testid="stFormSubmitButton"] button {
-            height: 2.5rem !important;
+            height: 3.2rem !important;
             border-radius: 999px !important;
-            padding: 0 0.85rem !important;
-            font-size: 0.74rem !important;
+            padding: 0 1rem !important;
+            font-size: 0.9rem !important;
+        }
+        .chat-help-inline {
+            text-align: center;
+            color: #9ca3af;
+            font-size: 0.95rem;
+            margin: -0.25rem 0 1.35rem 0;
         }
         </style>
         """,
@@ -2708,6 +2733,11 @@ if pagina == PAGINA_CHAT:
             )
         with submit_col:
             submitted = st.form_submit_button("ok", use_container_width=True)
+
+    st.markdown(
+        '<p class="chat-help-inline">Digite ajuda para ver os comandos disponiveis.</p>',
+        unsafe_allow_html=True,
+    )
 
     if submitted and user_input:
         st.session_state.chat_history.append({"role": "user", "content": user_input})

@@ -277,6 +277,7 @@ function FailureBoardComponent(props) {
   const [activeDrag, setActiveDrag] = useState(null);
   const [dropTarget, setDropTarget] = useState(null);
   const rootRef = useRef(null);
+  const gridRef = useRef(null);
   const suppressClickRef = useRef(false);
   const committedContainersRef = useRef(initialItems);
   const dropHandledRef = useRef(false);
@@ -285,13 +286,17 @@ function FailureBoardComponent(props) {
   const syncFrameHeight = () => {
     window.requestAnimationFrame(() => {
       const rootNode = rootRef.current;
-      if (!rootNode) {
+      const gridNode = gridRef.current || rootNode?.firstElementChild;
+      if (!rootNode || !gridNode) {
         return;
       }
 
-      const rootRectHeight = Math.ceil(rootNode.getBoundingClientRect?.().height ?? 0);
-      const rootScrollHeight = Math.ceil(rootNode.scrollHeight ?? 0);
-      const nextHeight = Math.max(rootRectHeight, rootScrollHeight, 0) + 4;
+      const rootStyles = window.getComputedStyle(rootNode);
+      const paddingTop = parseFloat(rootStyles.paddingTop || "0") || 0;
+      const paddingBottom = parseFloat(rootStyles.paddingBottom || "0") || 0;
+      const gridRectHeight = Math.ceil(gridNode.getBoundingClientRect?.().height ?? 0);
+      const gridScrollHeight = Math.ceil(gridNode.scrollHeight ?? 0);
+      const nextHeight = Math.max(gridRectHeight, gridScrollHeight, 0) + Math.ceil(paddingTop + paddingBottom);
 
       if (nextHeight > 0 && Math.abs(nextHeight - frameHeightRef.current) > 1) {
         frameHeightRef.current = nextHeight;
@@ -314,7 +319,8 @@ function FailureBoardComponent(props) {
   }, [containers, activeDrag, dropTarget]);
 
   useEffect(() => {
-    if (!rootRef.current || typeof ResizeObserver === "undefined") {
+    const gridNode = gridRef.current || rootRef.current?.firstElementChild;
+    if (!gridNode || typeof ResizeObserver === "undefined") {
       syncFrameHeight();
       return undefined;
     }
@@ -322,7 +328,7 @@ function FailureBoardComponent(props) {
     const observer = new ResizeObserver(() => {
       syncFrameHeight();
     });
-    observer.observe(rootRef.current);
+    observer.observe(gridNode);
 
     return () => {
       observer.disconnect();
@@ -411,7 +417,7 @@ function FailureBoardComponent(props) {
 
   return (
     <div className="board-root" ref={rootRef}>
-      <div className="board-grid">
+      <div className="board-grid" ref={gridRef}>
         {containers.map((container) => (
           <Lane
             key={container.id}

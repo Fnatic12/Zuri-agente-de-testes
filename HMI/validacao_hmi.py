@@ -3,12 +3,14 @@ import os
 import signal
 import subprocess
 import sys
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
 
 import numpy as np
 import streamlit as st
+import streamlit.components.v1 as components
 from PIL import Image
 from app.shared.adb_utils import resolve_adb_path
 from app.shared.project_paths import root_path
@@ -36,7 +38,13 @@ def _load_hmi_modules() -> Dict[str, Any]:
     from HMI.hmi_ai import get_backend_status
     from HMI.hmi_engine import ValidationConfig, collect_result_screens, evaluate_single_screenshot, validate_execution_images
     from HMI.hmi_indexer import build_library_index, load_library_index
-    from HMI.hmi_report import get_validation_dir, load_validation_report, save_validation_report
+    from HMI.hmi_report import (
+        build_validation_dimension_rows,
+        build_validation_dimension_workbook,
+        get_validation_dir,
+        load_validation_report,
+        save_validation_report,
+    )
 
     return {
         "get_backend_status": get_backend_status,
@@ -46,6 +54,8 @@ def _load_hmi_modules() -> Dict[str, Any]:
         "validate_execution_images": validate_execution_images,
         "build_library_index": build_library_index,
         "load_library_index": load_library_index,
+        "build_validation_dimension_rows": build_validation_dimension_rows,
+        "build_validation_dimension_workbook": build_validation_dimension_workbook,
         "get_validation_dir": get_validation_dir,
         "load_validation_report": load_validation_report,
         "save_validation_report": save_validation_report,
@@ -220,6 +230,50 @@ def _resolve_hmi_library(
     return index_path, index
 
 
+def _load_live_runtime_library(
+    hmi: Dict[str, Any],
+    cache_root: str,
+    serial: str,
+) -> tuple[Optional[str], Optional[Dict[str, Any]]]:
+    state = _load_live_monitor_state(cache_root, serial)
+    index_path = _safe_str(state.get("index_path") or st.session_state.get("hmi_index_path"))
+    if not index_path or not os.path.exists(index_path):
+        return None, None
+    try:
+        return index_path, hmi["load_library_index"](index_path)
+    except Exception:
+        return None, None
+
+
+def _schedule_live_refresh(serial: str, interval_ms: int = 1500) -> None:
+    refresh_key = f"hmi_live_refresh_{_safe_serial_name(serial)}"
+    if st_autorefresh is not None:
+        st_autorefresh(interval=max(500, int(interval_ms)), limit=None, key=refresh_key)
+        return
+    components.html(
+        f"""
+        <script>
+        (() => {{
+          const scope = window.parent || window;
+          scope.__hmiLiveTimers = scope.__hmiLiveTimers || {{}};
+          const key = {json.dumps(refresh_key)};
+          if (scope.__hmiLiveTimers[key]) {{
+            clearTimeout(scope.__hmiLiveTimers[key]);
+          }}
+          scope.__hmiLiveTimers[key] = setTimeout(() => {{
+            try {{
+              scope.location.reload();
+            }} catch (error) {{
+              console.log("hmi live refresh fallback failed", error);
+            }}
+          }}, {max(500, int(interval_ms))});
+        }})();
+        </script>
+        """,
+        height=0,
+    )
+
+
 def _run_demo_context_discovery(
     hmi: Dict[str, Any],
     cache_root: str,
@@ -261,6 +315,108 @@ def _run_library_similarity_lookup(
         "actual_path": actual_path,
         "result": result,
     }
+
+
+def _build_validation_summary(items: list[Dict[str, Any]]) -> Dict[str, Any]:
+    total = len(items)
+    passed = sum(1 for item in items if _safe_str(item.get("status")).upper() == "PASS")
+    warnings = sum(1 for item in items if _safe_str(item.get("status")).upper() == "PASS_WITH_WARNINGS")
+    failed = max(0, total - passed - warnings)
+    average_score = (
+        sum(float((item.get("scores") or {}).get("final", 0.0) or 0.0) for item in items) / float(max(total, 1))
+    )
+    average_pixel_match = (
+        sum(float((item.get("diff_summary") or {}).get("pixel_match_ratio", 0.0) or 0.0) for item in items)
+        / float(max(total, 1))
+    )
+    semantic_scores = [
+        float((item.get("diff_summary") or {}).get("semantic_score"))
+        for item in items
+        if (item.get("diff_summary") or {}).get("semantic_score") is not None
+    ]
+    critical_failures = sum(len(item.get("critical_region_failures") or []) for item in items)
+    component_failures = sum(
+        1 for item in items if _safe_str(item.get("status")).upper() == "FAIL_COMPONENT_STATE"
+    )
+    context_confidence = [
+        float((item.get("stage1") or {}).get("context_confidence", 0.0) or 0.0)
+        for item in items
+        if item.get("stage1") is not None
+    ]
+    contexts_detected: Dict[str, int] = {}
+    for item in items:
+        stage1 = item.get("stage1") or {}
+        context = _safe_str(stage1.get("predicted_screen_type") or item.get("feature_context") or "unknown", "unknown")
+        contexts_detected[context] = contexts_detected.get(context, 0) + 1
+
+    return {
+        "total_screens": total,
+        "passed": passed,
+        "warnings": warnings,
+        "failed": failed,
+        "average_score": round(average_score, 4),
+        "average_pixel_match": round(average_pixel_match, 4),
+        "average_semantic": round(sum(semantic_scores) / float(max(len(semantic_scores), 1)), 4),
+        "critical_failures": critical_failures,
+        "component_failures": component_failures,
+        "average_context_confidence": round(sum(context_confidence) / float(max(len(context_confidence), 1)), 4),
+        "contexts_detected": contexts_detected,
+        "result": "PASS" if failed == 0 else "FAIL",
+    }
+
+
+def _build_validation_report_payload(
+    items: list[Dict[str, Any]],
+    library_index: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    clean_items = [item for item in items if isinstance(item, dict)]
+    return {
+        "generated_at": datetime.now().isoformat(),
+        "figma_dir": _safe_str((library_index or {}).get("figma_dir")),
+        "library_generated_at": (library_index or {}).get("generated_at"),
+        "summary": _build_validation_summary(clean_items),
+        "items": clean_items,
+    }
+
+
+def _render_lookup_results_export(
+    hmi: Dict[str, Any],
+    report: Optional[Dict[str, Any]],
+    export_slug: str,
+    caption: str,
+) -> None:
+    if not report:
+        return
+    items = report.get("items") or []
+    if not items:
+        return
+
+    structured_rows = hmi["build_validation_dimension_rows"](report)
+    if not structured_rows:
+        return
+
+    summary = report.get("summary") or _build_validation_summary(items)
+    export_filename = f"hmi_lookup_{_slugify(export_slug)}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+
+    st.markdown("#### Resultados")
+    st.caption(caption)
+
+    metric_cols = st.columns(5)
+    metric_cols[0].metric("Screens analisadas", str(int(summary.get("total_screens", len(items)) or len(items))))
+    metric_cols[1].metric("Aprovadas", str(int(summary.get("passed", 0) or 0)))
+    metric_cols[2].metric("Ressalvas", str(int(summary.get("warnings", 0) or 0)))
+    metric_cols[3].metric("Falhas", str(int(summary.get("failed", 0) or 0)))
+    metric_cols[4].metric("Score medio", f"{float(summary.get('average_score', 0.0) or 0.0):.1%}")
+
+    st.download_button(
+        "Extrair report",
+        data=hmi["build_validation_dimension_workbook"](structured_rows),
+        file_name=export_filename,
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        use_container_width=True,
+        key=f"hmi_lookup_dimension_report_{_slugify(export_slug)}",
+    )
+    st.dataframe(structured_rows, use_container_width=True, hide_index=True)
 
 
 def _candidate_rows(result: Dict[str, Any]) -> list[Dict[str, Any]]:
@@ -506,6 +662,84 @@ def _safe_serial_name(serial: str) -> str:
     return "".join(ch if ch.isalnum() or ch in "._-" else "_" for ch in str(serial or "sem_serial")) or "sem_serial"
 
 
+DEFAULT_LIVE_CAPTURE_SIZE = (1600, 900)
+
+
+def _preferred_live_capture_size(library_index: Optional[Dict[str, Any]]) -> tuple[int, int]:
+    if not isinstance(library_index, dict):
+        return DEFAULT_LIVE_CAPTURE_SIZE
+    counts: Dict[tuple[int, int], int] = {}
+    for entry in library_index.get("screens", []):
+        try:
+            width = int(entry.get("width", 0) or 0)
+            height = int(entry.get("height", 0) or 0)
+        except Exception:
+            continue
+        if width <= 0 or height <= 0:
+            continue
+        key = (width, height)
+        counts[key] = counts.get(key, 0) + 1
+    if not counts:
+        return DEFAULT_LIVE_CAPTURE_SIZE
+    return max(counts.items(), key=lambda item: (item[1], item[0][0] * item[0][1]))[0]
+
+
+def _latest_live_screenshot_path(cache_root: str, serial: str) -> str:
+    shots_dir = _live_lookup_shots_dir(cache_root, serial)
+    if not os.path.isdir(shots_dir):
+        return ""
+    files = [
+        os.path.join(shots_dir, name)
+        for name in os.listdir(shots_dir)
+        if os.path.splitext(name)[1].lower() in {".png", ".jpg", ".jpeg", ".bmp", ".webp"}
+    ]
+    if not files:
+        return ""
+    return max(files, key=os.path.getmtime)
+
+
+def _live_activity_state_key(serial: str) -> str:
+    return f"hmi_live_activity::{_safe_serial_name(serial)}"
+
+
+def _get_live_activity_state(serial: str) -> Dict[str, Any]:
+    payload = st.session_state.get(_live_activity_state_key(serial))
+    if isinstance(payload, dict):
+        return payload
+    return {
+        "phase": "idle",
+        "message": "Aguardando inicio da validacao automatica.",
+        "progress": 0.0,
+        "started_at": time.time(),
+        "updated_at": time.time(),
+        "preview_path": "",
+        "resolution": DEFAULT_LIVE_CAPTURE_SIZE,
+    }
+
+
+def _update_live_activity_state(
+    serial: str,
+    phase: str,
+    message: str,
+    progress: float,
+    preview_path: str = "",
+    resolution: tuple[int, int] | None = None,
+) -> Dict[str, Any]:
+    current = _get_live_activity_state(serial)
+    now = time.time()
+    payload = {
+        "phase": str(phase or "idle"),
+        "message": str(message or "").strip() or current.get("message") or "Aguardando atualizacao.",
+        "progress": max(0.0, min(1.0, float(progress or 0.0))),
+        "started_at": current.get("started_at", now) if current.get("phase") == phase else now,
+        "updated_at": now,
+        "preview_path": preview_path or current.get("preview_path", ""),
+        "resolution": resolution or current.get("resolution") or DEFAULT_LIVE_CAPTURE_SIZE,
+    }
+    st.session_state[_live_activity_state_key(serial)] = payload
+    return payload
+
+
 def _live_lookup_root(cache_root: str, serial: str) -> str:
     return os.path.join(cache_root, "live_lookup", _safe_serial_name(serial))
 
@@ -518,6 +752,46 @@ def _live_lookup_results_path(cache_root: str, serial: str) -> str:
     return os.path.join(_live_lookup_root(cache_root, serial), "results.json")
 
 
+def _empty_live_lookup_results() -> Dict[str, Any]:
+    return {
+        "processed": [],
+        "history": [],
+        "full_results": [],
+    }
+
+
+def _load_live_lookup_results(cache_root: str, serial: str) -> Dict[str, Any]:
+    return _load_json(_live_lookup_results_path(cache_root, serial)) or _empty_live_lookup_results()
+
+
+def _json_safe_value(value: Any) -> Any:
+    if isinstance(value, dict):
+        safe_payload: Dict[str, Any] = {}
+        for key, item in value.items():
+            if str(key) == "debug_images":
+                safe_payload[str(key)] = {}
+                continue
+            safe_payload[str(key)] = _json_safe_value(item)
+        return safe_payload
+    if isinstance(value, (list, tuple, set)):
+        return [_json_safe_value(item) for item in value]
+    if isinstance(value, Path):
+        return str(value)
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if hasattr(value, "item"):
+        try:
+            return value.item()
+        except Exception:
+            pass
+    return str(value)
+
+
+def _compact_live_result(result: Dict[str, Any]) -> Dict[str, Any]:
+    compacted = _json_safe_value(result)
+    return compacted if isinstance(compacted, dict) else {}
+
+
 def _live_lookup_monitor_state_path(cache_root: str, serial: str) -> str:
     return os.path.join(_live_lookup_root(cache_root, serial), "monitor_state.json")
 
@@ -526,8 +800,54 @@ def _live_lookup_stop_flag(cache_root: str, serial: str) -> str:
     return os.path.join(_live_lookup_root(cache_root, serial), "stop.flag")
 
 
+def _live_lookup_shots_stop_flag(cache_root: str, serial: str) -> str:
+    return os.path.join(_live_lookup_shots_dir(cache_root, serial), "stop.flag")
+
+
+def _live_monitor_log_path(cache_root: str, serial: str) -> str:
+    return os.path.join(_live_lookup_root(cache_root, serial), "monitor.log")
+
+
+def _reset_live_lookup_session(cache_root: str, serial: str) -> None:
+    root_dir = _live_lookup_root(cache_root, serial)
+    shots_dir = _live_lookup_shots_dir(cache_root, serial)
+    os.makedirs(shots_dir, exist_ok=True)
+
+    removable_names = {"manifest.jsonl", "stop.flag"}
+    image_exts = {".png", ".jpg", ".jpeg", ".bmp", ".webp"}
+    for name in os.listdir(shots_dir):
+        file_path = os.path.join(shots_dir, name)
+        if not os.path.isfile(file_path):
+            continue
+        ext = os.path.splitext(name)[1].lower()
+        if ext in image_exts or name.lower() in removable_names:
+            try:
+                os.remove(file_path)
+            except OSError:
+                pass
+
+    for path in (
+        _live_lookup_results_path(cache_root, serial),
+        _live_lookup_monitor_state_path(cache_root, serial),
+        _live_lookup_stop_flag(cache_root, serial),
+        _live_lookup_shots_stop_flag(cache_root, serial),
+        _live_monitor_log_path(cache_root, serial),
+    ):
+        if os.path.exists(path):
+            try:
+                os.remove(path)
+            except OSError:
+                pass
+    os.makedirs(root_dir, exist_ok=True)
+
+
 def _pid_is_running(pid: int) -> bool:
     if pid <= 0:
+        return False
+    try:
+        os.kill(pid, 0)
+        return True
+    except Exception:
         return False
 
 
@@ -587,11 +907,6 @@ def _list_live_monitor_pids(serial: str) -> list[int]:
         if text.isdigit():
             pids.append(int(text))
     return sorted(set(pids))
-    try:
-        os.kill(pid, 0)
-        return True
-    except Exception:
-        return False
 
 
 def _load_live_monitor_state(cache_root: str, serial: str) -> Dict[str, Any]:
@@ -607,13 +922,15 @@ def _live_monitor_running(cache_root: str, serial: str) -> bool:
     return _pid_is_running(pid)
 
 
-def _start_live_monitor(cache_root: str, serial: str) -> str:
+def _start_live_monitor(
+    cache_root: str,
+    serial: str,
+    index_path: Optional[str] = None,
+    monitor_mode: str = "auto",
+    target_size: tuple[int, int] | None = None,
+) -> str:
     root_dir = _live_lookup_root(cache_root, serial)
     shots_dir = _live_lookup_shots_dir(cache_root, serial)
-    os.makedirs(shots_dir, exist_ok=True)
-    stop_flag = _live_lookup_stop_flag(cache_root, serial)
-    if os.path.exists(stop_flag):
-        os.remove(stop_flag)
     if _live_monitor_running(cache_root, serial):
         return "Monitor automatico ja esta ativo."
 
@@ -623,6 +940,9 @@ def _start_live_monitor(cache_root: str, serial: str) -> str:
         _kill_process_tree(previous_pid)
     for pid in _list_live_monitor_pids(serial):
         _kill_process_tree(pid)
+
+    _reset_live_lookup_session(cache_root, serial)
+    os.makedirs(shots_dir, exist_ok=True)
 
     script_path = root_path("Scripts", "hmi_touch_monitor.py")
     log_path = os.path.join(root_dir, "monitor.log")
@@ -637,9 +957,14 @@ def _start_live_monitor(cache_root: str, serial: str) -> str:
         startupinfo = subprocess.STARTUPINFO()
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         startupinfo.wShowWindow = 0
+    cmd = [python_exec, script_path, "--serial", serial, "--output-dir", shots_dir, "--monitor-mode", monitor_mode]
+    if index_path:
+        cmd.extend(["--index-path", str(index_path), "--results-path", _live_lookup_results_path(cache_root, serial)])
+    if target_size:
+        cmd.extend(["--target-width", str(int(target_size[0])), "--target-height", str(int(target_size[1]))])
     with open(log_path, "a", encoding="utf-8") as log_file:
         proc = subprocess.Popen(
-            [python_exec, script_path, "--serial", serial, "--output-dir", shots_dir],
+            cmd,
             cwd=root_path(),
             stdout=log_file,
             stderr=log_file,
@@ -653,12 +978,19 @@ def _start_live_monitor(cache_root: str, serial: str) -> str:
             "serial": serial,
             "started_at": datetime.now().isoformat(),
             "output_dir": shots_dir,
+            "index_path": index_path,
+            "monitor_mode": monitor_mode,
+            "target_width": int(target_size[0]) if target_size else None,
+            "target_height": int(target_size[1]) if target_size else None,
         },
     )
-    return f"Monitor automatico iniciado para {serial}."
+    return (
+        f"Validacao automatica iniciada para {serial}"
+        + (f" em {int(target_size[0])}x{int(target_size[1])}." if target_size else ".")
+    )
 
 
-def _stop_live_monitor(cache_root: str, serial: str) -> str:
+def _stop_live_monitor(cache_root: str, serial: str, hmi: Dict[str, Any]) -> str:
     stop_flag = _live_lookup_stop_flag(cache_root, serial)
     os.makedirs(os.path.dirname(stop_flag), exist_ok=True)
     Path(stop_flag).write_text("stop", encoding="utf-8")
@@ -668,6 +1000,28 @@ def _stop_live_monitor(cache_root: str, serial: str) -> str:
         _kill_process_tree(pid)
     for live_pid in _list_live_monitor_pids(serial):
         _kill_process_tree(live_pid)
+    _update_live_activity_state(
+        serial,
+        "stopped",
+        "Validacao automatica parada.",
+        0.0,
+        preview_path=_latest_live_screenshot_path(cache_root, serial),
+    )
+    # Generate report after stopping
+    index_path = state.get("index_path")
+    if index_path and os.path.exists(index_path):
+        library_index = hmi["load_library_index"](index_path)
+        try:
+            _process_live_lookup_queue(hmi, cache_root, serial, library_index)
+        except Exception:
+            pass
+        payload = _load_live_lookup_results(cache_root, serial)
+        full_results = [item for item in payload.get("full_results", []) if isinstance(item, dict)]
+        if full_results:
+            result = _build_validation_report_payload(full_results, library_index)
+            test_dir = _live_lookup_root(cache_root, serial)
+            report_path = hmi["save_validation_report"](test_dir, library_index, result)
+            return f"Monitor automatico sinalizado para parar em {serial}. Relatorio gerado em {report_path}."
     return f"Monitor automatico sinalizado para parar em {serial}."
 
 
@@ -688,23 +1042,47 @@ def _result_to_history_row(result: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+def _is_stable_image_file(path: str, min_size_bytes: int = 512) -> bool:
+    if not path or not os.path.exists(path):
+        return False
+    try:
+        size_before = os.path.getsize(path)
+    except OSError:
+        return False
+    if size_before < min_size_bytes:
+        return False
+    time.sleep(0.15)
+    try:
+        size_after = os.path.getsize(path)
+    except OSError:
+        return False
+    return size_before == size_after
+
+
 def _process_live_lookup_queue(
     hmi: Dict[str, Any],
     cache_root: str,
     serial: str,
     library_index: Dict[str, Any],
+    status_hook=None,
 ) -> Dict[str, Any]:
+    if status_hook is None:
+        status_hook = lambda _phase, _message, _progress, _preview_path="": None
     shots_dir = _live_lookup_shots_dir(cache_root, serial)
     state_path = _live_lookup_results_path(cache_root, serial)
-    payload = _load_json(state_path) or {"processed": [], "history": []}
+    payload = _load_live_lookup_results(cache_root, serial)
     processed = set(str(name) for name in payload.get("processed", []))
     history = list(payload.get("history", []))
+    full_results = [item for item in payload.get("full_results", []) if isinstance(item, dict)]
     latest_bundle = st.session_state.get("hmi_lookup_result")
     latest_result = latest_bundle.get("result") if isinstance(latest_bundle, dict) else None
     latest_path = _safe_str(latest_result.get("screenshot_path")) if isinstance(latest_result, dict) else ""
+    stored_latest = full_results[-1] if full_results else None
+    stored_latest_path = _safe_str(stored_latest.get("screenshot_path")) if isinstance(stored_latest, dict) else ""
     cfg = _default_lookup_cfg(hmi)
 
     if not os.path.isdir(shots_dir):
+        status_hook("waiting", "Aguardando a primeira captura do scrcpy.", 0.02, "")
         return {"new_count": 0, "history": history, "latest_bundle": latest_bundle}
 
     files = []
@@ -715,17 +1093,53 @@ def _process_live_lookup_queue(
 
     new_count = 0
     latest_file_path = ""
+    if stored_latest_path and stored_latest_path != latest_path and os.path.exists(stored_latest_path):
+        try:
+            status_hook(
+                "comparing",
+                f"Sincronizando a ultima comparacao salva ({os.path.basename(stored_latest_path)})...",
+                0.55,
+                stored_latest_path,
+            )
+            synced_result = hmi["evaluate_single_screenshot"](stored_latest_path, library_index, cfg)
+            latest_bundle = {
+                "lookup_dir": _live_lookup_root(cache_root, serial),
+                "actual_path": stored_latest_path,
+                "result": synced_result,
+            }
+        except Exception:
+            latest_bundle = {
+                "lookup_dir": _live_lookup_root(cache_root, serial),
+                "actual_path": stored_latest_path,
+                "result": stored_latest,
+            }
+        st.session_state["hmi_lookup_result"] = latest_bundle
+        latest_result = latest_bundle.get("result") if isinstance(latest_bundle, dict) else None
+        latest_path = _safe_str(latest_result.get("screenshot_path")) if isinstance(latest_result, dict) else ""
+
+    status_hook("scanning", "Procurando novas capturas na pasta monitorada...", 0.08, "")
     for name in files:
         file_path = os.path.join(shots_dir, name)
         latest_file_path = file_path
         if name in processed:
             continue
-        result = hmi["evaluate_single_screenshot"](file_path, library_index, cfg)
-        history.append(_result_to_history_row(result))
+        status_hook("capturing", f"Preparando a captura {name} para comparacao...", 0.2, file_path)
+        if not _is_stable_image_file(file_path):
+            continue
+        try:
+            status_hook("comparing", f"Comparando {name} com a biblioteca...", 0.6, file_path)
+            result = hmi["evaluate_single_screenshot"](file_path, library_index, cfg)
+        except Exception:
+            status_hook("comparing", f"Falha ao comparar {name}; tentando novamente no proximo ciclo.", 0.6, file_path)
+            continue
+        compact_result = _compact_live_result(result)
+        history.append(_result_to_history_row(compact_result))
+        full_results.append(compact_result)
         processed.add(name)
         latest_bundle = {"lookup_dir": _live_lookup_root(cache_root, serial), "actual_path": file_path, "result": result}
         st.session_state["hmi_lookup_result"] = latest_bundle
         new_count += 1
+        status_hook("done", f"Comparacao concluida para {name}.", 1.0, file_path)
 
     if not latest_bundle and latest_file_path:
         result = hmi["evaluate_single_screenshot"](latest_file_path, library_index, cfg)
@@ -733,7 +1147,15 @@ def _process_live_lookup_queue(
         st.session_state["hmi_lookup_result"] = latest_bundle
 
     history = history[-50:]
-    _save_json(state_path, {"processed": sorted(processed), "history": history})
+    full_results = full_results[-100:]  # Keep last 100 full results for report generation
+    _save_json(state_path, {"processed": sorted(processed), "history": history, "full_results": full_results})
+    if new_count == 0:
+        status_hook(
+            "waiting",
+            "Aguardando novo clique no scrcpy para capturar e comparar.",
+            0.05,
+            latest_file_path,
+        )
     return {"new_count": new_count, "history": history, "latest_bundle": latest_bundle}
 
 
@@ -853,10 +1275,10 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
     c3.metric("Features GEI", len(context_stats))
     c4.metric("Visual QA pronto", "SIM" if vqa_stats["ready"] else "NAO")
 
-    tab_lookup, tab_validate, tab_demo = st.tabs(["Comparacao ao Vivo", "Execucoes Salvas", "Teste Visual"])
+    tab_lookup, tab_validate, tab_demo = st.tabs(["Comparação ao Vivo", "Execuções Salvas", "Teste Visual"])
 
     with tab_lookup:
-        st.markdown("### Comparacao ao vivo com a biblioteca")
+        st.markdown("### Comparação ao vivo com a biblioteca")
         st.caption("Compare manualmente um screenshot real ou deixe a bancada conectada gerar screenshots automaticamente a cada toque.")
 
         with st.container(border=True):
@@ -882,12 +1304,13 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
                     st.error("Envie o screenshot real para comparar.")
                 else:
                     try:
-                        index_path, library_index = _resolve_hmi_library(
-                            hmi,
-                            cache_root,
-                            lookup_dir.strip(),
-                            _safe_str(st.session_state.get("hmi_index_name_value"), "biblioteca_hmi"),
-                        )
+                        with st.spinner("Carregando a biblioteca HMI da pasta base..."):
+                            index_path, library_index = _resolve_hmi_library(
+                                hmi,
+                                cache_root,
+                                lookup_dir.strip(),
+                                _safe_str(st.session_state.get("hmi_index_name_value"), "biblioteca_hmi"),
+                            )
                         if library_index is None:
                             raise RuntimeError("Nao foi possivel carregar a biblioteca.")
                         st.session_state["hmi_index_path"] = _safe_str(index_path)
@@ -913,7 +1336,7 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
                         st.error(f"Falha ao comparar screenshot com a biblioteca: {exc}")
 
         if connected_devices:
-            st.markdown("### Comparacao automatica da bancada")
+            st.markdown("### Comparação automatica da bancada")
             st.caption("Quando ativa, cada toque detectado no radio gera um screenshot que e comparado automaticamente com a biblioteca.")
 
             selected_serial = st.selectbox(
@@ -926,33 +1349,90 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
             live_action_cols = st.columns([1, 1])
             with live_action_cols[0]:
                 if not live_running:
-                    if st.button("Ativar comparacao automatica", use_container_width=True, key="hmi_live_start_btn"):
+                    if st.button("Iniciar validacao automatica", use_container_width=True, key="hmi_live_start_btn"):
                         if not lookup_dir.strip():
                             st.error("Informe a pasta da biblioteca antes de ativar o modo automatico.")
                         else:
-                            msg = _start_live_monitor(cache_root, selected_serial)
-                            st.success(msg)
-                            st.rerun()
+                            try:
+                                with st.spinner("Preparando a biblioteca HMI para a validacao automatica..."):
+                                    index_path, live_library_index = _resolve_hmi_library(
+                                        hmi,
+                                        cache_root,
+                                        lookup_dir.strip(),
+                                        _safe_str(st.session_state.get("hmi_index_name_value"), "biblioteca_hmi"),
+                                    )
+                                if live_library_index is None or not index_path:
+                                    raise RuntimeError("Nao foi possivel carregar a biblioteca para o modo automatico.")
+                                live_target_size = _preferred_live_capture_size(live_library_index)
+                                st.session_state["hmi_index_path"] = _safe_str(index_path)
+                                st.session_state["hmi_lookup_result"] = None
+                                _update_live_activity_state(
+                                    selected_serial,
+                                    "starting",
+                                    f"Iniciando a validacao automatica em {live_target_size[0]}x{live_target_size[1]}...",
+                                    0.03,
+                                    resolution=live_target_size,
+                                )
+                                msg = _start_live_monitor(
+                                    cache_root,
+                                    selected_serial,
+                                    index_path,
+                                    monitor_mode="screen_watch" if os.name == "nt" else "auto",
+                                    target_size=live_target_size,
+                                )
+                                st.success(msg)
+                                st.rerun()
+                            except Exception as exc:
+                                st.error(f"Falha ao iniciar comparacao automatica: {exc}")
                 else:
-                    if st.button("Parar comparacao automatica", use_container_width=True, key="hmi_live_stop_btn"):
-                        msg = _stop_live_monitor(cache_root, selected_serial)
+                    if st.button("Parar validacao automatica", use_container_width=True, key="hmi_live_stop_btn"):
+                        msg = _stop_live_monitor(cache_root, selected_serial, hmi)
                         st.info(msg)
                         st.rerun()
             with live_action_cols[1]:
                 st.metric("Modo automatico", "ATIVO" if live_running else "PARADO")
+                live_activity = _get_live_activity_state(selected_serial)
+                live_target_size = tuple(live_activity.get("resolution") or DEFAULT_LIVE_CAPTURE_SIZE)
+                st.caption(f"Resolucao alvo: {int(live_target_size[0])}x{int(live_target_size[1])}")
 
-            if live_running and lookup_dir.strip():
-                index_path, live_library_index = _resolve_hmi_library(
-                    hmi,
-                    cache_root,
-                    lookup_dir.strip(),
-                    _safe_str(st.session_state.get("hmi_index_name_value"), "biblioteca_hmi"),
-                )
+            if live_running:
+                _schedule_live_refresh(selected_serial, interval_ms=1500)
+                index_path, live_library_index = _load_live_runtime_library(hmi, cache_root, selected_serial)
                 if live_library_index is not None:
+                    active_figma_dir = _safe_str(live_library_index.get("figma_dir"))
+                    if lookup_dir.strip() and os.path.abspath(active_figma_dir) != os.path.abspath(lookup_dir.strip()):
+                        st.info(
+                            "A validacao automatica continua usando a biblioteca carregada no inicio. "
+                            "Se quiser trocar a pasta base, pare e inicie novamente."
+                        )
+                    live_target_size = _preferred_live_capture_size(live_library_index)
                     st.session_state["hmi_index_path"] = _safe_str(index_path)
-                    if st_autorefresh is not None:
-                        st_autorefresh(interval=1800, limit=None, key=f"hmi_live_refresh_{selected_serial}")
-                    live_payload = _process_live_lookup_queue(hmi, cache_root, selected_serial, live_library_index)
+                    if not _latest_live_screenshot_path(cache_root, selected_serial):
+                        _update_live_activity_state(
+                            selected_serial,
+                            "waiting",
+                            "Monitor ativo. Aguardando o primeiro clique na janela do scrcpy...",
+                            0.02,
+                            resolution=live_target_size,
+                        )
+
+                    def _ui_live_status(phase: str, message: str, progress: float, preview_path: str = "") -> None:
+                        _update_live_activity_state(
+                            selected_serial,
+                            phase,
+                            message,
+                            progress,
+                            preview_path=preview_path,
+                            resolution=live_target_size,
+                        )
+
+                    live_payload = _process_live_lookup_queue(
+                        hmi,
+                        cache_root,
+                        selected_serial,
+                        live_library_index,
+                        status_hook=_ui_live_status,
+                    )
                     if live_payload.get("new_count", 0):
                         st.success(f"{int(live_payload['new_count'])} screenshot(s) novo(s) comparado(s) automaticamente.")
                     history_rows = live_payload.get("history") or []
@@ -972,11 +1452,82 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
                             use_container_width=True,
                             hide_index=True,
                         )
+                else:
+                    st.warning(
+                        "Nao foi possivel carregar a biblioteca ativa da validacao automatica. "
+                        "Pare e inicie novamente para recarregar a pasta base."
+                    )
             elif connected_devices and not lookup_dir.strip():
                 st.info("Informe a pasta da biblioteca para habilitar a comparacao automatica da bancada.")
+
+            live_activity = _get_live_activity_state(selected_serial)
+            live_preview_path = _latest_live_screenshot_path(cache_root, selected_serial) or _safe_str(
+                live_activity.get("preview_path")
+            )
+            live_target_size = tuple(live_activity.get("resolution") or DEFAULT_LIVE_CAPTURE_SIZE)
+            elapsed_s = max(0.0, time.time() - float(live_activity.get("started_at", time.time()) or time.time()))
+            with st.container(border=True):
+                st.markdown("#### Acompanhamento da captura")
+                st.progress(float(live_activity.get("progress", 0.0) or 0.0))
+                st.caption(
+                    f"{_safe_str(live_activity.get('message'), 'Aguardando captura.')} | "
+                    f"Tempo nesta etapa: {elapsed_s:.1f}s"
+                )
+                st.caption(f"Captura padronizada para {int(live_target_size[0])}x{int(live_target_size[1])}.")
+                st.markdown("**Ultima tela capturada**")
+                if live_preview_path:
+                    _safe_show_image(
+                        live_preview_path,
+                        f"Captura {os.path.basename(live_preview_path)}",
+                        "Nao foi possivel abrir a captura mais recente.",
+                    )
+                else:
+                    st.info("Nenhuma captura ainda. Inicie a validacao automatica e clique na janela do scrcpy.")
+                monitor_log_path = _live_monitor_log_path(cache_root, selected_serial)
+                if os.path.exists(monitor_log_path):
+                    with st.expander("Log do monitor automatico"):
+                        try:
+                            with open(monitor_log_path, "r", encoding="utf-8", errors="ignore") as handle:
+                                log_lines = handle.readlines()[-40:]
+                            st.code("".join(log_lines) or "(sem linhas ainda)", language="text")
+                        except Exception:
+                            st.info("Nao foi possivel ler o monitor.log.")
         else:
             st.info("Nenhuma bancada ADB conectada no momento. O modo automatico aparece quando o radio estiver conectado.")
 
+        live_report: Optional[Dict[str, Any]] = None
+        live_report_caption = ""
+        current_bundle = st.session_state.get("hmi_lookup_result")
+        current_result = current_bundle.get("result") if isinstance(current_bundle, dict) else None
+        current_lookup_dir = _safe_str(current_bundle.get("lookup_dir")) if isinstance(current_bundle, dict) else ""
+        active_serial = _safe_str(st.session_state.get("hmi_live_selected_serial"))
+        live_full_results: list[Dict[str, Any]] = []
+        live_root = ""
+        if active_serial:
+            live_payload = _load_live_lookup_results(cache_root, active_serial)
+            live_full_results = [item for item in live_payload.get("full_results", []) if isinstance(item, dict)]
+            live_root = _live_lookup_root(cache_root, active_serial)
+
+        should_use_live_results = bool(live_full_results) and (
+            not isinstance(current_result, dict)
+            or (current_lookup_dir and os.path.abspath(current_lookup_dir) == os.path.abspath(live_root))
+        )
+        if should_use_live_results:
+            live_report = _build_validation_report_payload(live_full_results)
+            live_report_caption = f"Extracao consolidada do historico automatico da bancada `{active_serial}`."
+        elif isinstance(current_result, dict):
+            live_report = _build_validation_report_payload([current_result])
+            live_report_caption = "Extracao do resultado atual da comparacao ao vivo."
+        elif live_full_results:
+            live_report = _build_validation_report_payload(live_full_results)
+            live_report_caption = f"Extracao consolidada do historico automatico da bancada `{active_serial}`."
+
+        _render_lookup_results_export(
+            hmi,
+            live_report,
+            export_slug=active_serial or "manual",
+            caption=live_report_caption,
+        )
         _render_library_lookup_result(st.session_state.get("hmi_lookup_result"))
 
     with tab_validate:
@@ -1013,7 +1564,7 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
             """,
             unsafe_allow_html=True,
         )
-        st.markdown("### Execucoes salvas e validacao em lote")
+        st.markdown("### Execuçõoes salvas e validacao em lote")
         st.caption("Use esta area para rodar validacao HMI em execucoes gravadas no Data/ e inspecionar resultados tecnicos.")
 
         with st.container(border=True):
@@ -1274,7 +1825,25 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
                     test_dir = os.path.join(data_root, categoria, teste)
                     report = hmi["load_validation_report"](test_dir)
                     summary = report.get("summary", {})
+                    structured_rows = hmi["build_validation_dimension_rows"](report)
                     st.write(summary)
+                    if structured_rows:
+                        export_filename = (
+                            f"hmi_report_{_slugify(selected)}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+                        )
+                        st.markdown("##### Report de validacao HMI")
+                        st.caption(
+                            "Colunas sintetizadas por tela a partir da validacao automatica de layout, tipografia, icones, espacamento, cores e status final."
+                        )
+                        st.download_button(
+                            "Extrair report",
+                            data=hmi["build_validation_dimension_workbook"](structured_rows),
+                            file_name=export_filename,
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            use_container_width=True,
+                            key=f"hmi_dimension_report_{_slugify(selected)}",
+                        )
+                        st.dataframe(structured_rows, use_container_width=True, hide_index=True)
                     rows = []
                     for item in report.get("items", []):
                         stage1 = item.get("stage1") or {}
