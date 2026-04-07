@@ -61,13 +61,15 @@ def test_store_validation_result_persists_serializable_live_history(tmp_path):
         ],
     }
 
-    _store_validation_result(str(results_path), "touch_01.png", result)
-    _store_validation_result(str(results_path), "touch_01.png", result)
+    _store_validation_result(str(results_path), "touch_01.png", result, capture_source="screen_change")
+    _store_validation_result(str(results_path), "touch_01.png", result, capture_source="screen_change")
 
     saved = json.loads(results_path.read_text(encoding="utf-8"))
 
     assert saved["processed"] == ["touch_01.png"]
     assert len(saved["history"]) == 1
     assert saved["history"][0]["screen_name"] == "Tela Home"
+    assert saved["history"][0]["capture_source"] == "screen_change"
     assert saved["full_results"][0]["debug_images"] == {}
+    assert saved["full_results"][0]["capture_source"] == "screen_change"
     assert saved["full_results"][0]["candidate_results"][0]["debug_images"] == {}

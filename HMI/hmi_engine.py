@@ -738,9 +738,10 @@ def evaluate_single_screenshot(
             "debug_images": {},
         }
 
-    best_result["screenshot_path"] = screenshot_path
-    best_result["candidate_results"] = candidate_results
-    return best_result
+    best_payload = dict(best_result)
+    best_payload["screenshot_path"] = screenshot_path
+    best_payload["candidate_results"] = [dict(item) for item in candidate_results]
+    return best_payload
 
 
 def validate_execution_images(

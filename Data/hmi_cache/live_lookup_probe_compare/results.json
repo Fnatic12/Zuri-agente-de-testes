@@ -1,0 +1,369 @@
+{
+  "processed": [
+    "malagueta_20260406_104602_804171.png"
+  ],
+  "history": [
+    {
+      "capturado_em": "malagueta_20260406_104602_804171.png",
+      "screenshot_path": "Data\\hmi_cache\\live_lookup_probe_compare\\screenshots\\malagueta_20260406_104602_804171.png",
+      "screen_name": "gei_home.jpg",
+      "feature_context": "gei_home.jpg",
+      "status": "FAIL_COMPONENT_STATE",
+      "similarity": 0.2938,
+      "pixel_match": 0.366222,
+      "capture_source": "scrcpy_window",
+      "reference_path": "C:\\Users\\Automation01\\Desktop\\GEI_IMAGES\\gei_home.jpg",
+      "processed_at": "2026-04-06T10:46:04.336198"
+    }
+  ],
+  "full_results": [
+    {
+      "screen_id": "gei_home",
+      "screen_name": "gei_home.jpg",
+      "feature_context": "gei_home.jpg",
+      "reference_path": "C:\\Users\\Automation01\\Desktop\\GEI_IMAGES\\gei_home.jpg",
+      "relative_reference_path": "gei_home.jpg",
+      "stage1": {
+        "predicted_screen_type": "gei_home.jpg",
+        "context_confidence": 1.0,
+        "strategy": "feature_context_vote",
+        "top_contexts": [
+          {
+            "context": "gei_home.jpg",
+            "vote": 0.512548
+          }
+        ],
+        "top_matches": [
+          {
+            "rank": 1,
+            "screen_id": "gei_home",
+            "screen_name": "gei_home.jpg",
+            "feature_context": "gei_home.jpg",
+            "relative_path": "gei_home.jpg",
+            "rank_score": 78.692565
+          }
+        ]
+      },
+      "rank_score": 78.692565,
+      "hash_distance": 43,
+      "difference_hash_distance": 36,
+      "scores": {
+        "global": 0.6278,
+        "pixel": 0.3662,
+        "edge": 0.0469,
+        "grid_avg": 0.3662,
+        "grid_min": 0.0163,
+        "structure": 0.0,
+        "component": 0.0,
+        "semantic": null,
+        "text": null,
+        "alignment": 0.05,
+        "final": 0.2938
+      },
+      "diff_summary": {
+        "diff_count": 107,
+        "toggle_count": 10,
+        "diff_area_ratio": 0.633778,
+        "pixel_match_ratio": 0.366222,
+        "changed_pixels": 912640,
+        "mean_delta": 37.1786,
+        "p95_delta": 138.3221,
+        "worst_cell_score": 0.0163,
+        "semantic_score": null,
+        "text_score": null
+      },
+      "toggle_changes": [
+        {
+          "bbox": [
+            1398,
+            871,
+            20,
+            5
+          ],
+          "stateA": "ON",
+          "stateB": "OFF",
+          "confidence": 1.0
+        },
+        {
+          "bbox": [
+            103,
+            871,
+            12,
+            5
+          ],
+          "stateA": "ON",
+          "stateB": "OFF",
+          "confidence": 1.0
+        },
+        {
+          "bbox": [
+            702,
+            716,
+            89,
+            21
+          ],
+          "stateA": "ON",
+          "stateB": "OFF",
+          "confidence": 1.0
+        },
+        {
+          "bbox": [
+            44,
+            450,
+            106,
+            48
+          ],
+          "stateA": "ON",
+          "stateB": "OFF",
+          "confidence": 1.0
+        },
+        {
+          "bbox": [
+            1516,
+            366,
+            26,
+            10
+          ],
+          "stateA": "ON",
+          "stateB": "OFF",
+          "confidence": 0.933
+        },
+        {
+          "bbox": [
+            507,
+            287,
+            51,
+            14
+          ],
+          "stateA": "ON",
+          "stateB": "OFF",
+          "confidence": 1.0
+        },
+        {
+          "bbox": [
+            572,
+            163,
+            86,
+            20
+          ],
+          "stateA": "ON",
+          "stateB": "OFF",
+          "confidence": 0.823
+        },
+        {
+          "bbox": [
+            0,
+            90,
+            246,
+            56
+          ],
+          "stateA": "ON",
+          "stateB": "OFF",
+          "confidence": 0.897
+        },
+        {
+          "bbox": [
+            286,
+            80,
+            132,
+            58
+          ],
+          "stateA": "ON",
+          "stateB": "OFF",
+          "confidence": 0.878
+        },
+        {
+          "bbox": [
+            103,
+            29,
+            39,
+            14
+          ],
+          "stateA": "ON",
+          "stateB": "OFF",
+          "confidence": 0.977
+        }
+      ],
+      "critical_region_failures": [],
+      "status": "FAIL_COMPONENT_STATE",
+      "reason": "Divergencia critica de componente detectada (10 toggle(s) divergente(s)).",
+      "debug_images": {},
+      "screenshot_path": "Data\\hmi_cache\\live_lookup_probe_compare\\screenshots\\malagueta_20260406_104602_804171.png",
+      "candidate_results": [
+        {
+          "screen_id": "gei_home",
+          "screen_name": "gei_home.jpg",
+          "feature_context": "gei_home.jpg",
+          "reference_path": "C:\\Users\\Automation01\\Desktop\\GEI_IMAGES\\gei_home.jpg",
+          "relative_reference_path": "gei_home.jpg",
+          "stage1": {
+            "predicted_screen_type": "gei_home.jpg",
+            "context_confidence": 1.0,
+            "strategy": "feature_context_vote",
+            "top_contexts": [
+              {
+                "context": "gei_home.jpg",
+                "vote": 0.512548
+              }
+            ],
+            "top_matches": [
+              {
+                "rank": 1,
+                "screen_id": "gei_home",
+                "screen_name": "gei_home.jpg",
+                "feature_context": "gei_home.jpg",
+                "relative_path": "gei_home.jpg",
+                "rank_score": 78.692565
+              }
+            ]
+          },
+          "rank_score": 78.692565,
+          "hash_distance": 43,
+          "difference_hash_distance": 36,
+          "scores": {
+            "global": 0.6278,
+            "pixel": 0.3662,
+            "edge": 0.0469,
+            "grid_avg": 0.3662,
+            "grid_min": 0.0163,
+            "structure": 0.0,
+            "component": 0.0,
+            "semantic": null,
+            "text": null,
+            "alignment": 0.05,
+            "final": 0.2938
+          },
+          "diff_summary": {
+            "diff_count": 107,
+            "toggle_count": 10,
+            "diff_area_ratio": 0.633778,
+            "pixel_match_ratio": 0.366222,
+            "changed_pixels": 912640,
+            "mean_delta": 37.1786,
+            "p95_delta": 138.3221,
+            "worst_cell_score": 0.0163,
+            "semantic_score": null,
+            "text_score": null
+          },
+          "toggle_changes": [
+            {
+              "bbox": [
+                1398,
+                871,
+                20,
+                5
+              ],
+              "stateA": "ON",
+              "stateB": "OFF",
+              "confidence": 1.0
+            },
+            {
+              "bbox": [
+                103,
+                871,
+                12,
+                5
+              ],
+              "stateA": "ON",
+              "stateB": "OFF",
+              "confidence": 1.0
+            },
+            {
+              "bbox": [
+                702,
+                716,
+                89,
+                21
+              ],
+              "stateA": "ON",
+              "stateB": "OFF",
+              "confidence": 1.0
+            },
+            {
+              "bbox": [
+                44,
+                450,
+                106,
+                48
+              ],
+              "stateA": "ON",
+              "stateB": "OFF",
+              "confidence": 1.0
+            },
+            {
+              "bbox": [
+                1516,
+                366,
+                26,
+                10
+              ],
+              "stateA": "ON",
+              "stateB": "OFF",
+              "confidence": 0.933
+            },
+            {
+              "bbox": [
+                507,
+                287,
+                51,
+                14
+              ],
+              "stateA": "ON",
+              "stateB": "OFF",
+              "confidence": 1.0
+            },
+            {
+              "bbox": [
+                572,
+                163,
+                86,
+                20
+              ],
+              "stateA": "ON",
+              "stateB": "OFF",
+              "confidence": 0.823
+            },
+            {
+              "bbox": [
+                0,
+                90,
+                246,
+                56
+              ],
+              "stateA": "ON",
+              "stateB": "OFF",
+              "confidence": 0.897
+            },
+            {
+              "bbox": [
+                286,
+                80,
+                132,
+                58
+              ],
+              "stateA": "ON",
+              "stateB": "OFF",
+              "confidence": 0.878
+            },
+            {
+              "bbox": [
+                103,
+                29,
+                39,
+                14
+              ],
+              "stateA": "ON",
+              "stateB": "OFF",
+              "confidence": 0.977
+            }
+          ],
+          "critical_region_failures": [],
+          "status": "FAIL_COMPONENT_STATE",
+          "reason": "Divergencia critica de componente detectada (10 toggle(s) divergente(s)).",
+          "debug_images": {}
+        }
+      ],
+      "capture_source": "scrcpy_window"
+    }
+  ]
+}

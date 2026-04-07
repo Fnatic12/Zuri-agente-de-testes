@@ -1,7 +1,12 @@
 from __future__ import annotations
 
 from HMI.hmi_report import build_validation_dimension_rows
-from HMI.validacao_hmi import _build_validation_report_payload, _compact_live_result, _preferred_live_capture_size
+from HMI.validacao_hmi import (
+    _build_validation_report_payload,
+    _compact_live_result,
+    _live_monitor_belongs_to_session,
+    _preferred_live_capture_size,
+)
 
 
 def _make_item(name: str, status: str, final: float, pixel: float, *, toggle_count: int = 0) -> dict:
@@ -95,3 +100,25 @@ def test_compact_live_result_removes_debug_images_recursively():
     assert compact["debug_images"] == {}
     assert compact["candidate_results"][0]["debug_images"] == {}
     assert compact["screenshot_path"] == "/tmp/live.png"
+
+
+def test_live_monitor_belongs_only_to_current_streamlit_session():
+    current_token = "sessao_atual"
+
+    assert _live_monitor_belongs_to_session({"session_token": current_token}, current_token) is True
+    assert _live_monitor_belongs_to_session({"session_token": "sessao_antiga"}, current_token) is False
+    assert _live_monitor_belongs_to_session({}, current_token) is False
+
+
+def test_compact_live_result_handles_recursive_candidate_results():
+    recursive = {
+        "screen_name": "Tela Home",
+        "status": "PASS",
+        "debug_images": {"overlay": object()},
+    }
+    recursive["candidate_results"] = [recursive]
+
+    compact = _compact_live_result(recursive)
+
+    assert compact["debug_images"] == {}
+    assert compact["candidate_results"][0] == "[recursive]"

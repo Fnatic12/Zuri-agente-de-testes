@@ -30,6 +30,65 @@ def apply_panel_button_theme() -> None:
         handler()
 
 
+def apply_menu_tester_styles() -> None:
+    st.markdown(
+        """
+        <style>
+        .exec-row {
+            margin-top: 0.35rem;
+        }
+        .exec-card {
+            min-height: 100%;
+            padding: 1.1rem 1.15rem 1.2rem 1.15rem;
+            border-radius: 22px;
+            border: 1px solid rgba(118, 162, 228, 0.14);
+            background: linear-gradient(180deg, rgba(15, 23, 36, 0.92) 0%, rgba(9, 16, 27, 0.96) 100%);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.04),
+                0 18px 34px rgba(0, 0, 0, 0.22);
+        }
+        .exec-card.secondary {
+            background: linear-gradient(180deg, rgba(12, 20, 31, 0.94) 0%, rgba(8, 14, 23, 0.98) 100%);
+        }
+        .exec-card h4 {
+            margin: 0 0 1rem 0;
+            font-size: 1.08rem;
+            font-weight: 700;
+            color: #edf3ff;
+            letter-spacing: -0.01em;
+        }
+        .status-box {
+            min-height: 5.3rem;
+            padding: 0.9rem 1rem;
+            border-radius: 18px;
+            border: 1px solid rgba(118, 162, 228, 0.12);
+            background: linear-gradient(180deg, rgba(23, 31, 45, 0.76) 0%, rgba(13, 20, 31, 0.88) 100%);
+            color: rgba(236, 242, 251, 0.94);
+            line-height: 1.45;
+        }
+        div.stButton > button {
+            min-height: 4.65rem !important;
+            padding: 0.95rem 1.15rem !important;
+            border-radius: 18px !important;
+        }
+        div.stButton > button p {
+            font-size: 1rem !important;
+            font-weight: 600 !important;
+            line-height: 1.24 !important;
+        }
+        [data-testid="column"] div.stButton > button {
+            width: 100% !important;
+            max-width: none !important;
+        }
+        .tester-link-row {
+            margin-top: 0.45rem;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 # === Caminho do ADB ===
 ADB_PATH = resolve_adb_path()
 
@@ -693,6 +752,7 @@ def _iniciar_execucoes_teste_unico(categoria_exec, nome_teste_exec, seriais):
 st.set_page_config(page_title="Menu Tester", page_icon="", layout="centered")
 apply_dark_background(hide_header=True)
 apply_panel_button_theme()
+apply_menu_tester_styles()
 titulo_painel("Painel de Automação de Testes", "Plataforma <b>para</b> Coletar e Processar Testes")
 st.divider() 
 
@@ -724,7 +784,7 @@ col1, col2, col3, col4, col5 = st.columns(5)
 
 
 with col1:
-    if st.button("Iniciar Coleta"):
+    if st.button("Iniciar Coleta", use_container_width=True):
         if categoria and nome_teste:
 
             if st.session_state.proc_coleta is None:
@@ -804,7 +864,7 @@ with col1:
 
 
 with col2:
-    if st.button("Finalizar Coleta"):
+    if st.button("Finalizar Coleta", use_container_width=True):
         proc = st.session_state.proc_coleta
 
         if proc:
@@ -887,7 +947,7 @@ with col2:
 
 # === RESULTADO ESPERADO (sem parar coleta) ===
 with col3:
-    if st.button("Salvar Resultado Esperado"):
+    if st.button("Salvar Resultado Esperado", use_container_width=True):
         if categoria and nome_teste:
 
             ok, msg = salvar_resultado_parcial(categoria, nome_teste, serial_sel)
@@ -906,7 +966,7 @@ with col3:
 
 
 with col4:
-    if st.button("Capturar Log do Radio"):
+    if st.button("Capturar Log do Radio", use_container_width=True):
         if not serial_sel:
             st.error("Selecione uma bancada conectada para capturar logs.")
         else:
@@ -932,7 +992,7 @@ with col4:
 
 
 with col5:
-    if st.button("Abrir Pasta de Logs"):
+    if st.button("Abrir Pasta de Logs", use_container_width=True):
         if not serial_sel:
             st.error("Selecione uma bancada conectada para abrir os logs.")
         else:
@@ -1004,7 +1064,7 @@ nome_del = st.text_input("Nome do Teste a deletar", key="nome_del")
 
 
 
-if st.button("Deletar Teste"):
+if st.button("Deletar Teste", use_container_width=True):
 
     if cat_del and nome_del:
 
@@ -1044,7 +1104,7 @@ nome_teste_ds = st.text_input("Nome do Teste", key="nome_dataset")
 
 
 
-if st.button("Processar Dataset"):
+if st.button("Processar Dataset", use_container_width=True):
 
     if categoria_ds and nome_teste_ds:
 
@@ -1167,11 +1227,11 @@ with col_a:
 
     with btn_unico_col:
 
-        executar_teste_unico = st.button("Executar Teste Unico")
+        executar_teste_unico = st.button("Executar Teste Unico", use_container_width=True)
 
     with btn_duplo_col:
 
-        executar_duplo = st.button("Rodar Testes em Paralelo", key="executar_teste_duplo")
+        executar_duplo = st.button("Rodar Testes em Paralelo", key="executar_teste_duplo", use_container_width=True)
 
     if executar_teste_unico:
 
@@ -1308,7 +1368,7 @@ with col_b:
 
             st.markdown("<div class='pause-btn'>", unsafe_allow_html=True)
 
-            if st.button("Pausar Teste", key="pause_teste"):
+            if st.button("Pausar Teste", key="pause_teste", use_container_width=True):
 
                 with open(os.path.join(BASE_DIR, "pause.flag"), "w") as f:
 
@@ -1324,7 +1384,7 @@ with col_b:
 
             st.markdown("<div class='resume-btn'>", unsafe_allow_html=True)
 
-            if st.button("Retomar Teste", key="resume_teste"):
+            if st.button("Retomar Teste", key="resume_teste", use_container_width=True):
 
                 pause_path = os.path.join(BASE_DIR, "pause.flag")
 
@@ -1355,8 +1415,12 @@ with col_c:
     st.markdown("<div class='exec-card secondary'>", unsafe_allow_html=True)
 
     st.markdown("<h4>Executar todos</h4>", unsafe_allow_html=True)
+    btn_all_col, _btn_all_spacer = st.columns(2)
 
-    if st.button("Executar Todos da Categoria"):
+    with btn_all_col:
+        executar_todos_categoria = st.button("Executar Todos da Categoria", use_container_width=True)
+
+    if executar_todos_categoria:
 
         if categoria_exec:
 
@@ -1528,7 +1592,7 @@ st.subheader("Gerar Relatórios de Falhas")
 
 
 
-if st.button("Gerar Relatórios de Falhas (execução_log.json)"):
+if st.button("Gerar Relatórios de Falhas (execução_log.json)", use_container_width=True):
 
     gerar_falha_path = root_path("KPM", "gerar_falha.py")
     if not os.path.exists(gerar_falha_path):
@@ -1592,55 +1656,61 @@ if st.button("Gerar Relatórios de Falhas (execução_log.json)"):
 
 st.divider()
 
-if st.button("Abrir Dashboard"):
+st.markdown("<div class='tester-link-row'>", unsafe_allow_html=True)
+link_col_1, link_col_2, link_col_3 = st.columns(3)
 
-    try:
+with link_col_1:
+    if st.button("Abrir Dashboard", use_container_width=True):
 
-        port = int(os.environ.get("VWAIT_DASHBOARD_PORT", "8504"))
-        pronto = _garantir_painel_streamlit(SCRIPTS["Abrir Dashboard"], port)
+        try:
 
-        webbrowser.open_new_tab(f"http://localhost:{port}")
-        if pronto:
-            st.success(f"Dashboard pronto em http://localhost:{port}")
-        else:
-            st.warning(f"Dashboard ainda inicializando em http://localhost:{port}")
+            port = int(os.environ.get("VWAIT_DASHBOARD_PORT", "8504"))
+            pronto = _garantir_painel_streamlit(SCRIPTS["Abrir Dashboard"], port)
 
-    except Exception as e:
+            webbrowser.open_new_tab(f"http://localhost:{port}")
+            if pronto:
+                st.success(f"Dashboard pronto em http://localhost:{port}")
+            else:
+                st.warning(f"Dashboard ainda inicializando em http://localhost:{port}")
 
-        st.error(f"Falha ao abrir dashboard: {e}")
+        except Exception as e:
 
+            st.error(f"Falha ao abrir dashboard: {e}")
 
-if st.button("Abrir Painel de Logs"):
+with link_col_2:
+    if st.button("Abrir Painel de Logs", use_container_width=True):
 
-    try:
+        try:
 
-        port = int(os.environ.get("VWAIT_LOGS_PANEL_PORT", "8505"))
-        pronto = _garantir_painel_streamlit(SCRIPTS["Abrir Painel de Logs"], port)
+            port = int(os.environ.get("VWAIT_LOGS_PANEL_PORT", "8505"))
+            pronto = _garantir_painel_streamlit(SCRIPTS["Abrir Painel de Logs"], port)
 
-        webbrowser.open_new_tab(f"http://localhost:{port}")
-        if pronto:
-            st.success(f"Painel de logs pronto em http://localhost:{port}")
-        else:
-            st.warning(f"Painel de logs ainda inicializando em http://localhost:{port}")
+            webbrowser.open_new_tab(f"http://localhost:{port}")
+            if pronto:
+                st.success(f"Painel de logs pronto em http://localhost:{port}")
+            else:
+                st.warning(f"Painel de logs ainda inicializando em http://localhost:{port}")
 
-    except Exception as e:
+        except Exception as e:
 
-        st.error(f"Falha ao abrir painel de logs: {e}")
+            st.error(f"Falha ao abrir painel de logs: {e}")
 
+with link_col_3:
+    if st.button("Abrir Controle de Falhas", use_container_width=True):
 
-if st.button("Abrir Controle de Falhas"):
+        try:
 
-    try:
+            port = int(os.environ.get("VWAIT_FAILURE_CONTROL_PORT", "8506"))
+            pronto = _garantir_painel_streamlit(SCRIPTS["Abrir Controle de Falhas"], port)
 
-        port = int(os.environ.get("VWAIT_FAILURE_CONTROL_PORT", "8506"))
-        pronto = _garantir_painel_streamlit(SCRIPTS["Abrir Controle de Falhas"], port)
+            webbrowser.open_new_tab(f"http://localhost:{port}")
+            if pronto:
+                st.success(f"Controle de falhas pronto em http://localhost:{port}")
+            else:
+                st.warning(f"Controle de falhas ainda inicializando em http://localhost:{port}")
 
-        webbrowser.open_new_tab(f"http://localhost:{port}")
-        if pronto:
-            st.success(f"Controle de falhas pronto em http://localhost:{port}")
-        else:
-            st.warning(f"Controle de falhas ainda inicializando em http://localhost:{port}")
+        except Exception as e:
 
-    except Exception as e:
+            st.error(f"Falha ao abrir controle de falhas: {e}")
 
-        st.error(f"Falha ao abrir controle de falhas: {e}")
+st.markdown("</div>", unsafe_allow_html=True)

@@ -1,0 +1,7 @@
+[hmi_touch_monitor] comparacao automatica habilitada com biblioteca Data\hmi_cache\biblioteca_hmi.json
+[hmi_touch_monitor] iniciando monitor serial=0001220500000000 dev=/dev/input/event2 res=1920x1080 output=Data\hmi_cache\live_lookup_pythonw_probe\screenshots modo=hybrid target=original compare=on
+[hmi_touch_monitor] monitorando em modo hibrido: janela do scrcpy + mudancas visuais da bancada
+[hmi_touch_monitor] comparacao concluida malagueta_20260406_104631_289864.png -> gei_home.jpg [FAIL_COMPONENT_STATE] origem=scrcpy_window
+[hmi_touch_monitor] capturado malagueta_20260406_104631_289864.png a partir da janela do scrcpy 'malagueta'
+[hmi_touch_monitor] janela do scrcpy nao encontrada; usando ADB como fallback visual
+[hmi_touch_monitor] capturado screen_20260406_104633_147728.png apos mudanca visual detectada
