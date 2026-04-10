@@ -1,0 +1,82 @@
+[
+    {
+        "id": 1,
+        "timestamp": "2026-03-10T09:27:57.411224",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 940,
+            "y": 997,
+            "tipo": "tap",
+            "timestamp": "2026-03-10T09:22:06.419621",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.4895833333333333,
+            "y_norm": 0.9231481481481482
+        },
+        "screenshot": "resultados\\resultado_01.png",
+        "frame_esperado": "frames\\frame_01.png",
+        "similaridade": 0.995490333711509,
+        "status": "âœ… OK",
+        "duracao": 4.18
+    },
+    {
+        "id": 2,
+        "timestamp": "2026-03-10T09:28:02.436124",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 694,
+            "y": 1025,
+            "tipo": "tap",
+            "timestamp": "2026-03-10T09:22:10.947872",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.3614583333333333,
+            "y_norm": 0.949074074074074
+        },
+        "screenshot": "resultados\\resultado_02.png",
+        "frame_esperado": "frames\\frame_02.png",
+        "similaridade": 0.9955300310476741,
+        "status": "âœ… OK",
+        "duracao": 3.31
+    },
+    {
+        "id": 3,
+        "timestamp": "2026-03-10T09:28:07.292640",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 1687,
+            "y": 713,
+            "tipo": "tap",
+            "timestamp": "2026-03-10T09:22:15.024722",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.8786458333333333,
+            "y_norm": 0.6601851851851852
+        },
+        "screenshot": "resultados\\resultado_03.png",
+        "frame_esperado": "frames\\frame_03.png",
+        "similaridade": 0.9964153616244359,
+        "status": "âœ… OK",
+        "duracao": 3.15
+    },
+    {
+        "id": 4,
+        "timestamp": "2026-03-10T09:28:12.108819",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 362,
+            "y": 464,
+            "tipo": "tap",
+            "timestamp": "2026-03-10T09:22:20.311478",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.1885416666666666,
+            "y_norm": 0.4296296296296296
+        },
+        "screenshot": "resultados\\resultado_04.png",
+        "frame_esperado": "frames\\frame_04.png",
+        "similaridade": 0.9905312435598775,
+        "status": "âœ… OK",
+        "duracao": 3.11
+    }
+]

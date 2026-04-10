@@ -1,0 +1,30 @@
+{
+  "0001840600000000": {
+    "serial": "0001840600000000",
+    "categoria": "teste",
+    "teste": "teste/teste11",
+    "status": "finalizado",
+    "acoes_totais": 7,
+    "acoes_executadas": 7,
+    "progresso": 100.0,
+    "ultima_acao": "tap",
+    "ultima_acao_idx": 7,
+    "ultima_acao_status": "OK",
+    "tempo_decorrido_s": 32.216708183288574,
+    "inicio": "2026-03-12T10:06:08.645795",
+    "fim": "2026-03-12T10:09:55.552251",
+    "atualizado_em": "2026-03-12T10:09:55.552251",
+    "resultados_ok": 7,
+    "resultados_divergentes": 0,
+    "similaridade_media": 0.9963,
+    "ultima_similaridade": 0.9961,
+    "ultimo_screenshot": "resultados\\resultado_07.png",
+    "velocidade_acoes_min": 13.04,
+    "resultado_final": "aprovado",
+    "log_capture_status": "nao_necessario",
+    "log_capture_dir": null,
+    "log_capture_error": "Nenhum roteiro de captura de logs configurado para este teste/categoria.",
+    "log_capture_sequence": null,
+    "erro_motivo": null
+  }
+}

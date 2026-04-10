@@ -1,0 +1,4 @@
+from visual_qa.infrastructure.pixel_compare.existing_pixel_adapter import ExistingPixelAdapter
+from visual_qa.infrastructure.pixel_compare.existing_pixel_comparator_adapter import ExistingPixelComparatorAdapter
+
+__all__ = ["ExistingPixelAdapter", "ExistingPixelComparatorAdapter"]

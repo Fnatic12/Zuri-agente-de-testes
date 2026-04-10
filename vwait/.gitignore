@@ -1,0 +1,8 @@
+.env.jira
+.env.local
+.venv/
+tools/platform-tools/
+workspace/
+.pytest_cache/
+__pycache__/
+*.py[cod]

@@ -1,0 +1,30 @@
+{
+  "0001840600000000": {
+    "serial": "0001840600000000",
+    "categoria": "teste",
+    "teste": "teste/teste10",
+    "status": "finalizado",
+    "acoes_totais": 5,
+    "acoes_executadas": 5,
+    "progresso": 100.0,
+    "ultima_acao": "tap",
+    "ultima_acao_idx": 5,
+    "ultima_acao_status": "OK",
+    "tempo_decorrido_s": 22.475858211517334,
+    "inicio": "2026-03-12T09:40:06.844609",
+    "fim": "2026-03-12T09:40:31.041821",
+    "atualizado_em": "2026-03-12T09:40:31.041821",
+    "resultados_ok": 5,
+    "resultados_divergentes": 0,
+    "similaridade_media": 0.9632,
+    "ultima_similaridade": 0.9884,
+    "ultimo_screenshot": "resultados\\resultado_05.png",
+    "velocidade_acoes_min": 13.35,
+    "resultado_final": "aprovado",
+    "log_capture_status": "nao_necessario",
+    "log_capture_dir": null,
+    "log_capture_error": null,
+    "log_capture_sequence": null,
+    "erro_motivo": null
+  }
+}

@@ -1,0 +1,84 @@
+{
+    "teste": "teste11",
+    "categoria": "teste",
+    "acoes": [
+        {
+            "id": 1,
+            "timestamp": "2026-03-12T10:05:24.896198",
+            "imagem": "frame_01.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 706,
+                "y": 991,
+                "duracao_s": 0.07
+            }
+        },
+        {
+            "id": 2,
+            "timestamp": "2026-03-12T10:05:27.993656",
+            "imagem": "frame_02.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 1621,
+                "y": 693,
+                "duracao_s": 0.1
+            }
+        },
+        {
+            "id": 3,
+            "timestamp": "2026-03-12T10:05:31.410121",
+            "imagem": "frame_03.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 1155,
+                "y": 428,
+                "duracao_s": 0.03
+            }
+        },
+        {
+            "id": 4,
+            "timestamp": "2026-03-12T10:05:34.203078",
+            "imagem": "frame_04.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 788,
+                "y": 601,
+                "duracao_s": 0.06
+            }
+        },
+        {
+            "id": 5,
+            "timestamp": "2026-03-12T10:05:38.818495",
+            "imagem": "frame_05.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 154,
+                "y": 324,
+                "duracao_s": 0.1
+            }
+        },
+        {
+            "id": 6,
+            "timestamp": "2026-03-12T10:05:40.860417",
+            "imagem": "frame_06.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 150,
+                "y": 512,
+                "duracao_s": 0.09
+            }
+        },
+        {
+            "id": 7,
+            "timestamp": "2026-03-12T10:05:42.609129",
+            "imagem": "frame_07.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 140,
+                "y": 631,
+                "duracao_s": 0.06
+            }
+        }
+    ],
+    "resultado_esperado": "resultado_final.png"
+}

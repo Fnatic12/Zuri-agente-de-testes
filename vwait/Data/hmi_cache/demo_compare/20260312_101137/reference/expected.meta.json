@@ -1,0 +1,9 @@
+{
+  "screen_id": "demo/expected",
+  "name": "Tela esperada",
+  "feature_context": "demo",
+  "tags": [
+    "demo",
+    "demo"
+  ]
+}

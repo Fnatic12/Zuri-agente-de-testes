@@ -1,0 +1,11 @@
+numpy
+opencv-python
+
+# Optional for FAISS vector backend
+faiss-cpu
+
+# Optional for CLIP/MobileCLIP embeddings
+open-clip-torch
+torch
+torchvision
+pillow

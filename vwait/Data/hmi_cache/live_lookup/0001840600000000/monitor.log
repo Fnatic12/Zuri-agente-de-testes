@@ -1,0 +1,38 @@
+Traceback (most recent call last):
+  File "C:\Users\Automation01\Desktop\zuri_agente\Scripts\hmi_touch_monitor.py", line 19, in <module>
+    ADB_PATH = resolve_adb_path()
+  File "C:\Users\Automation01\Desktop\zuri_agente\app\shared\adb_utils.py", line 54, in resolve_adb_path
+    for candidate in candidate_adb_paths():
+                     ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Automation01\Desktop\zuri_agente\app\shared\adb_utils.py", line 17, in candidate_adb_paths
+    if platform.system() == "Windows":
+       ~~~~~~~~~~~~~~~^^
+  File "C:\Users\Automation01\AppData\Local\Programs\Python\Python313\Lib\platform.py", line 1073, in system
+    return uname().system
+           ~~~~~^^
+  File "C:\Users\Automation01\AppData\Local\Programs\Python\Python313\Lib\platform.py", line 999, in uname
+    release, version, csd, ptype = win32_ver()
+                                   ~~~~~~~~~^^
+  File "C:\Users\Automation01\AppData\Local\Programs\Python\Python313\Lib\platform.py", line 450, in win32_ver
+    version, csd, ptype, is_client = _win32_ver(version, csd, ptype)
+                                     ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Automation01\AppData\Local\Programs\Python\Python313\Lib\platform.py", line 391, in _win32_ver
+    (version, product_type, ptype, spmajor, spminor)  = _wmi_query(
+                                                        ~~~~~~~~~~^
+        'OS',
+        ^^^^^
+    ...<4 lines>...
+        'ServicePackMinorVersion',
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Automation01\AppData\Local\Programs\Python\Python313\Lib\platform.py", line 330, in _wmi_query
+    data = _wmi.exec_query("SELECT {} FROM {}".format(
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        ",".join(keys),
+        ^^^^^^^^^^^^^^^
+        table,
+        ^^^^^^
+    )).split("\0")
+    ^^
+KeyboardInterrupt

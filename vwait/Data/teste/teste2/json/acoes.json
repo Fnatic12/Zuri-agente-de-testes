@@ -1,0 +1,51 @@
+{
+    "teste": "teste2",
+    "categoria": "teste",
+    "acoes": [
+        {
+            "id": 1,
+            "timestamp": "2026-03-10T09:22:06.419621",
+            "imagem": "frame_01.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 940,
+                "y": 997,
+                "duracao_s": 0.08
+            }
+        },
+        {
+            "id": 2,
+            "timestamp": "2026-03-10T09:22:10.947872",
+            "imagem": "frame_02.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 694,
+                "y": 1025,
+                "duracao_s": 0.09
+            }
+        },
+        {
+            "id": 3,
+            "timestamp": "2026-03-10T09:22:15.024722",
+            "imagem": "frame_03.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 1687,
+                "y": 713,
+                "duracao_s": 0.08
+            }
+        },
+        {
+            "id": 4,
+            "timestamp": "2026-03-10T09:22:20.311478",
+            "imagem": "frame_04.png",
+            "acao": {
+                "tipo": "tap",
+                "x": 362,
+                "y": 464,
+                "duracao_s": 0.1
+            }
+        }
+    ],
+    "resultado_esperado": "resultado_final.png"
+}

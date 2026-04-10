@@ -1,0 +1,102 @@
+[
+  {
+    "id": 1,
+    "timestamp": "2026-03-12T09:40:10.097336",
+    "acao": "tap",
+    "coordenadas": {
+      "x": 940,
+      "y": 1011,
+      "tipo": "tap",
+      "timestamp": "2026-03-12T09:39:27.652079",
+      "resolucao_largura": 1920,
+      "resolucao_altura": 1080,
+      "x_norm": 0.4895833333333333,
+      "y_norm": 0.9361111111111112
+    },
+    "screenshot": "resultados\\resultado_01.png",
+    "frame_esperado": "frames\\frame_01.png",
+    "similaridade": 0.9670166893022067,
+    "status": "OK",
+    "duracao": 3.25
+  },
+  {
+    "id": 2,
+    "timestamp": "2026-03-12T09:40:14.871989",
+    "acao": "tap",
+    "coordenadas": {
+      "x": 1085,
+      "y": 1001,
+      "tipo": "tap",
+      "timestamp": "2026-03-12T09:39:31.386881",
+      "resolucao_largura": 1920,
+      "resolucao_altura": 1080,
+      "x_norm": 0.5651041666666666,
+      "y_norm": 0.9268518518518518
+    },
+    "screenshot": "resultados\\resultado_02.png",
+    "frame_esperado": "frames\\frame_02.png",
+    "similaridade": 0.9935199854072121,
+    "status": "OK",
+    "duracao": 3.07
+  },
+  {
+    "id": 3,
+    "timestamp": "2026-03-12T09:40:19.688884",
+    "acao": "tap",
+    "coordenadas": {
+      "x": 1383,
+      "y": 382,
+      "tipo": "tap",
+      "timestamp": "2026-03-12T09:39:35.836903",
+      "resolucao_largura": 1920,
+      "resolucao_altura": 1080,
+      "x_norm": 0.7203125,
+      "y_norm": 0.3537037037037037
+    },
+    "screenshot": "resultados\\resultado_03.png",
+    "frame_esperado": "frames\\frame_03.png",
+    "similaridade": 0.9038110994565881,
+    "status": "OK",
+    "duracao": 3.11
+  },
+  {
+    "id": 4,
+    "timestamp": "2026-03-12T09:40:24.444287",
+    "acao": "tap",
+    "coordenadas": {
+      "x": 356,
+      "y": 318,
+      "tipo": "tap",
+      "timestamp": "2026-03-12T09:39:39.431798",
+      "resolucao_largura": 1920,
+      "resolucao_altura": 1080,
+      "x_norm": 0.1854166666666666,
+      "y_norm": 0.2944444444444444
+    },
+    "screenshot": "resultados\\resultado_04.png",
+    "frame_esperado": "frames\\frame_04.png",
+    "similaridade": 0.963285431178953,
+    "status": "OK",
+    "duracao": 3.05
+  },
+  {
+    "id": 5,
+    "timestamp": "2026-03-12T09:40:29.316608",
+    "acao": "tap",
+    "coordenadas": {
+      "x": 296,
+      "y": 414,
+      "tipo": "tap",
+      "timestamp": "2026-03-12T09:39:43.022357",
+      "resolucao_largura": 1920,
+      "resolucao_altura": 1080,
+      "x_norm": 0.1541666666666666,
+      "y_norm": 0.3833333333333333
+    },
+    "screenshot": "resultados\\resultado_05.png",
+    "frame_esperado": "frames\\frame_05.png",
+    "similaridade": 0.9883589880326769,
+    "status": "OK",
+    "duracao": 3.16
+  }
+]

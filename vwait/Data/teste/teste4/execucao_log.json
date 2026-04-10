@@ -1,0 +1,142 @@
+[
+    {
+        "id": 1,
+        "timestamp": "2026-03-10T13:44:32.786557",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 670,
+            "y": 999,
+            "tipo": "tap",
+            "timestamp": "2026-03-10T09:41:14.131295",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.3489583333333333,
+            "y_norm": 0.925
+        },
+        "screenshot": "resultados\\resultado_01.png",
+        "frame_esperado": "frames\\frame_01.png",
+        "similaridade": 0.9930267527989917,
+        "status": "OK",
+        "duracao": 3.08
+    },
+    {
+        "id": 2,
+        "timestamp": "2026-03-10T13:44:37.560585",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 1495,
+            "y": 859,
+            "tipo": "tap",
+            "timestamp": "2026-03-10T09:41:18.002450",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.7786458333333334,
+            "y_norm": 0.7953703703703704
+        },
+        "screenshot": "resultados\\resultado_02.png",
+        "frame_esperado": "frames\\frame_02.png",
+        "similaridade": 0.998317242489693,
+        "status": "OK",
+        "duracao": 3.06
+    },
+    {
+        "id": 3,
+        "timestamp": "2026-03-10T13:44:42.568899",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 902,
+            "y": 655,
+            "tipo": "tap",
+            "timestamp": "2026-03-10T09:41:23.380499",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.4697916666666666,
+            "y_norm": 0.6064814814814815
+        },
+        "screenshot": "resultados\\resultado_03.png",
+        "frame_esperado": "frames\\frame_03.png",
+        "similaridade": 0.9976793097590985,
+        "status": "OK",
+        "duracao": 3.29
+    },
+    {
+        "id": 4,
+        "timestamp": "2026-03-10T13:44:47.442705",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 142,
+            "y": 316,
+            "tipo": "tap",
+            "timestamp": "2026-03-10T09:41:27.733471",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.0739583333333333,
+            "y_norm": 0.2925925925925925
+        },
+        "screenshot": "resultados\\resultado_04.png",
+        "frame_esperado": "frames\\frame_04.png",
+        "similaridade": 0.996984988683096,
+        "status": "OK",
+        "duracao": 3.16
+    },
+    {
+        "id": 5,
+        "timestamp": "2026-03-10T13:44:52.385219",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 194,
+            "y": 543,
+            "tipo": "tap",
+            "timestamp": "2026-03-10T09:41:30.466962",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.1010416666666666,
+            "y_norm": 0.5027777777777778
+        },
+        "screenshot": "resultados\\resultado_05.png",
+        "frame_esperado": "frames\\frame_05.png",
+        "similaridade": 0.9958051883056868,
+        "status": "OK",
+        "duracao": 3.23
+    },
+    {
+        "id": 6,
+        "timestamp": "2026-03-10T13:44:57.222436",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 144,
+            "y": 526,
+            "tipo": "tap",
+            "timestamp": "2026-03-10T09:41:32.093144",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.075,
+            "y_norm": 0.487037037037037
+        },
+        "screenshot": "resultados\\resultado_06.png",
+        "frame_esperado": "frames\\frame_06.png",
+        "similaridade": 0.9983847331411049,
+        "status": "OK",
+        "duracao": 3.13
+    },
+    {
+        "id": 7,
+        "timestamp": "2026-03-10T13:45:02.022810",
+        "acao": "tap",
+        "coordenadas": {
+            "x": 156,
+            "y": 623,
+            "tipo": "tap",
+            "timestamp": "2026-03-10T09:41:33.965155",
+            "resolucao_largura": 1920,
+            "resolucao_altura": 1080,
+            "x_norm": 0.08125,
+            "y_norm": 0.5768518518518518
+        },
+        "screenshot": "resultados\\resultado_07.png",
+        "frame_esperado": "frames\\frame_07.png",
+        "similaridade": 0.9983847331411049,
+        "status": "OK",
+        "duracao": 3.09
+    }
+]
