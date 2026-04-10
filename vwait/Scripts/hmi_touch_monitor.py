@@ -19,9 +19,11 @@ from PIL import Image
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
+SRC_DIR = os.path.join(PROJECT_ROOT, "src")
+if SRC_DIR not in sys.path:
+    sys.path.insert(0, SRC_DIR)
 
-from HMI.hmi_engine import ValidationConfig, evaluate_single_screenshot
-from HMI.hmi_indexer import load_library_index
+from vwait.features.hmi.application import ValidationConfig, evaluate_single_screenshot, load_library_index
 from app.shared.adb_utils import resolve_adb_path
 from app.shared.win_window_capture import capture_window_client_image
 

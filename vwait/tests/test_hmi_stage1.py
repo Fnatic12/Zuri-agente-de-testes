@@ -1,8 +1,14 @@
+import sys
+from pathlib import Path
 import cv2
 import numpy as np
 
-from HMI.hmi_indexer import build_library_index
-from HMI.hmi_stage1 import build_runtime_index, classify_with_runtime
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+SRC_DIR = PROJECT_ROOT / "src"
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
+
+from vwait.features.hmi.application import build_library_index, build_runtime_index, classify_with_runtime
 
 
 def _screen(color, with_box=False):

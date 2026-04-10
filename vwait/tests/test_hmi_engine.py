@@ -1,11 +1,22 @@
+import sys
+from pathlib import Path
 import json
 import os
 
 import cv2
 import numpy as np
 
-from HMI.hmi_engine import ValidationConfig, collect_result_screens, validate_execution_images
-from HMI.hmi_indexer import build_library_index
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+SRC_DIR = PROJECT_ROOT / "src"
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
+
+from vwait.features.hmi.application import (
+    ValidationConfig,
+    build_library_index,
+    collect_result_screens,
+    validate_execution_images,
+)
 
 
 def _make_screen(color, toggle_on=False):

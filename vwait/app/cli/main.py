@@ -13,8 +13,8 @@ else:
 PROJECT_ROOT = project_root()
 SCRIPTS_DIR = root_path("Scripts")
 PREPROCESS_DIR = root_path("Pre_process")
-RUN_DIR = root_path("Run")
 DASHBOARD_DIR = root_path("Dashboard")
+ENTRYPOINTS_CLI_DIR = root_path("src", "vwait", "entrypoints", "cli")
 
 def print_color(msg, color="white"):
     cores = {
@@ -61,10 +61,17 @@ def processar_dataset():
     executar_script(os.path.join(PREPROCESS_DIR, "processar_dataset.py"), "processar_dataset.py")
 
 def executar_testes():
-    executar_script(os.path.join(RUN_DIR, "run_noia.py"), "run_noia.py")
+    executar_script(os.path.join(ENTRYPOINTS_CLI_DIR, "run_test.py"), "run_test.py")
 
 def abrir_dashboard():
-    dash_path = os.path.join(DASHBOARD_DIR, "visualizador_execucao.py")
+    dash_path = os.path.join(
+        PROJECT_ROOT,
+        "src",
+        "vwait",
+        "entrypoints",
+        "streamlit",
+        "visualizador_execucao.py",
+    )
     if not os.path.exists(dash_path):
         print_color("❌ visualizador_execucao.py não encontrado!", "red")
         return

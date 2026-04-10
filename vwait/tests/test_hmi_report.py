@@ -1,9 +1,16 @@
 from __future__ import annotations
 
 from io import BytesIO
+import sys
+from pathlib import Path
 from zipfile import ZipFile
 
-from HMI.hmi_report import REPORT_HEADERS, build_validation_dimension_rows, build_validation_dimension_workbook
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+SRC_DIR = PROJECT_ROOT / "src"
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
+
+from vwait.features.hmi.application import REPORT_HEADERS, build_validation_dimension_rows, build_validation_dimension_workbook
 
 
 def test_build_validation_dimension_rows_maps_requested_columns():

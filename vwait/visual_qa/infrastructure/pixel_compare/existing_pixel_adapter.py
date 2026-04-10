@@ -12,8 +12,7 @@ from visual_qa.domain.entities import PixelDiffResult
 
 def _load_legacy_pixel_api():
     """Load existing pixel validator API lazily to keep adapter import-safe."""
-    from HMI.hmi_engine import ValidationConfig, validate_execution_images
-    from HMI.hmi_indexer import build_library_index
+    from vwait.features.hmi.application import ValidationConfig, build_library_index, validate_execution_images
 
     return ValidationConfig, validate_execution_images, build_library_index
 

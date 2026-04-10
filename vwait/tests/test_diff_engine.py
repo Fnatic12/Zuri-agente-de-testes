@@ -1,6 +1,15 @@
+import sys
+from pathlib import Path
+
 import numpy as np
 import cv2
-from Dashboard.diff_engine import DiffConfig, compare_images
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+SRC_DIR = PROJECT_ROOT / "src"
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
+
+from vwait.features.hmi.application import DiffConfig, compare_images
 
 
 def _make_toggle(on: bool):

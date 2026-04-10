@@ -2,18 +2,21 @@
 
 ## 1) Current entrypoints/scripts used to run pixel-to-pixel validation
 
-### Legacy/Current project flow
-- `Run/run_noia.py`
-  - Main execution runner that performs action-by-action screenshot comparison against expected frames.
+### Current project flow
+- `src/vwait/entrypoints/cli/run_test.py`
+  - Official CLI entrypoint for test execution.
+  - Delegates to `src/vwait/features/execution/application/runner.py`.
+  - Performs action-by-action screenshot comparison against expected frames.
   - Typically called from:
     - `app/cli/main.py` (menu option "Executar testes")
-    - `app/streamlit/menu_tester.py` (buttons "Executar Teste Unico" / "Executar Todos da Categoria")
-    - `app/streamlit/menu_chat.py` (command interpreter for `executar ...`)
-- `HMI/validacao_hmi.py`
-  - Streamlit UI entrypoint for HMI visual validation (loads references and validates execution screenshots).
-  - Called from `app/streamlit/menu_chat.py` page "Validação HMI".
-- `Dashboard/diff_tool.py`
-  - Direct CLI utility for pairwise image diff using `Dashboard/diff_engine.py`.
+    - `src/vwait/entrypoints/streamlit/menu_tester.py` (buttons "Executar Teste Unico" / "Executar Todos da Categoria")
+    - `src/vwait/entrypoints/streamlit/menu_chat.py` (command interpreter for `executar ...`)
+- `src/vwait/entrypoints/streamlit/validacao_hmi.py`
+  - Official Streamlit entrypoint for HMI visual validation (loads references and validates execution screenshots).
+  - Delegates to `src/vwait/features/hmi/ui/streamlit/page.py`.
+  - Called from `src/vwait/entrypoints/streamlit/menu_chat.py` page "Validação HMI".
+- `src/vwait/entrypoints/cli/diff_tool.py`
+  - Direct CLI utility for pairwise image diff using `src/vwait/features/hmi/application/diff_engine.py`.
 
 ### New wrapper entrypoints (added layer, still reusing existing pixel engine)
 - `app/cli/validate.py` -> `visual_qa/interfaces/cli/validate_cli.py`
@@ -22,24 +25,24 @@
 
 ## 2) Function/class that performs pixel comparison and its inputs/outputs
 
-### A) Execution runner comparator (legacy action-by-action)
-- Function: `Run/run_noia.py::comparar_imagens(img1_path, img2_path)`
+### A) Execution runner comparator (action-by-action)
+- Function: `src/vwait/features/execution/application/runner.py::comparar_imagens(img1_path, img2_path)`
 - Inputs:
   - `img1_path` (actual screenshot path)
   - `img2_path` (expected frame path)
 - Output:
   - `float` SSIM score (0.0 to 1.0)
 - Usage:
-  - Compared per action inside `run_noia.py`, then logged in `execucao_log.json` with status OK/divergent.
+  - Compared per action inside `runner.py`, then logged in `execucao_log.json` with status OK/divergent.
 
 ### B) HMI visual comparator (rich pixel validation)
-- Main API: `HMI/hmi_engine.py::validate_execution_images(screenshot_paths, library_index, cfg)`
+- Main API: `src/vwait/features/hmi/application/engine.py::validate_execution_images(screenshot_paths, library_index, cfg)`
 - Internal per-image function: `evaluate_single_screenshot(...)`
 - Pixel diff kernel used inside HMI engine:
-  - `Dashboard/diff_engine.py::compare_images(imgA, imgB, config)`
+  - `src/vwait/features/hmi/application/diff_engine.py::compare_images(imgA, imgB, config)`
 - Inputs:
   - `screenshot_paths`: list of actual images
-  - `library_index`: indexed reference screens metadata (from `HMI/hmi_indexer.py::build_library_index`)
+  - `library_index`: indexed reference screens metadata (from `src/vwait/features/hmi/application/indexer.py::build_library_index`)
   - `cfg`: `ValidationConfig`
 - Outputs:
   - Dict with:
@@ -64,11 +67,11 @@
 - Baselines live at:
   - `Data/<categoria>/<teste>/frames/frame_XX.png`
 - Selection strategy:
-  - Sequential mapping by action index (`resultado_XX.png` vs `frame_XX.png`) in `run_noia.py`.
+  - Sequential mapping by action index (`resultado_XX.png` vs `frame_XX.png`) in `runner.py`.
 
 ### B) HMI baseline (library matching)
 - Baselines live in a user-selected local reference folder (Figma exports), indexed by:
-  - `HMI/hmi_indexer.py::build_library_index(figma_dir, ...)`
+  - `src/vwait/features/hmi/application/indexer.py::build_library_index(figma_dir, ...)`
 - Selection strategy:
   - Candidate ranking inside `evaluate_single_screenshot(...)` and best result selection by status priority + score.
 
@@ -78,7 +81,7 @@
 
 ## 4) Current output artifacts (JSON, diff images, logs)
 
-### Legacy execution flow (`run_noia.py`)
+### Execution flow (`runner.py`)
 - `Data/<categoria>/<teste>/execucao_log.json`
 - `Data/<categoria>/<teste>/resultados/resultado_XX.png`
 - `Data/<categoria>/<teste>/resultado_final.png`
@@ -92,7 +95,7 @@
 - `Data/<categoria>/<teste>/hmi_validation/aligned/*`
 
 ### Direct diff utility
-- `Dashboard/diff_tool.py` outputs:
+- `src/vwait/entrypoints/cli/diff_tool.py` outputs:
   - `<out>/diff_mask.png`
   - `<out>/overlay.png`
 
@@ -106,8 +109,8 @@
 ## 5) Minimal integration point(s) to call existing pixel validator WITHOUT changing its code
 
 ### Recommended minimal integration point (already implemented and safe)
-- Use `HMI/hmi_engine.py::validate_execution_images(...)` as the stable existing API.
-- Build a temporary one-baseline index using `HMI/hmi_indexer.py::build_library_index(...)`.
+- Use `src/vwait/features/hmi/application/engine.py::validate_execution_images(...)` as the stable existing API.
+- Build a temporary one-baseline index using `src/vwait/features/hmi/application/indexer.py::build_library_index(...)`.
 - Execute validation with `ValidationConfig(stage1_enabled=False)` to keep pure pixel-level behavior in Stage 2.
 - Map result dict into your pipeline DTO/contract externally (adapter layer only).
 
@@ -115,4 +118,3 @@
 - No change required in existing comparator internals (`compare_images`, `evaluate_single_screenshot`, `validate_execution_images`).
 - Reuses existing output semantics (scores, issues, debug images).
 - Keeps backward compatibility with current HMI and dashboard flows.
-

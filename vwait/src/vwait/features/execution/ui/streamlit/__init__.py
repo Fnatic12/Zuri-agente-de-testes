@@ -1,3 +1,5 @@
+from .app import main
+from .page import render_dashboard_page
 from .dashboard_blocks import (
     calculate_metrics,
     portfolio_live_summary,
@@ -54,12 +56,14 @@ __all__ = [
     "filtrar_bancadas_reais",
     "find_bboxes",
     "is_live_status",
+    "main",
     "nome_bancada",
     "normalizar_execucao",
     "parse_datetime",
     "percent_text",
     "quality_snapshot",
     "render_actions",
+    "render_dashboard_page",
     "render_expected_comparison",
     "render_failure_report",
     "render_final_validation",

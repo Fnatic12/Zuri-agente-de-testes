@@ -7,8 +7,7 @@ from typing import Any, Dict, List, Optional
 
 import cv2
 
-from HMI.hmi_engine import ValidationConfig, validate_execution_images
-from HMI.hmi_indexer import build_library_index
+from vwait.features.hmi.application import ValidationConfig, build_library_index, validate_execution_images
 from visual_qa.application.ports.pixel_comparator import PixelComparator
 from visual_qa.domain.entities import PixelDiffResult
 

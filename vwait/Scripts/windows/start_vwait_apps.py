@@ -19,9 +19,9 @@ class StreamlitApp:
 
 
 APPS = (
-    StreamlitApp(PROJECT_ROOT / "app" / "streamlit" / "menu_chat.py", 8502, open_on_ready=True),
-    StreamlitApp(PROJECT_ROOT / "app" / "streamlit" / "menu_tester.py", 8503, open_on_ready=True),
-    StreamlitApp(PROJECT_ROOT / "Dashboard" / "visualizador_execucao.py", 8504),
+    StreamlitApp(PROJECT_ROOT / "src" / "vwait" / "entrypoints" / "streamlit" / "menu_chat.py", 8502, open_on_ready=True),
+    StreamlitApp(PROJECT_ROOT / "src" / "vwait" / "entrypoints" / "streamlit" / "menu_tester.py", 8503, open_on_ready=True),
+    StreamlitApp(PROJECT_ROOT / "src" / "vwait" / "entrypoints" / "streamlit" / "visualizador_execucao.py", 8504),
     StreamlitApp(PROJECT_ROOT / "src" / "vwait" / "entrypoints" / "streamlit" / "painel_logs_radio.py", 8505),
     StreamlitApp(PROJECT_ROOT / "src" / "vwait" / "entrypoints" / "streamlit" / "controle_falhas.py", 8506),
 )
