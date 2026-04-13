@@ -4,7 +4,7 @@ import time
 
 import streamlit.components.v1 as components
 
-from app.shared.project_paths import root_path
+from vwait.core.paths import root_path
 from vwait.features.chat.ui.streamlit.navigation import (
     DASHBOARD_PORT,
     FAILURE_CONTROL_PORT,

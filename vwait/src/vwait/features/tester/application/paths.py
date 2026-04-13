@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 
-from app.shared.project_paths import project_root, root_path
+from vwait.core.paths import project_root, root_path
 
 
 BASE_DIR = project_root()

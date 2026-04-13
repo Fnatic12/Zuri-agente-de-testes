@@ -19,7 +19,7 @@ if str(PROJECT_ROOT) not in sys.path:
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from app.shared.ui_theme import apply_dark_background  # noqa: E402
+from vwait.core.config.ui_theme import apply_dark_background  # noqa: E402
 
 
 st.set_page_config(page_title="Painel de Bancadas VWAIT", page_icon="", layout="wide")

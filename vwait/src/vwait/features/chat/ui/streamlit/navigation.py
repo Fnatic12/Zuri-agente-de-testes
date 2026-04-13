@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from app.shared.project_paths import project_root
+from vwait.core.paths import project_root
 
 
 PAGINA_CHAT = "Chat"

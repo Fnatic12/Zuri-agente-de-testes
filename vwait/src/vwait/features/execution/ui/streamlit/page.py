@@ -18,7 +18,7 @@ if str(PROJECT_ROOT) not in sys.path:
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from app.shared.adb_utils import candidate_adb_paths
+from vwait.platform.adb import candidate_adb_paths
 from vwait.features.execution.application import (
     carregar_status_bancadas as _execution_carregar_status_bancadas,
     carregar_status_teste as _execution_carregar_status_teste,

@@ -8,7 +8,7 @@
   - Delegates to `src/vwait/features/execution/application/runner.py`.
   - Performs action-by-action screenshot comparison against expected frames.
   - Typically called from:
-    - `app/cli/main.py` (menu option "Executar testes")
+    - `app/cli/main.py` (legacy compatibility menu)
     - `src/vwait/entrypoints/streamlit/menu_tester.py` (buttons "Executar Teste Unico" / "Executar Todos da Categoria")
     - `src/vwait/entrypoints/streamlit/menu_chat.py` (command interpreter for `executar ...`)
 - `src/vwait/entrypoints/streamlit/validacao_hmi.py`
@@ -18,8 +18,8 @@
 - `src/vwait/entrypoints/cli/diff_tool.py`
   - Direct CLI utility for pairwise image diff using `src/vwait/features/hmi/application/diff_engine.py`.
 
-### New wrapper entrypoints (added layer, still reusing existing pixel engine)
-- `app/cli/validate.py` -> `visual_qa/interfaces/cli/validate_cli.py`
+### Compatibility wrapper entrypoints
+- `app/cli/validate.py` -> `vwait.features.visual_qa.interfaces.cli.validate_cli`
   - Runs Stage 1 classification + Stage 2 pixel compare adapter + Stage 3 report.
   - Stage 2 calls existing validator code (no replacement of core comparator).
 

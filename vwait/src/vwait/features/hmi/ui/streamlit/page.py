@@ -12,8 +12,8 @@ from typing import Any, Dict, Optional
 import numpy as np
 import streamlit as st
 from PIL import Image
-from app.shared.adb_utils import resolve_adb_path
-from app.shared.ui_theme import apply_dark_background
+from vwait.platform.adb import resolve_adb_path
+from vwait.core.config.ui_theme import apply_dark_background
 
 PROJECT_ROOT = Path(__file__).resolve().parents[6]
 SRC_DIR = PROJECT_ROOT / "src"
@@ -95,16 +95,16 @@ def _load_hmi_modules() -> Dict[str, Any]:
 
 
 def _load_visual_qa_modules() -> Dict[str, Any]:
-    from visual_qa.application.use_cases.build_vector_index import BuildVectorIndex
-    from visual_qa.application.use_cases.classify_screenshot import ClassifyScreenshot
-    from visual_qa.application.use_cases.validate_screenshot import ValidateScreenshot
-    from visual_qa.config import VisualQaConfig, load_config
-    from visual_qa.infrastructure.embeddings.factory import build_embedding_provider
-    from visual_qa.infrastructure.llm.factory import build_report_generator
-    from visual_qa.infrastructure.llm.null_report_generator import NullReportGenerator
-    from visual_qa.infrastructure.pixel_compare.existing_pixel_adapter import ExistingPixelAdapter
-    from visual_qa.infrastructure.storage.local_artifact_store import LocalArtifactStore
-    from visual_qa.infrastructure.vector_index.faiss_repository import FaissVectorIndexRepository
+    from vwait.features.visual_qa.application.use_cases.build_vector_index import BuildVectorIndex
+    from vwait.features.visual_qa.application.use_cases.classify_screenshot import ClassifyScreenshot
+    from vwait.features.visual_qa.application.use_cases.validate_screenshot import ValidateScreenshot
+    from vwait.features.visual_qa.config import VisualQaConfig, load_config
+    from vwait.features.visual_qa.infrastructure.embeddings.factory import build_embedding_provider
+    from vwait.features.visual_qa.infrastructure.llm.factory import build_report_generator
+    from vwait.features.visual_qa.infrastructure.llm.null_report_generator import NullReportGenerator
+    from vwait.features.visual_qa.infrastructure.pixel_compare.existing_pixel_adapter import ExistingPixelAdapter
+    from vwait.features.visual_qa.infrastructure.storage.local_artifact_store import LocalArtifactStore
+    from vwait.features.visual_qa.infrastructure.vector_index.faiss_repository import FaissVectorIndexRepository
 
     return {
         "BuildVectorIndex": BuildVectorIndex,

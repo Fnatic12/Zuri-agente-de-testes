@@ -1,5 +1,11 @@
-"""Visual QA pipeline package."""
+from __future__ import annotations
 
-from visual_qa.config import VisualQaConfig, load_config
+from pathlib import Path
+
+
+_FEATURE_DIR = Path(__file__).resolve().parents[1] / "src" / "vwait" / "features" / "visual_qa"
+__path__ = [str(_FEATURE_DIR)]
+
+from .config import VisualQaConfig, load_config
 
 __all__ = ["VisualQaConfig", "load_config"]

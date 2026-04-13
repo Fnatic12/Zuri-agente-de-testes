@@ -23,7 +23,7 @@ if str(PROJECT_ROOT) not in sys.path:
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from app.shared.adb_utils import resolve_adb_path
+from vwait.platform.adb import resolve_adb_path
 from vwait.features.execution.application import (
     bancada_key_from_serial as _execution_bancada_key_from_serial,
     build_action_outcome as _execution_build_action_outcome,

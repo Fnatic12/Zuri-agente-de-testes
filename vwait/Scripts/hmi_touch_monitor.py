@@ -24,8 +24,8 @@ if SRC_DIR not in sys.path:
     sys.path.insert(0, SRC_DIR)
 
 from vwait.features.hmi.application import ValidationConfig, evaluate_single_screenshot, load_library_index
-from app.shared.adb_utils import resolve_adb_path
-from app.shared.win_window_capture import capture_window_client_image
+from vwait.platform.adb import resolve_adb_path
+from vwait.platform.os_ops.win_window_capture import capture_window_client_image
 
 
 DEFAULT_DEV = "/dev/input/event2"

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from app.shared.adb_utils import resolve_adb_path
+from vwait.platform.adb import resolve_adb_path
 from vwait.features.tester.application.execution import (
     garantir_dataset_execucao as _execution_garantir_dataset_execucao,
     iniciar_execucoes_configuradas as _execution_iniciar_execucoes_configuradas,

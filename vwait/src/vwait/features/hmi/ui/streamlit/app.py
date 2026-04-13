@@ -3,7 +3,7 @@ from __future__ import annotations
 import streamlit as st
 
 from .page import render_hmi_validation_page
-from app.shared.ui_theme import apply_dark_background
+from vwait.core.config.ui_theme import apply_dark_background
 from pathlib import Path
 
 

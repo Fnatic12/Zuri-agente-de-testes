@@ -6,8 +6,7 @@ from typing import Any
 import streamlit.components.v1 as components
 
 
-_PROJECT_ROOT = Path(__file__).resolve().parents[6]
-_FRONTEND_DIR = _PROJECT_ROOT / "app" / "shared" / "failure_board_frontend" / "dist"
+_FRONTEND_DIR = Path(__file__).resolve().parent / "failure_board_frontend" / "dist"
 _component = components.declare_component("failure_board", path=str(_FRONTEND_DIR))
 
 
@@ -24,4 +23,3 @@ def render_failure_board(
 
 
 __all__ = ["render_failure_board"]
-

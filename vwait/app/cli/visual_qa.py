@@ -3,9 +3,9 @@ from __future__ import annotations
 import argparse
 import sys
 
-from visual_qa.interfaces.cli.build_index_cli import main as build_index_main
-from visual_qa.interfaces.cli.classify_cli import main as classify_main
-from visual_qa.interfaces.cli.validate_cli import main as validate_main
+from vwait.features.visual_qa.interfaces.cli.build_index_cli import main as build_index_main
+from vwait.features.visual_qa.interfaces.cli.classify_cli import main as classify_main
+from vwait.features.visual_qa.interfaces.cli.validate_cli import main as validate_main
 
 
 def main() -> None:

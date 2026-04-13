@@ -10,29 +10,15 @@ This project now includes a modular `Screen Similarity + LLM Report` layer under
 
 ## CLI Commands
 
-Use module entrypoints:
+Use the modular CLI entrypoints:
 
 ```bash
-python -m visual_qa.interfaces.cli.build_index_cli --reference-dir reference_images --index-dir artifacts/vector_index --recursive --labels-json labels.json
-python -m visual_qa.interfaces.cli.classify_cli --image path/to/screenshot.png --index-dir artifacts/vector_index --top-k 5 --threshold 0.35 --strategy best
-python -m visual_qa.interfaces.cli.validate_cli --image path/to/screenshot.png --index-dir artifacts/vector_index --top-k 5 --threshold 0.35 --strategy vote --runs-dir runs --no-llm
+python -m vwait.features.visual_qa.interfaces.cli.build_index_cli --reference-dir reference_images --index-dir artifacts/vector_index --recursive --labels-json labels.json
+python -m vwait.features.visual_qa.interfaces.cli.classify_cli --image path/to/screenshot.png --index-dir artifacts/vector_index --top-k 5 --threshold 0.35 --strategy best
+python -m vwait.features.visual_qa.interfaces.cli.validate_cli --image path/to/screenshot.png --index-dir artifacts/vector_index --top-k 5 --threshold 0.35 --strategy vote --runs-dir runs --no-llm
 ```
 
-Or app CLI wrappers:
-
-```bash
-python -m app.cli.build_index --reference-dir reference_images --index-dir artifacts/vector_index --recursive
-python -m app.cli.classify --image path/to/screenshot.png --index-dir artifacts/vector_index --strategy best
-python -m app.cli.validate --image path/to/screenshot.png --index-dir artifacts/vector_index --strategy vote --runs-dir runs --no-llm
-```
-
-Top-level convenience entrypoint:
-
-```bash
-python -m app.cli.visual_qa build-index --reference-dir reference_images --index-dir artifacts/vector_index --recursive
-python -m app.cli.visual_qa classify --image path/to/screenshot.png --index-dir artifacts/vector_index --top-k 5 --threshold 0.35 --strategy best
-python -m app.cli.visual_qa validate --image path/to/screenshot.png --index-dir artifacts/vector_index --top-k 5 --threshold 0.35 --strategy vote --runs-dir runs --no-llm
-```
+Compatibility wrappers still exist under `app/cli`, but the structure above is now the canonical one.
 
 ## Environment Variables
 

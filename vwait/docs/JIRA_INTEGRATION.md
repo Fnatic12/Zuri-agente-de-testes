@@ -28,10 +28,10 @@ Variaveis suportadas:
 
 ## Estrutura de codigo
 
-- [config.py](/home/victor-milani/vwait-ia/vwait/app/integrations/jira/config.py): leitura e validacao de configuracao
-- [client.py](/home/victor-milani/vwait-ia/vwait/app/integrations/jira/client.py): chamadas REST ao Jira
-- [service.py](/home/victor-milani/vwait-ia/vwait/app/integrations/jira/service.py): regras de uso pela aplicacao
-- [models.py](/home/victor-milani/vwait-ia/vwait/app/integrations/jira/models.py): contratos internos
+- [config.py](/home/victor-milani/vwait-ia/vwait/src/vwait/features/failures/integrations/jira/config.py): leitura e validacao de configuracao
+- [client.py](/home/victor-milani/vwait-ia/vwait/src/vwait/features/failures/integrations/jira/client.py): chamadas REST ao Jira
+- [service.py](/home/victor-milani/vwait-ia/vwait/src/vwait/features/failures/integrations/jira/service.py): regras de uso pela aplicacao
+- [models.py](/home/victor-milani/vwait-ia/vwait/src/vwait/features/failures/integrations/jira/models.py): contratos internos
 
 ## Uso esperado
 

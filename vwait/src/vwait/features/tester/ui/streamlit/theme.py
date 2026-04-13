@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from app.shared import ui_theme as _ui_theme
+from vwait.core.config import ui_theme as _ui_theme
 
 
 apply_dark_background = _ui_theme.apply_dark_background
