@@ -3,10 +3,10 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from visual_qa.application.ports.embedding_provider import EmbeddingProvider
-from visual_qa.application.ports.vector_index_repository import VectorIndexRepository
-from visual_qa.application.use_cases.classify_screenshot import ClassifyScreenshot
-from visual_qa.domain.scaffold_entities import ScreenMatch as Stage1ScreenMatch
+from vwait.features.visual_qa.application.ports.embedding_provider import EmbeddingProvider
+from vwait.features.visual_qa.application.ports.vector_index_repository import VectorIndexRepository
+from vwait.features.visual_qa.application.use_cases.classify_screenshot import ClassifyScreenshot
+from vwait.features.visual_qa.domain.scaffold_entities import ScreenMatch as Stage1ScreenMatch
 
 
 class FakeEmbeddingProvider(EmbeddingProvider):

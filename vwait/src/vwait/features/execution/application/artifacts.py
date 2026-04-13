@@ -5,6 +5,12 @@ import os
 from pathlib import Path
 from typing import Any, Callable
 
+from vwait.core.paths import (
+    resolve_tester_run_dir,
+    tester_expected_final_path,
+    tester_recorded_frames_dir,
+)
+
 
 Cleaner = Callable[[Any], str]
 Normalizer = Callable[[list[dict[str, Any]]], list[dict[str, Any]]]
@@ -46,16 +52,20 @@ def resolve_existing_path(base_dir: str | Path, raw_path: Any, expected: str = "
 def resolve_test_dir(info: dict, data_root: str | Path) -> str | None:
     status_path = str(info.get("_status_path") or "").strip()
     if status_path:
-        candidate = os.path.dirname(status_path)
+        status_candidate = Path(status_path)
+        candidate = status_candidate.parent.parent if status_candidate.parent.name == "status" else status_candidate.parent
         if os.path.isdir(candidate):
-            return candidate
+            return str(candidate)
 
     teste = str(info.get("teste") or "").strip().replace("\\", "/")
     if "/" in teste:
         categoria, nome = teste.split("/", 1)
-        candidate = os.path.join(str(data_root), categoria, nome)
-        if os.path.isdir(candidate):
-            return candidate
+        legacy_candidate = os.path.join(str(data_root), categoria, nome)
+        if os.path.isdir(legacy_candidate):
+            return legacy_candidate
+        candidate = resolve_tester_run_dir(categoria, nome)
+        if candidate and candidate.is_dir():
+            return str(candidate)
     return None
 
 
@@ -193,7 +203,12 @@ def latest_screenshot_path(info: dict, data_root: str | Path) -> str | None:
             return hinted_path
 
     candidates: list[str] = []
-    for folder in ("resultados", "frames"):
+    teste = str(info.get("teste") or "").strip().replace("\\", "/")
+    categoria = nome = None
+    if "/" in teste:
+        categoria, nome = teste.split("/", 1)
+
+    for folder in ("artifacts/results", "resultados"):
         img_dir = os.path.join(test_dir, folder)
         if not os.path.isdir(img_dir):
             continue
@@ -202,9 +217,15 @@ def latest_screenshot_path(info: dict, data_root: str | Path) -> str | None:
             if ext in {".png", ".jpg", ".jpeg", ".bmp", ".webp"}:
                 candidates.append(os.path.join(img_dir, name))
 
-    resultado_final = os.path.join(test_dir, "resultado_final.png")
-    if os.path.exists(resultado_final):
-        candidates.append(resultado_final)
+    if categoria and nome:
+        frames_dir = tester_recorded_frames_dir(categoria, nome)
+        if frames_dir.is_dir():
+            for path in frames_dir.iterdir():
+                if path.suffix.lower() in {".png", ".jpg", ".jpeg", ".bmp", ".webp"}:
+                    candidates.append(str(path))
+        resultado_final = tester_expected_final_path(categoria, nome)
+        if resultado_final.exists():
+            candidates.append(str(resultado_final))
 
     if not candidates:
         return None

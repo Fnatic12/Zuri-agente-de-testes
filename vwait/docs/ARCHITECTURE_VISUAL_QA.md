@@ -27,7 +27,7 @@ visual_qa/
 
 ## Layer Responsibilities
 
-### 1) Domain (`visual_qa.domain`)
+### 1) Domain (`vwait.features.visual_qa.domain`)
 
 Contains core, framework-agnostic entities:
 
@@ -38,7 +38,7 @@ Contains core, framework-agnostic entities:
 
 These are dataclasses with no infrastructure dependencies.
 
-### 2) Application (`visual_qa.application`)
+### 2) Application (`vwait.features.visual_qa.application`)
 
 Defines orchestration contracts and DTOs:
 
@@ -53,7 +53,7 @@ Defines orchestration contracts and DTOs:
 
 Application code should depend only on domain entities and port Protocols.
 
-### 3) Infrastructure (`visual_qa.infrastructure`)
+### 3) Infrastructure (`vwait.features.visual_qa.infrastructure`)
 
 Hosts concrete implementations (FAISS, CLIP, existing pixel validator adapter, LLM adapters, local storage).
 
@@ -61,7 +61,7 @@ Rules:
 - Infrastructure imports from `application.ports.protocols` and `domain`.
 - Domain/Application must not import concrete infrastructure.
 
-### 4) Interfaces (`visual_qa.interfaces`)
+### 4) Interfaces (`vwait.features.visual_qa.interfaces`)
 
 Entry points such as CLI should call application use cases and assemble concrete dependencies.
 

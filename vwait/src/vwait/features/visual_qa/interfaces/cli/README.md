@@ -1,4 +1,4 @@
-# visual_qa.interfaces.cli
+# vwait.features.visual_qa.interfaces.cli
 
 CLI entrypoints for Visual QA orchestration.
 

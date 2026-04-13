@@ -8,8 +8,8 @@ import pytest
 
 pytest.importorskip("faiss")
 
-from visual_qa.infrastructure.vector_index.dtos import ScreenMatchCandidate
-from visual_qa.infrastructure.vector_index.faiss_repository import FaissVectorIndexRepository
+from vwait.features.visual_qa.infrastructure.vector_index.dtos import ScreenMatchCandidate
+from vwait.features.visual_qa.infrastructure.vector_index.faiss_repository import FaissVectorIndexRepository
 
 
 class _FakeEmbeddingProvider:

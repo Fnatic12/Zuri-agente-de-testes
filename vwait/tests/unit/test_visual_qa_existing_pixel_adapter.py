@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from visual_qa.infrastructure.pixel_compare.existing_pixel_adapter import ExistingPixelAdapter
+from vwait.features.visual_qa.infrastructure.pixel_compare.existing_pixel_adapter import ExistingPixelAdapter
 
 
 def _touch(path: Path) -> None:
@@ -43,7 +43,7 @@ def test_existing_pixel_adapter_maps_legacy_dict_result(monkeypatch, tmp_path: P
         }
 
     monkeypatch.setattr(
-        "visual_qa.infrastructure.pixel_compare.existing_pixel_adapter._load_legacy_pixel_api",
+        "vwait.features.visual_qa.infrastructure.pixel_compare.existing_pixel_adapter._load_legacy_pixel_api",
         lambda: (FakeValidationConfig, fake_validate_execution_images, fake_build_library_index),
     )
 
@@ -81,7 +81,7 @@ def test_existing_pixel_adapter_handles_missing_fields(monkeypatch, tmp_path: Pa
         return {"items": [{}]}
 
     monkeypatch.setattr(
-        "visual_qa.infrastructure.pixel_compare.existing_pixel_adapter._load_legacy_pixel_api",
+        "vwait.features.visual_qa.infrastructure.pixel_compare.existing_pixel_adapter._load_legacy_pixel_api",
         lambda: (FakeValidationConfig, fake_validate_execution_images, fake_build_library_index),
     )
 
@@ -123,11 +123,11 @@ def test_existing_pixel_adapter_captures_saved_debug_image_paths(monkeypatch, tm
         }
 
     monkeypatch.setattr(
-        "visual_qa.infrastructure.pixel_compare.existing_pixel_adapter._load_legacy_pixel_api",
+        "vwait.features.visual_qa.infrastructure.pixel_compare.existing_pixel_adapter._load_legacy_pixel_api",
         lambda: (FakeValidationConfig, fake_validate_execution_images, fake_build_library_index),
     )
     monkeypatch.setattr(
-        "visual_qa.infrastructure.pixel_compare.existing_pixel_adapter._write_debug_image",
+        "vwait.features.visual_qa.infrastructure.pixel_compare.existing_pixel_adapter._write_debug_image",
         lambda _image, path: (_touch(path), True)[1],
     )
 

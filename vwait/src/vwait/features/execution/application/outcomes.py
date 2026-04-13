@@ -132,12 +132,12 @@ def conclude_execution_flow(
 
         if capture_status == "capturado":
             emit_message(
-                f"✅ Logs da peca capturados em Data/{categoria}/{teste_nome}/{capture_dir}",
+                f"✅ Logs da peca capturados em Data/runs/tester/{categoria}/{teste_nome}/<run>/{capture_dir}",
                 "green",
             )
         elif capture_status == "sem_artefatos":
             emit_message(
-                f"⚠️ Nenhum log novo encontrado apos a falha. Pasta gerada: Data/{categoria}/{teste_nome}/{capture_dir}",
+                f"⚠️ Nenhum log novo encontrado apos a falha. Pasta gerada: Data/runs/tester/{categoria}/{teste_nome}/<run>/{capture_dir}",
                 "yellow",
             )
         elif capture_status == "sem_roteiro":

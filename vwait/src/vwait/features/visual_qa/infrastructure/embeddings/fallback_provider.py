@@ -3,7 +3,7 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-from visual_qa.application.ports.embedding_provider import EmbeddingProvider
+from vwait.features.visual_qa.application.ports.embedding_provider import EmbeddingProvider
 
 
 def _normalize(vec: np.ndarray) -> np.ndarray:

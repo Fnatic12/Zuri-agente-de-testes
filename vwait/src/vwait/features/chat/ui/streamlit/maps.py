@@ -1,10 +1,11 @@
 import json
 import os
 import time
+from pathlib import Path
 
 import streamlit.components.v1 as components
 
-from vwait.core.paths import root_path
+from vwait.core.paths import hmi_capture_archive_dir, root_path
 from vwait.features.chat.ui.streamlit.navigation import (
     DASHBOARD_PORT,
     FAILURE_CONTROL_PORT,
@@ -83,7 +84,7 @@ def render_mapa_neural_ia() -> None:
             "id": "malagueta",
             "label": "Malagueta/scrcpy",
             "role": "Observador de tela",
-            "detail": "Acompanha a tela do radio via scrcpy/ADB e grava capturas em Data/HMI_TESTE.",
+            "detail": "Acompanha a tela do radio via scrcpy/ADB e grava capturas em Data/catalog/hmi/captures/HMI_TESTE.",
             "x": 86,
             "y": 73,
             "kind": "device",
@@ -552,7 +553,7 @@ def render_mapa_neural_ia_coder() -> None:
         {"id": "figma", "label": "gei.library", "role": "baseline", "detail": "Pasta GEI/Figma com referencias de tela para matching.", "x": 82, "y": 25, "w": 0.9, "group": "memory"},
         {"id": "vision", "label": "visual.qa", "role": "qa visual", "detail": "Pipeline complementar de classificacao e validacao visual.", "x": 88, "y": 35, "w": 0.85, "group": "logic"},
         {"id": "shots", "label": "screenshot.store", "role": "capturas", "detail": "Cache de capturas ao vivo, normalizadas e nativas.", "x": 67, "y": 88, "w": 0.9, "group": "memory"},
-        {"id": "hmiteste", "label": "Data/HMI_TESTE", "role": "evidencias", "detail": "Pasta permanente com screenshots capturados da malagueta/ADB.", "x": 84, "y": 84, "w": 0.9, "group": "memory"},
+        {"id": "hmiteste", "label": "Data/catalog/hmi/captures/HMI_TESTE", "role": "evidencias", "detail": "Pasta permanente com screenshots capturados da malagueta/ADB.", "x": 84, "y": 84, "w": 0.9, "group": "memory"},
         {"id": "manifest", "label": "manifest.jsonl", "role": "timeline", "detail": "Linha do tempo append-only de capturas e eventos.", "x": 49, "y": 91, "w": 0.78, "group": "memory"},
         {"id": "reports", "label": "report.builder", "role": "relatorio", "detail": "Consolida resultados em payloads e relatorios exportaveis.", "x": 29, "y": 86, "w": 0.85, "group": "output"},
         {"id": "dashboard", "label": "dashboard.live", "role": "observabilidade", "detail": "Mostra status, capturas recentes e execucoes em andamento.", "x": 18, "y": 75, "w": 0.95, "group": "output"},
@@ -588,7 +589,7 @@ def render_mapa_neural_ia_coder() -> None:
         except Exception:
             return False
 
-    hmi_manifest_path = root_path("Data", "HMI_TESTE", "manifest.jsonl")
+    hmi_manifest_path = str(Path(hmi_capture_archive_dir()) / "manifest.jsonl")
     try:
         hmi_recent = os.path.exists(hmi_manifest_path) and (time.time() - os.path.getmtime(hmi_manifest_path) < 300)
     except Exception:
@@ -600,7 +601,7 @@ def render_mapa_neural_ia_coder() -> None:
         {"id": "dashboard", "label": "dashboard.live", "node": "dashboard", "online": _map_panel_online(globals().get("DASHBOARD_PORT", 8504), False), "mode": "port 8504"},
         {"id": "logs", "label": "logs.panel", "node": "logs", "online": _map_panel_online(globals().get("LOGS_PANEL_PORT", 8505), False), "mode": "port 8505"},
         {"id": "failures", "label": "failure.control", "node": "failures", "online": _map_panel_online(globals().get("FAILURE_CONTROL_PORT", 8506), False), "mode": "port 8506"},
-        {"id": "hmi", "label": "hmi.capture", "node": "hmi", "online": hmi_recent, "mode": "Data/HMI_TESTE"},
+        {"id": "hmi", "label": "hmi.capture", "node": "hmi", "online": hmi_recent, "mode": "Data/catalog/hmi/captures/HMI_TESTE"},
     ]
     panel_states_json = json.dumps(panel_states, ensure_ascii=False)
     html = r"""
@@ -951,7 +952,7 @@ def render_mapa_neural_ia_coder() -> None:
         { from: "touch", to: "hmi", label: "hmi.validate", status: "compare" },
         { from: "hmi", to: "engine", label: "diff.engine", status: "score" },
         { from: "hmi", to: "shots", label: "screenshot.store", status: "persist" },
-        { from: "shots", to: "hmiteste", label: "Data/HMI_TESTE", status: "archive" },
+        { from: "shots", to: "hmiteste", label: "Data/catalog/hmi/captures/HMI_TESTE", status: "archive" },
         { from: "manifest", to: "reports", label: "timeline.report", status: "emit" },
         { from: "reports", to: "dashboard", label: "dashboard.sync", status: "view" },
         { from: "logs", to: "failures", label: "log.triage", status: "risk" },
@@ -984,7 +985,7 @@ def render_mapa_neural_ia_coder() -> None:
           { from: "touch", to: "hmi", label: "screenshot.compare", status: "compare" },
           { from: "hmi", to: "engine", label: "diff.engine", status: "score" },
           { from: "hmi", to: "shots", label: "capture.cache", status: "persist" },
-          { from: "shots", to: "hmiteste", label: "Data/HMI_TESTE", status: "archive" },
+          { from: "shots", to: "hmiteste", label: "Data/catalog/hmi/captures/HMI_TESTE", status: "archive" },
           { from: "shots", to: "manifest", label: "manifest.jsonl", status: "timeline" },
         ],
       };

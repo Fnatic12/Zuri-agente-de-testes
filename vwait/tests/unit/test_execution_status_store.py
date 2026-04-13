@@ -22,12 +22,13 @@ from vwait.features.execution.application import (
     status_dir,
     test_ref as execution_test_ref,
 )
+from vwait.core.paths import TESTER_RUNS_ROOT, tester_failure_report_pointer_path as data_failure_report_pointer_path
 
 
 def test_execution_paths_helpers_match_layout():
-    assert status_dir("radio", "home") == PROJECT_ROOT / "Data" / "radio" / "home"
+    assert status_dir("radio", "home").parent == TESTER_RUNS_ROOT / "radio" / "home"
     assert execution_test_ref("radio", "home") == "radio/home"
-    assert failure_report_pointer_path("radio", "home") == PROJECT_ROOT / "Data" / "radio" / "home" / "failure_report_latest.json"
+    assert failure_report_pointer_path("radio", "home") == data_failure_report_pointer_path("radio", "home")
 
 
 def test_bancada_key_from_serial_has_safe_fallback():

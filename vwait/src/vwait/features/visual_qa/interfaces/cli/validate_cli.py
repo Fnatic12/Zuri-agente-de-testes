@@ -2,15 +2,15 @@ from __future__ import annotations
 
 import argparse
 
-from visual_qa.config import load_config
-from visual_qa.application.use_cases.classify_screenshot import ClassifyScreenshot
-from visual_qa.application.use_cases.validate_screenshot import ValidateScreenshot
-from visual_qa.infrastructure.embeddings.factory import build_embedding_provider
-from visual_qa.infrastructure.llm.factory import build_report_generator
-from visual_qa.infrastructure.llm.null_report_generator import NullReportGenerator
-from visual_qa.infrastructure.pixel_compare.existing_pixel_adapter import ExistingPixelAdapter
-from visual_qa.infrastructure.storage.local_artifact_store import LocalArtifactStore
-from visual_qa.infrastructure.vector_index.faiss_repository import FaissVectorIndexRepository
+from vwait.features.visual_qa.config import load_config
+from vwait.features.visual_qa.application.use_cases.classify_screenshot import ClassifyScreenshot
+from vwait.features.visual_qa.application.use_cases.validate_screenshot import ValidateScreenshot
+from vwait.features.visual_qa.infrastructure.embeddings.factory import build_embedding_provider
+from vwait.features.visual_qa.infrastructure.llm.factory import build_report_generator
+from vwait.features.visual_qa.infrastructure.llm.null_report_generator import NullReportGenerator
+from vwait.features.visual_qa.infrastructure.pixel_compare.existing_pixel_adapter import ExistingPixelAdapter
+from vwait.features.visual_qa.infrastructure.storage.local_artifact_store import LocalArtifactStore
+from vwait.features.visual_qa.infrastructure.vector_index.faiss_repository import FaissVectorIndexRepository
 
 
 def main() -> None:

@@ -10,6 +10,15 @@ import webbrowser
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 
+from vwait.core.paths import (
+    iter_tester_tests,
+    tester_actions_path,
+    tester_catalog_dir,
+    tester_dataset_path,
+    tester_system_collection_log_path,
+    tester_system_exec_log_path,
+)
+
 
 def render_collection_section(
     *,
@@ -52,7 +61,7 @@ def render_collection_section(
                         except Exception:
                             pass
 
-                    log_path = os.path.join(base_dir, "Data", "coleta_live.log")
+                    log_path = str(tester_system_collection_log_path())
                     st.session_state.coleta_log_path = log_path
                     log_file = open(log_path, "w", encoding="utf-8", errors="ignore", buffering=1)
                     st.session_state.coleta_log_file = log_file
@@ -84,7 +93,7 @@ def render_collection_section(
                     with open(stop_flag_path, "w") as handle:
                         handle.write("stop")
                     st.warning("Toque na tela do rádio para capturar o print final...")
-                    acoes_path = os.path.join(base_dir, "Data", categoria, nome_teste, "json", "acoes.json")
+                    acoes_path = str(tester_actions_path(categoria, nome_teste))
                     timeout_s = 60
                     t0 = time.time()
                     while time.time() - t0 < timeout_s:
@@ -148,9 +157,9 @@ def render_collection_section(
                     pasta_logs = resultado.get("artifact_dir")
                     erro_logs = resultado.get("error")
                     if status_captura == "capturado":
-                        st.success(f"Logs capturados em Data/{categoria_logs}/{nome_teste_logs}/{pasta_logs}")
+                        st.success(f"Logs capturados em {pasta_logs}")
                     elif status_captura == "sem_artefatos":
-                        st.warning(f"Nenhum log novo encontrado. Pasta gerada em Data/{categoria_logs}/{nome_teste_logs}/{pasta_logs}")
+                        st.warning(f"Nenhum log novo encontrado. Pasta gerada em {pasta_logs}")
                     else:
                         st.error(f"Falha ao capturar logs: {erro_logs or 'erro desconhecido'}")
 
@@ -220,10 +229,14 @@ def render_management_and_execution_sections(
 
     if st.button("Deletar Teste", use_container_width=True):
         if cat_del and nome_del:
-            teste_path = os.path.join(base_dir, "Data", cat_del, nome_del)
-            if os.path.exists(teste_path):
+            teste_path = str(tester_catalog_dir(cat_del, nome_del))
+            runs_path = os.path.join(base_dir, "Data", "runs", "tester", cat_del, nome_del)
+            if os.path.exists(teste_path) or os.path.exists(runs_path):
                 try:
-                    shutil.rmtree(teste_path)
+                    if os.path.exists(teste_path):
+                        shutil.rmtree(teste_path)
+                    if os.path.exists(runs_path):
+                        shutil.rmtree(runs_path)
                     st.success(f"Teste {cat_del}/{nome_del} deletado com sucesso.")
                 except Exception as exc:
                     st.error(f"rro ao deletar: {exc}")
@@ -400,21 +413,21 @@ def render_management_and_execution_sections(
 
         if executar_todos_categoria:
             if categoria_exec:
-                categoria_path = os.path.join(base_dir, "Data", categoria_exec)
+                categoria_path = str(tester_catalog_dir(categoria_exec, "__placeholder__").parent)
                 if not os.path.isdir(categoria_path):
-                    st.error(f"Categoria {categoria_exec} nao encontrada em Data/")
+                    st.error(f"Categoria {categoria_exec} nao encontrada em Data/catalog/tester/")
                 else:
-                    testes = [t for t in os.listdir(categoria_path) if os.path.isdir(os.path.join(categoria_path, t))]
+                    testes = iter_tester_tests(categoria_exec)
                     if not testes:
-                        st.warning(f"Nenhum teste encontrado em Data/{categoria_exec}/")
+                        st.warning(f"Nenhum teste encontrado em Data/catalog/tester/{categoria_exec}/")
                     else:
                         st.success(f"Executando {len(testes)} testes da categoria {categoria_exec}...")
                         for teste in testes:
-                            dataset_path = os.path.join(categoria_path, teste, "dataset.csv")
+                            dataset_path = str(tester_dataset_path(categoria_exec, teste))
                             if not os.path.exists(dataset_path):
                                 subprocess.run(["python", scripts["Processar Dataset"], categoria_exec, teste], cwd=base_dir)
 
-                            log_path = os.path.join(base_dir, "Data", "execucao_live.log")
+                            log_path = str(tester_system_exec_log_path())
                             st.session_state["execucao_log_path"] = log_path
                             log_file = open(log_path, "a", encoding="utf-8", errors="ignore", buffering=1)
                             subprocess.Popen(

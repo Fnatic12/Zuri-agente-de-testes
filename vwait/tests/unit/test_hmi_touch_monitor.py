@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from Scripts.hmi_touch_monitor import (
+from vwait.entrypoints.cli.hmi_touch_monitor import (
     _touch_axis_range,
     _store_validation_result,
     is_touch_end_line,

@@ -3,10 +3,11 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Iterable
 
+from vwait.core.paths import DATA_ROOT, TESTER_RUNS_ROOT, resolve_tester_run_dir
 
 FEATURE_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = FEATURE_DIR.parents[3]
-DATA_DIR = PROJECT_ROOT / "Data"
+DATA_DIR = DATA_ROOT
 WORKSPACE_DIR = PROJECT_ROOT / "workspace"
 REPORTS_DIR = WORKSPACE_DIR / "reports" / "failures"
 LEGACY_REPORTS_DIR = PROJECT_ROOT / "KPM" / "reports"
@@ -18,7 +19,10 @@ def ensure_reports_dir() -> Path:
 
 
 def test_dir(category: str, test_name: str) -> Path:
-    return DATA_DIR / category / test_name
+    resolved = resolve_tester_run_dir(category, test_name)
+    if resolved is not None:
+        return resolved
+    return TESTER_RUNS_ROOT / category / test_name
 
 
 def iter_report_roots() -> tuple[Path, ...]:

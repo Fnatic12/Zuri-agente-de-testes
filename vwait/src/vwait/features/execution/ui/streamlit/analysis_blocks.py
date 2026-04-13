@@ -8,6 +8,7 @@ import cv2
 import numpy as np
 import streamlit as st
 from PIL import Image
+from vwait.core.paths import tester_expected_dir, tester_expected_final_path, tester_recorded_frames_dir
 
 from .helpers import clean_display_text
 
@@ -15,6 +16,19 @@ from .helpers import clean_display_text
 OpenFolderFn = Callable[[str], tuple[bool, str]]
 LoadFailureReportFn = Callable[[str, dict[str, Any] | None], dict[str, Any]]
 ResolveExistingPathFn = Callable[[str, Any, str], str | None]
+
+
+def _catalog_paths_from_run(base_dir: str) -> tuple[str, str]:
+    normalized = str(base_dir).replace("\\", "/")
+    marker = "/Data/runs/tester/"
+    if marker not in normalized:
+        return "", ""
+    rel = normalized.split(marker, 1)[1]
+    parts = rel.split("/", 3)
+    if len(parts) < 2:
+        return "", ""
+    category, test_name = parts[0], parts[1]
+    return str(tester_expected_dir(category, test_name)), str(tester_expected_final_path(category, test_name))
 
 
 def simple_similarity(img_a: Image.Image, img_b: Image.Image) -> float:
@@ -239,8 +253,7 @@ def compare_expected_with_final(
 
 def render_expected_comparison(base_dir: str) -> None:
     st.subheader("Comparacao com resultados esperados")
-    esperados_dir = os.path.join(base_dir, "esperados")
-    final_path = os.path.join(base_dir, "resultado_final.png")
+    esperados_dir, final_path = _catalog_paths_from_run(base_dir)
 
     if not os.path.exists(final_path):
         st.warning("resultado_final.png nao encontrado para comparacao.")
@@ -278,8 +291,7 @@ def render_expected_comparison(base_dir: str) -> None:
 
 def render_toggle_comparison(base_dir: str) -> None:
     st.subheader("Comparacao de toggles")
-    esperados_dir = os.path.join(base_dir, "esperados")
-    final_path = os.path.join(base_dir, "resultado_final.png")
+    esperados_dir, final_path = _catalog_paths_from_run(base_dir)
 
     if not os.path.exists(final_path):
         st.info("resultado_final.png nao encontrado para comparacao de toggles.")
@@ -386,14 +398,21 @@ def render_toggle_comparison(base_dir: str) -> None:
 
 def render_final_validation(execucao: list[dict[str, Any]], base_dir: str) -> None:
     st.subheader("Validacao final da tela")
-    resultado_final_path = os.path.join(base_dir, "resultado_final.png")
+    _esperados_dir, resultado_final_path = _catalog_paths_from_run(base_dir)
     if not execucao:
         st.warning("Nenhuma acao registrada.")
         return
 
     ultima = execucao[-1]
     frame_esperado = ultima.get("frame_esperado")
-    frame_path = os.path.join(base_dir, frame_esperado) if frame_esperado else ""
+    frame_path = ""
+    normalized = str(base_dir).replace("\\", "/")
+    marker = "/Data/runs/tester/"
+    if frame_esperado and marker in normalized:
+        rel = normalized.split(marker, 1)[1]
+        parts = rel.split("/", 3)
+        if len(parts) >= 2:
+            frame_path = str(tester_recorded_frames_dir(parts[0], parts[1]) / os.path.basename(str(frame_esperado)))
 
     col1, col2 = st.columns(2)
     if frame_path and os.path.exists(frame_path):

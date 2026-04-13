@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=VWAIT Painel
+Comment=Abrir o painel VWAIT
+Exec=/home/victor-milani/vwait-ia/vwait/scripts/linux/iniciar_vwait.sh
+Path=/home/victor-milani/vwait-ia/vwait
+Icon=utilities-terminal
+Terminal=false
+StartupNotify=true
+Categories=Development;

@@ -22,4 +22,4 @@ def test_failures_paths_match_project_layout():
         PROJECT_ROOT / "workspace" / "reports" / "failures",
         PROJECT_ROOT / "KPM" / "reports",
     )
-    assert failure_paths.test_dir("radio", "home") == PROJECT_ROOT / "Data" / "radio" / "home"
+    assert failure_paths.test_dir("radio", "home").parent == PROJECT_ROOT / "Data" / "runs" / "tester" / "radio" / "home"

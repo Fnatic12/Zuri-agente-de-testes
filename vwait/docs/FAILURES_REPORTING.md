@@ -11,10 +11,12 @@ Os relatórios estruturados de falha agora pertencem ao módulo `failures`.
 
 ## Fonte de dados
 
-- `Data/<categoria>/<teste>/execucao_log.json`
-- `Data/<categoria>/<teste>/test_meta.json` (opcional)
-- `Data/<categoria>/<teste>/execution_context.json` (opcional)
-- `Data/<categoria>/<teste>/status_<serial>.json` (opcional)
+- `Data/runs/tester/<categoria>/<teste>/<run_id>/execucao_log.json`
+- `Data/runs/tester/<categoria>/<teste>/<run_id>/test_meta.json` (opcional)
+- `Data/runs/tester/<categoria>/<teste>/<run_id>/execution_context.json` (opcional)
+- `Data/runs/tester/<categoria>/<teste>/<run_id>/status/<serial>.json` (opcional)
+- `Data/catalog/tester/<categoria>/<teste>/expected/final.png`
+- `Data/catalog/tester/<categoria>/<teste>/recorded/frames/*`
 
 ## Entry point CLI
 
@@ -23,13 +25,3 @@ Para regenerar todos os relatórios de falha:
 ```bash
 python src/vwait/entrypoints/cli/generate_failure_reports.py
 ```
-
-## Automação legada de ticket KPM
-
-O script antigo de automação Selenium foi movido para:
-
-```text
-tools/legacy/abrir_kpm.py
-```
-
-Ele permanece fora do fluxo principal e deve ser tratado como utilitário legado.

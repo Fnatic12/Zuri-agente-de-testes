@@ -207,7 +207,7 @@ def interpret_command(
             for category_try in list_categories():
                 if token in list_tests(category_try):
                     return execute_test(category_try, token, extract_bench(text))
-            return f"ERRO: teste **{token}** nao encontrado em `Data/*/`."
+            return f"ERRO: teste **{token}** nao encontrado em `Data/catalog/tester/*/`."
         return "Aviso: especifique o teste a executar (ex: `executar teste geral_1 na bancada 1`)."
 
     if has_any(text_norm, record_keywords):
@@ -236,7 +236,7 @@ def interpret_command(
             category, test_name = resolve_test(token)
             if category and test_name:
                 return delete_test(category, test_name)
-            return f"ERRO: nao encontrei o teste **{token}** em `Data/*/`."
+            return f"ERRO: nao encontrei o teste **{token}** em `Data/catalog/tester/*/`."
         return "Aviso: especifique o teste (ex: `apagar audio_1`)."
 
     if has_any(text_norm, list_keywords):
@@ -249,7 +249,7 @@ def interpret_command(
         categories = list_categories()
         if categories:
             return "Categorias disponiveis:\n- " + "\n- ".join(categories)
-        return "Nenhuma categoria encontrada em `Data/`."
+        return "Nenhuma categoria encontrada em `Data/catalog/tester/`."
 
     if any(normalize(token) in text_norm for token in ["reset", "resetar", "reverter", "restaurar", "desfazer"]):
         token = extract_test_token(text)
@@ -441,4 +441,3 @@ def respond_conversational(
         {"role": "assistant", "content": "Posso ajudar com comandos de testes. Ex.: `executar audio_1 na bancada 1`"}
     )
     return ""
-

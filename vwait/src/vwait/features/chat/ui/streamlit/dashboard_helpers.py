@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import streamlit as st
 from PIL import Image
+from vwait.core.paths import tester_expected_final_path
 
 
 def load_logs(*, data_root):
@@ -127,7 +128,12 @@ def render_heatmap(execution):
 
 def render_final_validation(execution, base_dir):
     st.subheader("Validacao final da tela")
-    final_result_path = os.path.join(base_dir, "resultado_final.png")
+    test_ref = str(base_dir).replace("\\", "/").split("/Data/runs/tester/", 1)
+    final_result_path = ""
+    if len(test_ref) == 2:
+        parts = test_ref[1].split("/", 3)
+        if len(parts) >= 2:
+            final_result_path = str(tester_expected_final_path(parts[0], parts[1]))
     col1, col2 = st.columns(2)
     if execution:
         last = execution[-1]
@@ -161,4 +167,3 @@ def render_regressions(execution):
             st.write(f"- Acao {failure.get('id')} ({failure.get('acao', '')}): Similaridade {similarity_str}")
     else:
         st.success("Nenhuma falha registrada")
-

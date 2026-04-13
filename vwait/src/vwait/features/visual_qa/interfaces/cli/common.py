@@ -2,17 +2,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from visual_qa.application.use_cases.build_vector_index import BuildVectorIndex
-from visual_qa.application.use_cases.classify_screenshot import ClassifyScreenshot
-from visual_qa.application.use_cases.generate_report import GenerateReport
-from visual_qa.application.use_cases.validate_screenshot import ValidateScreenshot
-from visual_qa.application.use_cases.visual_qa_pipeline import VisualQaPipeline
-from visual_qa.config import VisualQaConfig
-from visual_qa.infrastructure.embeddings.factory import build_embedding_provider
-from visual_qa.infrastructure.llm.factory import build_report_generator
-from visual_qa.infrastructure.pixel_compare.existing_pixel_adapter import ExistingPixelAdapter
-from visual_qa.infrastructure.storage.local_artifact_store import LocalArtifactStore
-from visual_qa.infrastructure.vector_index.faiss_repository import FaissVectorIndexRepository
+from vwait.features.visual_qa.application.use_cases.build_vector_index import BuildVectorIndex
+from vwait.features.visual_qa.application.use_cases.classify_screenshot import ClassifyScreenshot
+from vwait.features.visual_qa.application.use_cases.generate_report import GenerateReport
+from vwait.features.visual_qa.application.use_cases.validate_screenshot import ValidateScreenshot
+from vwait.features.visual_qa.application.use_cases.visual_qa_pipeline import VisualQaPipeline
+from vwait.features.visual_qa.config import VisualQaConfig
+from vwait.features.visual_qa.infrastructure.embeddings.factory import build_embedding_provider
+from vwait.features.visual_qa.infrastructure.llm.factory import build_report_generator
+from vwait.features.visual_qa.infrastructure.pixel_compare.existing_pixel_adapter import ExistingPixelAdapter
+from vwait.features.visual_qa.infrastructure.storage.local_artifact_store import LocalArtifactStore
+from vwait.features.visual_qa.infrastructure.vector_index.faiss_repository import FaissVectorIndexRepository
 
 
 @dataclass

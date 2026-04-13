@@ -11,6 +11,15 @@ from datetime import datetime
 from difflib import SequenceMatcher
 from typing import Callable
 
+from vwait.core.paths import (
+    DATA_ROOT,
+    TESTER_CATALOG_ROOT,
+    iter_tester_categories,
+    iter_tester_tests,
+    tester_actions_path,
+    tester_status_file_path,
+)
+
 
 def parse_adb_devices(raw_lines):
     serials = []
@@ -155,7 +164,7 @@ def export_global_log_sequence(
     raw_json_path: str,
     meta_json_path: str,
 ) -> tuple[bool, str]:
-    actions_path = os.path.join(data_root, category, test_name, "json", "acoes.json")
+    actions_path = str(tester_actions_path(category, test_name))
     if not os.path.exists(actions_path):
         return False, "acoes.json da sequencia de logs ainda nao foi gerado."
     try:
@@ -210,10 +219,12 @@ def update_bench_status(
     try:
         with status_lock:
             status_dir = os.path.join(data_root, category, test_name) if category and test_name else None
+            if category and test_name:
+                status_dir = os.path.dirname(str(tester_status_file_path(category, test_name, serial)))
             if not status_dir:
                 return
             os.makedirs(status_dir, exist_ok=True)
-            status_file = os.path.join(status_dir, f"status_{serial}.json")
+            status_file = str(tester_status_file_path(category, test_name, serial))
             data = {}
             if os.path.exists(status_file):
                 with open(status_file, "r", encoding="utf-8") as handle:
@@ -238,9 +249,9 @@ def update_bench_status(
 def read_serial_status(serial: str, *, data_root: str):
     latest = None
     latest_ts = None
-    for root, _, files in os.walk(data_root):
+    for root, _, files in os.walk(DATA_ROOT):
         for name in files:
-            if name != f"status_{serial}.json":
+            if name != f"{serial}.json" and name != f"status_{serial}.json":
                 continue
             path = os.path.join(root, name)
             try:
@@ -298,7 +309,7 @@ def capture_radio_log_command(
                     category, test_name = category_try, token
                     break
         if category is None or test_name is None:
-            return f"ERRO: teste **{token}** nao encontrado em `Data/*/`."
+            return f"ERRO: teste **{token}** nao encontrado em `Data/catalog/tester/*/`."
     else:
         latest = read_serial_status_fn(serial)
         test_ref = str((latest or {}).get("teste", "") or "").strip()
@@ -312,9 +323,9 @@ def capture_radio_log_command(
     logs_dir = result.get("artifact_dir")
     error_logs = result.get("error")
     if capture_status == "capturado":
-        return f"Logs do radio capturados em **Data/{category}/{test_name}/{logs_dir}**."
+        return f"Logs do radio capturados em **Data/runs/tester/{category}/{test_name}/<run>/{logs_dir}**."
     if capture_status == "sem_artefatos":
-        return f"Nenhum log novo encontrado. Pasta gerada em **Data/{category}/{test_name}/{logs_dir}**."
+        return f"Nenhum log novo encontrado. Pasta gerada em **Data/runs/tester/{category}/{test_name}/<run>/{logs_dir}**."
     return f"ERRO: falha ao capturar logs do radio: {error_logs or 'erro desconhecido'}"
 
 
@@ -636,4 +647,3 @@ def run_parallel_tests(
             )
         )
     return "\n".join(responses)
-

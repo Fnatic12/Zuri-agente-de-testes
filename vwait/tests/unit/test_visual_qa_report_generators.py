@@ -3,8 +3,8 @@ from __future__ import annotations
 import json
 import socket
 
-from visual_qa.infrastructure.llm.null_report_generator import NullReportGenerator
-from visual_qa.infrastructure.llm.ollama_report_generator import OllamaReportGenerator
+from vwait.features.visual_qa.infrastructure.llm.null_report_generator import NullReportGenerator
+from vwait.features.visual_qa.infrastructure.llm.ollama_report_generator import OllamaReportGenerator
 
 
 class _FakeResponse:

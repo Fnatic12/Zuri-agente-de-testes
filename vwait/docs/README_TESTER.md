@@ -30,7 +30,7 @@ Os paineis auxiliares rodam nestas portas:
 ## Antes de entregar o pacote para outro tester
 
 Ao gerar o `.zip` do projeto:
-- mantenha `Data/` apenas com estrutura inicial e templates
+- mantenha `Data/` apenas com estrutura inicial (`catalog/`, `runs/`, `cache/`, `templates/`, `system/`)
 - nao envie historico real de capturas, logs ou datasets internos
 - nao envie artefatos desnecessarios do ambiente de desenvolvimento
 
@@ -82,7 +82,7 @@ O script `iniciar_vwait.bat`:
 Se o projeto ja vier com a `.venv` pronta, use diretamente o launcher:
 
 ```bash
-Scripts/linux/iniciar_vwait.sh
+scripts/linux/iniciar_vwait.sh
 ```
 
 Se a `.venv` ainda nao existir, prepare o ambiente antes:
@@ -96,7 +96,7 @@ python3 -m venv .venv
 Depois inicie:
 
 ```bash
-Scripts/linux/iniciar_vwait.sh
+scripts/linux/iniciar_vwait.sh
 ```
 
 ## Primeiro uso
@@ -115,24 +115,25 @@ Se o ambiente ja foi preparado antes:
 No Windows:
 
 ```bat
-Scripts\windows\iniciar_vwait.bat
+scripts\windows\iniciar_vwait.bat
 ```
 
 No Linux:
 
 ```bash
-Scripts/linux/iniciar_vwait.sh
+scripts/linux/iniciar_vwait.sh
 ```
 
 ## Onde ficam os dados do tester
 
 O workspace local fica dentro da pasta `Data/`.
 
-Ali ficam, por exemplo:
-- coletas
-- execucoes
-- logs
-- artefatos temporarios do fluxo
+Resumo da organizacao:
+- `Data/catalog/` para definicoes gravadas do teste
+- `Data/runs/` para cada execucao
+- `Data/cache/` para material temporario
+- `Data/templates/` para modelos reutilizaveis
+- `Data/system/` para logs globais do app
 
 Para consolidar o trabalho de um tester, normalmente basta recolher a pasta `Data/`.
 
@@ -189,4 +190,4 @@ Os launchers tentam limpar processos antigos automaticamente. Se ainda assim hou
 
 ## Observacao importante
 
-Neste momento o projeto continua usando `Data/` dentro da raiz do repositorio como workspace local. Isso foi mantido de proposito para nao quebrar o fluxo atual do coletor, do runner e dos paineis.
+O projeto continua usando `Data/` dentro da raiz do repositorio como workspace local, mas agora com layout organizado por `catalog/`, `runs/`, `cache/`, `templates/` e `system/`.

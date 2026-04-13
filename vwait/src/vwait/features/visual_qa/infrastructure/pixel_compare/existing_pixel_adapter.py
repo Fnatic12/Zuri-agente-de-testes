@@ -6,8 +6,8 @@ import inspect
 from pathlib import Path
 from typing import Any, Optional
 
-from visual_qa.application.ports.pixel_comparator import PixelComparator
-from visual_qa.domain.entities import PixelDiffResult
+from vwait.features.visual_qa.application.ports.pixel_comparator import PixelComparator
+from vwait.features.visual_qa.domain.entities import PixelDiffResult
 
 
 def _load_legacy_pixel_api():

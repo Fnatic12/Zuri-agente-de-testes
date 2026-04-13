@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any, Dict
 
-from visual_qa.domain.entities import Report
+from vwait.features.visual_qa.domain.entities import Report
 
 
 class ReportGenerator(ABC):

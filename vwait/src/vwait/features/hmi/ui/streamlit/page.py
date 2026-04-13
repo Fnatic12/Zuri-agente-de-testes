@@ -12,6 +12,7 @@ from typing import Any, Dict, Optional
 import numpy as np
 import streamlit as st
 from PIL import Image
+from vwait.core.paths import TESTER_RUNS_ROOT, hmi_cache_dir, resolve_tester_run_dir
 from vwait.platform.adb import resolve_adb_path
 from vwait.core.config.ui_theme import apply_dark_background
 
@@ -244,17 +245,16 @@ def _slugify(value: str) -> str:
 
 def _list_tests(data_root: str):
     rows = []
-    if not os.path.isdir(data_root):
+    runs_root = str(TESTER_RUNS_ROOT)
+    if not os.path.isdir(runs_root):
         return rows
-    for categoria in sorted(os.listdir(data_root)):
-        cat_path = os.path.join(data_root, categoria)
+    for categoria in sorted(os.listdir(runs_root)):
+        cat_path = os.path.join(runs_root, categoria)
         if not os.path.isdir(cat_path):
             continue
         for teste in sorted(os.listdir(cat_path)):
-            test_path = os.path.join(cat_path, teste)
-            has_results = os.path.isdir(os.path.join(test_path, "resultados"))
-            has_frames = os.path.isdir(os.path.join(test_path, "frames"))
-            if has_results or has_frames:
+            test_path = resolve_tester_run_dir(categoria, teste)
+            if test_path and os.path.isdir(test_path):
                 rows.append((f"{categoria}/{teste}", categoria, teste))
     return rows
 
@@ -1217,7 +1217,7 @@ def _start_live_monitor(
     _reset_live_lookup_session(cache_root, serial)
     os.makedirs(shots_dir, exist_ok=True)
 
-    script_path = str(PROJECT_ROOT / "Scripts" / "hmi_touch_monitor.py")
+    script_path = str(PROJECT_ROOT / "src" / "vwait" / "entrypoints" / "cli" / "hmi_touch_monitor.py")
     log_path = os.path.join(root_dir, "monitor.log")
     python_exec = sys.executable
     if os.name == "nt":
@@ -1644,7 +1644,7 @@ def _make_vqa_use_cases(vqa: Dict[str, Any], cfg: Any) -> Dict[str, Any]:
 def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
     del base_dir
     hmi = _load_hmi_modules()
-    cache_root = os.path.join(data_root, "hmi_cache")
+    cache_root = str(hmi_cache_dir())
     os.makedirs(cache_root, exist_ok=True)
 
     st.session_state.setdefault("hmi_figma_dir", "")
@@ -2061,7 +2061,7 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
                 st.markdown("#### Execucao")
                 selected = st.selectbox("Execucao", options=list(label_map.keys()), key="hmi_unified_exec_select")
                 categoria, teste = label_map[selected]
-                test_dir = os.path.join(data_root, categoria, teste)
+                test_dir = str(resolve_tester_run_dir(categoria, teste) or "")
                 screens = hmi["collect_result_screens"](test_dir, source=_safe_str(st.session_state.get("hmi_capture_source"), "auto"))
                 mini_stats = st.columns(3)
                 mini_stats[0].metric("Execucao", selected)
@@ -2220,7 +2220,7 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
 
         available = []
         for label, categoria, teste in tests:
-            test_dir = os.path.join(data_root, categoria, teste)
+            test_dir = str(resolve_tester_run_dir(categoria, teste) or "")
             if os.path.exists(os.path.join(hmi["get_validation_dir"](test_dir), "resultado_hmi.json")):
                 available.append(label)
 
@@ -2233,7 +2233,7 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
                 else:
                     selected = st.selectbox("Resultado HMI", options=available, key="hmi_result_select")
                     categoria, teste = label_map[selected]
-                    test_dir = os.path.join(data_root, categoria, teste)
+                    test_dir = str(resolve_tester_run_dir(categoria, teste) or "")
                     report = hmi["load_validation_report"](test_dir)
                     summary = report.get("summary", {})
                     structured_rows = hmi["build_validation_dimension_rows"](report)
@@ -2297,7 +2297,7 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
                 st.markdown("#### Visual QA")
                 vqa_available = []
                 for label, categoria, teste in tests:
-                    test_dir = os.path.join(data_root, categoria, teste)
+                    test_dir = str(resolve_tester_run_dir(categoria, teste) or "")
                     if _load_vqa_runs(_vqa_runs_dir(test_dir)):
                         vqa_available.append(label)
                 if not vqa_available:
@@ -2305,7 +2305,7 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
                 else:
                     selected = st.selectbox("Resultado Visual QA", options=vqa_available, key="vqa_result_select")
                     categoria, teste = label_map[selected]
-                    test_dir = os.path.join(data_root, categoria, teste)
+                    test_dir = str(resolve_tester_run_dir(categoria, teste) or "")
                     runs = _load_vqa_runs(_vqa_runs_dir(test_dir))
                     st.write(f"Runs encontrados: {len(runs)}")
                     table = []

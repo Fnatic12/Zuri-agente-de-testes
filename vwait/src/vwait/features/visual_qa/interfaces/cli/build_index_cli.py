@@ -4,9 +4,9 @@ import argparse
 import json
 from pathlib import Path
 
-from visual_qa.config import load_config
-from visual_qa.infrastructure.embeddings.factory import build_embedding_provider
-from visual_qa.infrastructure.vector_index.faiss_repository import FaissVectorIndexRepository
+from vwait.features.visual_qa.config import load_config
+from vwait.features.visual_qa.infrastructure.embeddings.factory import build_embedding_provider
+from vwait.features.visual_qa.infrastructure.vector_index.faiss_repository import FaissVectorIndexRepository
 
 
 def _load_labels(labels_json: str | None) -> dict[str, str] | None:

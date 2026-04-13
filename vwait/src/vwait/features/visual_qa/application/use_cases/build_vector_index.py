@@ -7,8 +7,8 @@ from typing import Any, Dict, List
 
 import numpy as np
 
-from visual_qa.application.ports.embedding_provider import EmbeddingProvider
-from visual_qa.application.ports.vector_index_repository import VectorIndexRepository
+from vwait.features.visual_qa.application.ports.embedding_provider import EmbeddingProvider
+from vwait.features.visual_qa.application.ports.vector_index_repository import VectorIndexRepository
 
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".webp"}
 

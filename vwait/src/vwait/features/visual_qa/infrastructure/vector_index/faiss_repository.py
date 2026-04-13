@@ -7,8 +7,8 @@ from typing import Any, Callable
 
 import numpy as np
 
-from visual_qa.application.ports.vector_index_repository import VectorIndexRepository
-from visual_qa.infrastructure.vector_index.dtos import ScreenMatchCandidate
+from vwait.features.visual_qa.application.ports.vector_index_repository import VectorIndexRepository
+from vwait.features.visual_qa.infrastructure.vector_index.dtos import ScreenMatchCandidate
 
 _IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg"}
 

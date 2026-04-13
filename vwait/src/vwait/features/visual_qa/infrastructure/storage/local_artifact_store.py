@@ -7,7 +7,7 @@ import shutil
 from pathlib import Path
 from typing import Any, Dict, Iterable, Mapping
 
-from visual_qa.application.ports.artifact_store import ArtifactStore
+from vwait.features.visual_qa.application.ports.artifact_store import ArtifactStore
 
 
 class LocalArtifactStore(ArtifactStore):

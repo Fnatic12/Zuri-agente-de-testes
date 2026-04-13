@@ -6,7 +6,7 @@ from typing import Any
 
 import numpy as np
 
-from visual_qa.application.ports.embedding_provider import EmbeddingProvider
+from vwait.features.visual_qa.application.ports.embedding_provider import EmbeddingProvider
 
 _SUPPORTED_IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg"}
 

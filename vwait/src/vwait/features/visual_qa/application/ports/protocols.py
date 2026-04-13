@@ -10,7 +10,7 @@ from typing import Any, Mapping, Protocol, runtime_checkable
 
 import numpy as np
 
-from visual_qa.domain.scaffold_entities import PixelDiffResult, Report, ScreenMatch
+from vwait.features.visual_qa.domain.scaffold_entities import PixelDiffResult, Report, ScreenMatch
 
 
 @runtime_checkable

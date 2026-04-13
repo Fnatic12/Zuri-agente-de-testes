@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from visual_qa.domain.scaffold_entities import Report, ScreenMatch, ValidationRun
+from vwait.features.visual_qa.domain.scaffold_entities import Report, ScreenMatch, ValidationRun
 
 
 @dataclass(frozen=True)

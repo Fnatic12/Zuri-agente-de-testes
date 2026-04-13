@@ -1,6 +1,8 @@
 import json
 import os
 
+from vwait.core.paths import tester_expected_final_path
+
 
 def record_global_log_sequence(
     bench: str | None = None,
@@ -77,7 +79,7 @@ def check_finalizations(
             serial = serial_raw if isinstance(serial_raw, str) and serial_raw else None
         if not category or not name:
             continue
-        final_path = os.path.join(data_root, category, name, "resultado_final.png")
+        final_path = str(tester_expected_final_path(category, name))
         if os.path.exists(final_path):
             if mode == "global_log_sequence":
                 if not serial:
@@ -139,4 +141,3 @@ def check_finished_executions(*, session_state) -> None:
         else:
             remaining.append(item)
     session_state.execucoes_ativas = remaining
-

@@ -1,4 +1,4 @@
-# visual_qa.application
+# vwait.features.visual_qa.application
 
 Application-layer contracts and DTOs for orchestrating Visual QA use cases.
 

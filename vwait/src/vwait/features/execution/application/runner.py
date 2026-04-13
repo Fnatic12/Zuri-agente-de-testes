@@ -24,6 +24,14 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 from vwait.platform.adb import resolve_adb_path
+from vwait.core.paths import (
+    DATA_ROOT as DATA_ROOT_PATH,
+    create_tester_run_dir,
+    tester_dataset_path,
+    tester_execution_log_path,
+    tester_recorded_frames_dir,
+    tester_results_dir,
+)
 from vwait.features.execution.application import (
     bancada_key_from_serial as _execution_bancada_key_from_serial,
     build_action_outcome as _execution_build_action_outcome,
@@ -102,7 +110,7 @@ DEFAULT_FAILURE_LOG_PATTERNS = (
 
 # Caminho absoluto da raiz do projeto (este arquivo estÃ¡ em /Run)
 BASE_DIR = str(PROJECT_ROOT)
-DATA_ROOT = str(PROJECT_ROOT / "Data")
+DATA_ROOT = str(DATA_ROOT_PATH)
 
 # DicionÃ¡rio local de controle do tempo (por processo)
 INICIO_EXECUCAO = {}
@@ -596,7 +604,7 @@ def capturar_logs_teste(categoria, nome_teste, serial, motivo="manual", limpar_a
 # =========================
 # STATUS DAS BANCADAS (padronizado)
 # =========================
-STATUS_FILE = os.path.join(BASE_DIR, "Data", "status_bancadas.json")
+STATUS_FILE = os.path.join(DATA_ROOT, "status_bancadas.json")
 INICIO_EXECUCAO = {}
 
 def _bancada_key_from_serial(serial):
@@ -876,12 +884,13 @@ def main():
     except Exception as exc:
         print_color(f"âš ï¸ Falha ao preparar limpeza preventiva dos logs: {exc}", "yellow")
 
-    teste_dir = os.path.join(DATA_ROOT, categoria, nome_teste)
+    run_dir = str(create_tester_run_dir(categoria, nome_teste))
+    teste_dir = run_dir
     limpar_relatorio_falha_automatico(categoria, nome_teste)
-    dataset_path = os.path.join(teste_dir, "dataset.csv")
-    frames_dir = os.path.join(teste_dir, "frames")
-    resultados_dir = os.path.join(teste_dir, "resultados")
-    log_path = os.path.join(teste_dir, "execucao_log.json")
+    dataset_path = str(tester_dataset_path(categoria, nome_teste))
+    frames_dir = str(tester_recorded_frames_dir(categoria, nome_teste))
+    resultados_dir = str(tester_results_dir(categoria, nome_teste, create=True))
+    log_path = str(tester_execution_log_path(categoria, nome_teste, create=True))
 
     print_color(f"\nðŸ—‚ï¸ Dataset: {dataset_path}", "cyan")
     print_color(f"ðŸ—‚ï¸ Frames:  {frames_dir}", "cyan")
@@ -1053,7 +1062,7 @@ def main():
 
     resultado_final, motivo_final = _execution_resolve_execution_final_result(houve_divergencia)
     concluir_execucao("finalizado", resultado_final, motivo=motivo_final, capturar_logs=houve_divergencia)
-    print_color(f"Status atualizado em: Data/{categoria}/{nome_teste}/status_{bancada_key}.json", "cyan")
+    print_color(f"Status atualizado em: Data/runs/tester/{categoria}/{nome_teste}/<run>/status/{bancada_key}.json", "cyan")
 
 if __name__ == "__main__":
     main()

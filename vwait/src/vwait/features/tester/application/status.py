@@ -4,6 +4,14 @@ import json
 import os
 import re
 
+from vwait.core.paths import (
+    DATA_ROOT,
+    tester_logs_root,
+    tester_status_file_path,
+    tester_system_collection_log_path,
+    tester_system_exec_log_path,
+)
+
 
 ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 
@@ -23,18 +31,21 @@ def clean_display_text(value: str) -> str:
 
 
 def execucao_log_path_por_serial(base_dir: str, serial: str) -> str:
-    serial_seguro = re.sub(r"[^0-9A-Za-z_.-]", "_", str(serial or "sem_serial"))
-    return os.path.join(base_dir, "Data", f"execucao_live_{serial_seguro}.log")
+    return str(tester_system_exec_log_path(serial))
 
 
 def status_file_path(base_dir: str, categoria: str, teste: str, serial: str) -> str:
-    return os.path.join(base_dir, "Data", str(categoria), str(teste), f"status_{serial}.json")
+    return str(tester_status_file_path(categoria, teste, serial))
 
 
 def carregar_status_execucao(base_dir: str, categoria: str, teste: str, serial: str) -> dict:
     path = status_file_path(base_dir, categoria, teste, serial)
     if not os.path.exists(path):
-        return {}
+        legacy_path = os.path.join(base_dir, "Data", categoria, teste, f"status_{serial}.json")
+        if os.path.exists(legacy_path):
+            path = legacy_path
+        else:
+            return {}
     try:
         with open(path, "r", encoding="utf-8") as handle:
             data = json.load(handle)
@@ -53,7 +64,8 @@ def resolver_teste_por_serial(base_dir: str, serial: str):
     latest_ts = None
     if not serial:
         return None, None
-    for root, _dirs, files in os.walk(os.path.join(base_dir, "Data")):
+    search_root = os.path.join(base_dir, "Data") if base_dir else str(DATA_ROOT)
+    for root, _dirs, files in os.walk(search_root):
         for name in files:
             if name != f"status_{serial}.json":
                 continue
@@ -78,18 +90,23 @@ def resolver_teste_por_serial(base_dir: str, serial: str):
 
 
 def resolver_pasta_logs_teste(base_dir: str, categoria: str, nome_teste: str, serial: str | None = None):
-    teste_dir = os.path.join(base_dir, "Data", str(categoria or "").strip(), str(nome_teste or "").strip())
-    logs_root = os.path.join(teste_dir, "logs")
+    logs_root = str(tester_logs_root(categoria, nome_teste))
     status_payload = carregar_status_execucao(base_dir, categoria, nome_teste, serial) if serial else {}
     relative_capture_dir = str((status_payload or {}).get("log_capture_dir", "") or "").strip()
 
     if relative_capture_dir:
-        capture_dir = os.path.join(teste_dir, relative_capture_dir)
+        capture_dir = os.path.join(logs_root, relative_capture_dir.replace("logs/", "", 1))
         if os.path.isdir(capture_dir):
             return capture_dir
+        legacy_dir = os.path.join(base_dir, "Data", str(categoria or "").strip(), str(nome_teste or "").strip(), relative_capture_dir)
+        if os.path.isdir(legacy_dir):
+            return legacy_dir
 
     if not os.path.isdir(logs_root):
-        return None
+        legacy_logs_root = os.path.join(base_dir, "Data", str(categoria or "").strip(), str(nome_teste or "").strip(), "logs")
+        if not os.path.isdir(legacy_logs_root):
+            return None
+        logs_root = legacy_logs_root
 
     candidates = [
         os.path.join(logs_root, name)
@@ -149,5 +166,6 @@ __all__ = [
     "resolver_pasta_logs_teste",
     "resolver_teste_por_serial",
     "status_file_path",
+    "tester_system_collection_log_path",
     "tem_execucao_unica_ativa",
 ]

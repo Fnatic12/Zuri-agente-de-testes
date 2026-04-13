@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from visual_qa.infrastructure.vector_index.faiss_repository import FaissVectorIndexRepository
+from vwait.features.visual_qa.infrastructure.vector_index.faiss_repository import FaissVectorIndexRepository
 
 
 def test_faiss_repository_save_load_search(tmp_path):

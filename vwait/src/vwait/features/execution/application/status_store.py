@@ -144,7 +144,11 @@ def carregar_status_bancadas(data_root: str | Path = DATA_ROOT) -> dict:
     if not data_root.is_dir():
         return latest
 
-    for path in data_root.rglob("status_*.json"):
+    for path in data_root.rglob("*.json"):
+        if path.name == "status_bancadas.json":
+            continue
+        if path.parent.name != "status" and not path.name.startswith("status_"):
+            continue
         try:
             raw = json.loads(path.read_text(encoding="utf-8"))
             if not isinstance(raw, dict):
@@ -152,7 +156,7 @@ def carregar_status_bancadas(data_root: str | Path = DATA_ROOT) -> dict:
         except Exception:
             continue
 
-        serial = str(raw.get("serial") or path.stem[len("status_") :]).strip()
+        serial = str(raw.get("serial") or path.stem.replace("status_", "", 1)).strip()
         if not serial:
             continue
 

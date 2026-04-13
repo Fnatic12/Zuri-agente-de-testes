@@ -1,9 +1,9 @@
 import cv2
 import numpy as np
 
-from visual_qa.application.use_cases.build_vector_index import BuildVectorIndex
-from visual_qa.application.ports.embedding_provider import EmbeddingProvider
-from visual_qa.application.ports.vector_index_repository import VectorIndexRepository
+from vwait.features.visual_qa.application.use_cases.build_vector_index import BuildVectorIndex
+from vwait.features.visual_qa.application.ports.embedding_provider import EmbeddingProvider
+from vwait.features.visual_qa.application.ports.vector_index_repository import VectorIndexRepository
 
 
 class FakeEmbeddingProvider(EmbeddingProvider):

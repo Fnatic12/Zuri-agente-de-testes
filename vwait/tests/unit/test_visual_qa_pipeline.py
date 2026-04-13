@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
-from visual_qa.application.use_cases.generate_report import GenerateReport
-from visual_qa.application.use_cases.visual_qa_pipeline import VisualQaPipeline
-from visual_qa.domain.entities import PixelDiffResult, Report, ScreenMatch, ValidationRun
-from visual_qa.infrastructure.storage.local_artifact_store import LocalArtifactStore
+from vwait.features.visual_qa.application.use_cases.generate_report import GenerateReport
+from vwait.features.visual_qa.application.use_cases.visual_qa_pipeline import VisualQaPipeline
+from vwait.features.visual_qa.domain.entities import PixelDiffResult, Report, ScreenMatch, ValidationRun
+from vwait.features.visual_qa.infrastructure.storage.local_artifact_store import LocalArtifactStore
 
 
 @dataclass

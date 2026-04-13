@@ -4,8 +4,8 @@ import importlib
 
 import numpy as np
 
-from visual_qa.application.ports.embedding_provider import EmbeddingProvider
-from visual_qa.infrastructure.embeddings.mobileclip_provider import _as_numpy_1d, _l2_normalize, _load_rgb_image
+from vwait.features.visual_qa.application.ports.embedding_provider import EmbeddingProvider
+from vwait.features.visual_qa.infrastructure.embeddings.mobileclip_provider import _as_numpy_1d, _l2_normalize, _load_rgb_image
 
 
 class OpenCLIPEmbeddingProvider(EmbeddingProvider):

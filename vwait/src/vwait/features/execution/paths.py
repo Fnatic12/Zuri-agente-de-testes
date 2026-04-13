@@ -2,15 +2,27 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from vwait.core.paths import (
+    DATA_ROOT,
+    legacy_tester_test_dir,
+    resolve_tester_run_dir,
+    tester_failure_report_pointer_path,
+    tester_status_file_path,
+)
 
 FEATURE_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = FEATURE_DIR.parents[3]
-DATA_ROOT = PROJECT_ROOT / "Data"
 STATUS_FILE = DATA_ROOT / "status_bancadas.json"
 
 
 def status_dir(category: str, test_name: str) -> Path:
-    return DATA_ROOT / category / test_name
+    resolved = resolve_tester_run_dir(category, test_name)
+    if resolved is not None:
+        return resolved
+    legacy = legacy_tester_test_dir(category, test_name)
+    if legacy.exists():
+        return legacy
+    return DATA_ROOT / "runs" / "tester" / category / test_name
 
 
 def test_ref(category: str, test_name: str) -> str:
@@ -18,12 +30,11 @@ def test_ref(category: str, test_name: str) -> str:
 
 
 def status_file_path(category: str, test_name: str, serial: str | None = None) -> Path:
-    filename = f"status_{serial}.json" if serial else "status_bancadas.json"
-    return status_dir(category, test_name) / filename
+    return tester_status_file_path(category, test_name, serial)
 
 
 def failure_report_pointer_path(category: str, test_name: str) -> Path:
-    return status_dir(category, test_name) / "failure_report_latest.json"
+    return tester_failure_report_pointer_path(category, test_name)
 
 
 __all__ = [

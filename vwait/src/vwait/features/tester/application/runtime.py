@@ -7,6 +7,8 @@ import sys
 import time
 from datetime import datetime
 
+from vwait.core.paths import tester_expected_dir, tester_expected_final_path
+
 
 def subprocess_windowless_kwargs() -> dict:
     if os.name != "nt":
@@ -106,13 +108,10 @@ def adb_cmd(adb_path: str, serial: str | None = None) -> list[str]:
 
 
 def salvar_resultado_parcial(base_dir: str, adb_path: str, categoria: str, nome_teste: str, serial: str | None = None):
-    teste_dir = os.path.join(base_dir, "Data", categoria, nome_teste)
-    esperados_dir = os.path.join(teste_dir, "esperados")
-    os.makedirs(esperados_dir, exist_ok=True)
-
-    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    image_name = f"esperado_{stamp}.png"
-    image_path = os.path.join(esperados_dir, image_name)
+    esperados_dir = tester_expected_dir(categoria, nome_teste)
+    esperados_dir.mkdir(parents=True, exist_ok=True)
+    image_name = "final.png"
+    image_path = str(tester_expected_final_path(categoria, nome_teste))
 
     try:
         cmd = adb_cmd(adb_path, serial) + ["exec-out", "screencap", "-p"]

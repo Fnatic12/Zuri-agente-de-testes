@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from visual_qa.application.ports.embedding_provider import EmbeddingProvider
-from visual_qa.config import VisualQaConfig
-from visual_qa.infrastructure.embeddings.fallback_provider import LocalFeatureEmbeddingProvider
-from visual_qa.infrastructure.embeddings.mobileclip_provider import MobileCLIPEmbeddingProvider
-from visual_qa.infrastructure.embeddings.openclip_provider import OpenCLIPEmbeddingProvider
+from vwait.features.visual_qa.application.ports.embedding_provider import EmbeddingProvider
+from vwait.features.visual_qa.config import VisualQaConfig
+from vwait.features.visual_qa.infrastructure.embeddings.fallback_provider import LocalFeatureEmbeddingProvider
+from vwait.features.visual_qa.infrastructure.embeddings.mobileclip_provider import MobileCLIPEmbeddingProvider
+from vwait.features.visual_qa.infrastructure.embeddings.openclip_provider import OpenCLIPEmbeddingProvider
 
 
 def build_embedding_provider(config: VisualQaConfig) -> EmbeddingProvider:

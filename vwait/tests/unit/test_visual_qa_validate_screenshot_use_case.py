@@ -5,9 +5,9 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-from visual_qa.application.use_cases.validate_screenshot import ValidateScreenshot
-from visual_qa.domain.entities import PixelDiffResult, Report, ScreenMatch
-from visual_qa.domain.scaffold_entities import ScreenMatch as Stage1ScreenMatch
+from vwait.features.visual_qa.application.use_cases.validate_screenshot import ValidateScreenshot
+from vwait.features.visual_qa.domain.entities import PixelDiffResult, Report, ScreenMatch
+from vwait.features.visual_qa.domain.scaffold_entities import ScreenMatch as Stage1ScreenMatch
 
 
 @dataclass
@@ -111,7 +111,7 @@ def _base_match() -> ScreenMatch:
 
 def test_validate_screenshot_orchestrates_all_stages_with_injected_ports(monkeypatch, tmp_path: Path):
     monkeypatch.setattr(
-        "visual_qa.application.use_cases.validate_screenshot._safe_git_sha",
+        "vwait.features.visual_qa.application.use_cases.validate_screenshot._safe_git_sha",
         lambda: "abc123",
     )
 
@@ -180,7 +180,7 @@ def test_validate_screenshot_orchestrates_all_stages_with_injected_ports(monkeyp
 
 def test_validate_screenshot_handles_unknown_without_baseline(monkeypatch, tmp_path: Path):
     monkeypatch.setattr(
-        "visual_qa.application.use_cases.validate_screenshot._safe_git_sha",
+        "vwait.features.visual_qa.application.use_cases.validate_screenshot._safe_git_sha",
         lambda: None,
     )
 

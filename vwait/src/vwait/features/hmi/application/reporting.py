@@ -1,7 +1,7 @@
 import json
 import os
 from io import BytesIO
-from datetime import datetime
+from datetime import datetime, UTC
 from html import escape
 from typing import Any, Dict, Sequence
 from zipfile import ZIP_DEFLATED, ZipFile
@@ -239,7 +239,7 @@ def build_validation_dimension_workbook(rows: Sequence[Dict[str, Any]]) -> bytes
     last_row = max(1, len(workbook_rows))
     sheet_ref = f"A1:{last_col}{last_row}"
     sheet_data = "".join(_xlsx_row(row_number, values) for row_number, values in enumerate(workbook_rows, start=1))
-    stamp = datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+    stamp = datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
     worksheet_xml = (
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'

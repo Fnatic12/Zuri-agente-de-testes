@@ -19,6 +19,9 @@ except Exception:
 from vwait.core.paths import project_root, root_path
 from vwait.platform.adb import resolve_adb_path
 from vwait.features.chat.application.config import load_chat_page_config
+from vwait.features.chat.application.execution import (
+    execute_test as _execute_test_app,
+)
 from vwait.features.chat.application.llm import (
     init_colorama_safely as _init_colorama_safely_app,
     resolve_ollama_cli as _resolve_ollama_cli_app,

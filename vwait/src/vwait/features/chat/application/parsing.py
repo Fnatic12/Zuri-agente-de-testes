@@ -208,7 +208,7 @@ def resolve_execution_from_chunk(
         for category_try in list_categories_fn():
             if token in list_tests_fn(category_try):
                 return category_try, token, None
-        return None, None, f"ERRO: teste **{token}** nao encontrado em `Data/*/`."
+        return None, None, f"ERRO: teste **{token}** nao encontrado em `Data/catalog/tester/*/`."
     return None, None, "Aviso: nao encontrei o nome do teste em um dos comandos paralelos."
 
 
@@ -247,4 +247,3 @@ def extract_parallel_executions(
         )
 
     return executions, None
-

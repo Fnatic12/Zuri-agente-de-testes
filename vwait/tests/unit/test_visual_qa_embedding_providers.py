@@ -8,8 +8,8 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from visual_qa.infrastructure.embeddings.mobileclip_provider import MobileCLIPEmbeddingProvider
-from visual_qa.infrastructure.embeddings.openclip_provider import OpenCLIPEmbeddingProvider
+from vwait.features.visual_qa.infrastructure.embeddings.mobileclip_provider import MobileCLIPEmbeddingProvider
+from vwait.features.visual_qa.infrastructure.embeddings.openclip_provider import OpenCLIPEmbeddingProvider
 
 
 class _DummyTensor:

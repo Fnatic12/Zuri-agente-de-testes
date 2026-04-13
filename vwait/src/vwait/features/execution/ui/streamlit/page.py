@@ -18,6 +18,7 @@ if str(PROJECT_ROOT) not in sys.path:
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
+from vwait.core.paths import DATA_ROOT, TESTER_RUNS_ROOT
 from vwait.platform.adb import candidate_adb_paths
 from vwait.features.execution.application import (
     carregar_status_bancadas as _execution_carregar_status_bancadas,
@@ -75,9 +76,6 @@ from .helpers import (
 )
 from .theme import titulo_painel as _ui_titulo_painel
 
-DATA_ROOT = PROJECT_ROOT / "Data"
-
-
 try:
     from streamlit_autorefresh import st_autorefresh
 except Exception:  # pragma: no cover
@@ -93,7 +91,7 @@ _REALTIME_FRAGMENT = st.fragment(run_every="3s") if hasattr(st, "fragment") else
 
 def carregar_logs(data_root: str | Path = DATA_ROOT) -> list[tuple[str, str]]:
     logs: list[tuple[str, str]] = []
-    root = Path(data_root)
+    root = Path(TESTER_RUNS_ROOT)
     if not root.is_dir():
         return logs
     for categoria in root.iterdir():
@@ -102,9 +100,12 @@ def carregar_logs(data_root: str | Path = DATA_ROOT) -> list[tuple[str, str]]:
         for teste in categoria.iterdir():
             if not teste.is_dir():
                 continue
-            arq = teste / "execucao_log.json"
-            if arq.exists():
-                logs.append((f"{categoria.name}/{teste.name}", str(arq)))
+            for run_dir in teste.iterdir():
+                if not run_dir.is_dir():
+                    continue
+                arq = run_dir / "execucao_log.json"
+                if arq.exists():
+                    logs.append((f"{categoria.name}/{teste.name} | {run_dir.name}", str(arq)))
     return logs
 
 
@@ -373,7 +374,7 @@ def render_dashboard_page() -> None:
 
     logs = carregar_logs()
     if not logs:
-        st.info("Nenhum execucao_log.json encontrado em Data/*/*/.")
+        st.info("Nenhum execucao_log.json encontrado em Data/runs/tester/*/*/*/.")
         return
 
     labels = [label for label, _ in logs]

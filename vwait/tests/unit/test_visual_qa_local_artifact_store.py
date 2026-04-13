@@ -4,8 +4,8 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from visual_qa.domain.entities import PixelDiffResult, ScreenMatch, ValidationRun
-from visual_qa.infrastructure.storage.local_artifact_store import LocalArtifactStore
+from vwait.features.visual_qa.domain.entities import PixelDiffResult, ScreenMatch, ValidationRun
+from vwait.features.visual_qa.infrastructure.storage.local_artifact_store import LocalArtifactStore
 
 
 def _build_validation_run() -> ValidationRun:

@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from visual_qa.domain.entities import PixelDiffResult
+from vwait.features.visual_qa.domain.entities import PixelDiffResult
 
 
 class PixelComparator(ABC):

@@ -5,6 +5,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable
 
+from vwait.core.paths import TESTER_RUNS_ROOT, tester_expected_final_path
+
 from ..paths import DATA_DIR, test_dir
 
 
@@ -36,7 +38,7 @@ def load_json(path: Path) -> Any:
 
 def find_execution_logs(data_dir: Path | None = None) -> list[tuple[str, str, Path]]:
     logs: list[tuple[str, str, Path]] = []
-    root_dir = Path(data_dir) if data_dir is not None else DATA_DIR
+    root_dir = Path(data_dir) if data_dir is not None else TESTER_RUNS_ROOT
     if not root_dir.exists():
         return logs
 
@@ -44,9 +46,12 @@ def find_execution_logs(data_dir: Path | None = None) -> list[tuple[str, str, Pa
         if not category_dir.is_dir():
             continue
         for test_path in category_dir.iterdir():
-            log_path = test_path / "execucao_log.json"
-            if test_path.is_dir() and log_path.exists():
-                logs.append((category_dir.name, test_path.name, log_path))
+            if not test_path.is_dir():
+                continue
+            for run_dir in test_path.iterdir():
+                log_path = run_dir / "execucao_log.json"
+                if run_dir.is_dir() and log_path.exists():
+                    logs.append((category_dir.name, test_path.name, log_path))
     return sorted(logs)
 
 
@@ -64,7 +69,11 @@ def _load_optional_json(path: Path) -> dict[str, Any]:
 
 
 def _guess_status_payload(test_path: Path) -> dict[str, Any]:
-    candidates = sorted(test_path.glob("status_*.json"))
+    status_dir = test_path / "status"
+    if status_dir.is_dir():
+        candidates = sorted(status_dir.glob("*.json"))
+    else:
+        candidates = sorted(test_path.glob("status_*.json"))
     if not candidates:
         return {}
     raw_payload = _load_optional_json(candidates[0])
@@ -357,7 +366,7 @@ def build_failure_report(
         "attachments": {
             "failed_screenshots": [step["actual_screenshot"] for step in failed_steps],
             "expected_screenshots": [step["expected_screenshot"] for step in failed_steps],
-            "result_image": str((test_path / "resultado_final.png").resolve()),
+            "result_image": str(tester_expected_final_path(category, test_name).resolve()),
             "radio_log_dir": radio_log["capture_dir"],
         },
         "failed_steps": failed_steps,

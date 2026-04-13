@@ -4,11 +4,7 @@ import streamlit as st
 
 from .page import render_hmi_validation_page
 from vwait.core.config.ui_theme import apply_dark_background
-from pathlib import Path
-
-
-PROJECT_ROOT = Path(__file__).resolve().parents[6]
-DATA_ROOT = PROJECT_ROOT / "Data"
+from vwait.core.paths import DATA_ROOT, PROJECT_ROOT
 
 
 def main() -> None:

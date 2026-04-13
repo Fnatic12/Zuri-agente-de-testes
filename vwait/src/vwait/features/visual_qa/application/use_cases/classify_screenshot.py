@@ -4,10 +4,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Mapping
 
-from visual_qa.application.ports.embedding_provider import EmbeddingProvider
-from visual_qa.application.ports.vector_index_repository import VectorIndexRepository
-from visual_qa.domain.entities import ScreenMatch
-from visual_qa.domain.scaffold_entities import ScreenMatch as Stage1ScreenMatch
+from vwait.features.visual_qa.application.ports.embedding_provider import EmbeddingProvider
+from vwait.features.visual_qa.application.ports.vector_index_repository import VectorIndexRepository
+from vwait.features.visual_qa.domain.entities import ScreenMatch
+from vwait.features.visual_qa.domain.scaffold_entities import ScreenMatch as Stage1ScreenMatch
 
 
 def _as_mapping(item: Any) -> Mapping[str, Any]:

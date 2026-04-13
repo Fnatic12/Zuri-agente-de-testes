@@ -5,6 +5,8 @@ import subprocess
 import sys
 from typing import Callable
 
+from vwait.core.paths import tester_dataset_path
+
 
 def garantir_dataset_execucao(
     base_dir: str,
@@ -15,8 +17,7 @@ def garantir_dataset_execucao(
     on_warning: Callable[[str], None] | None = None,
     on_success: Callable[[str], None] | None = None,
 ):
-    teste_path = os.path.join(base_dir, "Data", categoria_exec, nome_teste_exec)
-    dataset_path = os.path.join(teste_path, "dataset.csv")
+    dataset_path = str(tester_dataset_path(categoria_exec, nome_teste_exec))
 
     if os.path.exists(dataset_path):
         return True, ""

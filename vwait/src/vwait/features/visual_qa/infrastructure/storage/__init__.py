@@ -1,3 +1,3 @@
-from visual_qa.infrastructure.storage.local_artifact_store import LocalArtifactStore
+from vwait.features.visual_qa.infrastructure.storage.local_artifact_store import LocalArtifactStore
 
 __all__ = ["LocalArtifactStore"]

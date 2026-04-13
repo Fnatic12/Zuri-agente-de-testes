@@ -1,4 +1,4 @@
-# visual_qa.domain
+# vwait.features.visual_qa.domain
 
 Domain entities and value objects for Visual QA.
 

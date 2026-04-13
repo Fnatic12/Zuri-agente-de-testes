@@ -142,7 +142,7 @@ def render_logs_panel_page() -> None:
 
     captures = load_log_captures(DATA_ROOT)
     if not captures:
-        st.info("Nenhuma captura de logs encontrada em Data/*/*/logs/.")
+        st.info("Nenhuma captura de logs encontrada em Data/runs/tester/*/*/*/logs/.")
         return
 
     filter_text = st.text_input("Filtrar por teste ou pasta", placeholder="Ex.: audio, bluetooth, teste1")

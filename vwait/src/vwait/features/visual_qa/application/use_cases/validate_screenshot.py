@@ -9,13 +9,13 @@ import uuid
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from visual_qa.application.ports.artifact_store import ArtifactStore
-from visual_qa.application.ports.report_generator import ReportGenerator
-from visual_qa.application.ports.pixel_comparator import PixelComparator
-from visual_qa.application.use_cases.classify_screenshot import ClassifyScreenshot
-from visual_qa.domain.entities import PixelDiffResult, Report, ScreenMatch
-from visual_qa.domain.entities import ValidationRun
-from visual_qa.domain.scaffold_entities import ScreenMatch as Stage1ScreenMatch
+from vwait.features.visual_qa.application.ports.artifact_store import ArtifactStore
+from vwait.features.visual_qa.application.ports.report_generator import ReportGenerator
+from vwait.features.visual_qa.application.ports.pixel_comparator import PixelComparator
+from vwait.features.visual_qa.application.use_cases.classify_screenshot import ClassifyScreenshot
+from vwait.features.visual_qa.domain.entities import PixelDiffResult, Report, ScreenMatch
+from vwait.features.visual_qa.domain.entities import ValidationRun
+from vwait.features.visual_qa.domain.scaffold_entities import ScreenMatch as Stage1ScreenMatch
 
 
 def _safe_git_sha() -> Optional[str]:

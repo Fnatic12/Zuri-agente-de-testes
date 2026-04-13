@@ -7,11 +7,11 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from visual_qa.application.ports.artifact_store import ArtifactStore
-from visual_qa.application.use_cases.generate_report import GenerateReport
-from visual_qa.application.use_cases.validate_screenshot import ValidateScreenshot
-from visual_qa.domain.entities import PixelDiffResult, ScreenMatch, ValidationRun
-from visual_qa.infrastructure.observability.json_logger import JsonRunLogger
+from vwait.features.visual_qa.application.ports.artifact_store import ArtifactStore
+from vwait.features.visual_qa.application.use_cases.generate_report import GenerateReport
+from vwait.features.visual_qa.application.use_cases.validate_screenshot import ValidateScreenshot
+from vwait.features.visual_qa.domain.entities import PixelDiffResult, ScreenMatch, ValidationRun
+from vwait.features.visual_qa.infrastructure.observability.json_logger import JsonRunLogger
 
 
 def _safe_git_sha() -> Optional[str]:

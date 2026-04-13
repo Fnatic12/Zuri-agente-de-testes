@@ -7,6 +7,8 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+from vwait.core.paths import DATA_ROOT, TESTER_RUNS_ROOT
+
 from ..domain import IMAGE_EXTS, MAX_AI_FILE_CHARS, MAX_VIEW_CHARS, TEXT_EXTS
 
 
@@ -145,44 +147,77 @@ def human_size(size: int) -> str:
 
 def load_log_captures(data_root: str | Path) -> list[dict]:
     captures = []
-    data_root = str(data_root)
-    if not os.path.isdir(data_root):
+    provided_root = Path(data_root)
+    runs_root = provided_root if provided_root != Path(DATA_ROOT) else Path(TESTER_RUNS_ROOT)
+    if not runs_root.is_dir():
         return captures
 
-    for categoria in os.listdir(data_root):
-        categoria_dir = os.path.join(data_root, categoria)
+    for categoria in os.listdir(runs_root):
+        categoria_dir = os.path.join(runs_root, categoria)
         if not os.path.isdir(categoria_dir):
             continue
         for teste in os.listdir(categoria_dir):
             teste_dir = os.path.join(categoria_dir, teste)
             if not os.path.isdir(teste_dir):
                 continue
-            logs_dir = os.path.join(teste_dir, "logs")
-            if not os.path.isdir(logs_dir):
+            legacy_logs_dir = os.path.join(teste_dir, "logs")
+            if os.path.isdir(legacy_logs_dir):
+                _append_capture_entries(
+                    captures,
+                    categoria=categoria,
+                    teste=teste,
+                    run_id="legacy",
+                    logs_dir=legacy_logs_dir,
+                )
                 continue
-            for capture_name in os.listdir(logs_dir):
-                capture_dir = os.path.join(logs_dir, capture_name)
-                if not os.path.isdir(capture_dir):
+            for run_id in os.listdir(teste_dir):
+                run_dir = os.path.join(teste_dir, run_id)
+                if not os.path.isdir(run_dir):
                     continue
-                metadata_path = os.path.join(capture_dir, "capture_metadata.json")
-                metadata = try_load_json(metadata_path)
-                if not isinstance(metadata, dict):
-                    metadata = {}
-                files = list_capture_files(capture_dir)
-                capture_dt = parse_capture_datetime(metadata.get("started_at")) or safe_datetime(capture_dir)
-                captures.append(
-                    {
-                        "label": f"{categoria}/{teste} | {capture_name}",
-                        "categoria": categoria,
-                        "teste": teste,
-                        "capture_name": capture_name,
-                        "capture_dir": capture_dir,
-                        "logs_dir": logs_dir,
-                        "metadata": metadata,
-                        "metadata_path": metadata_path if os.path.exists(metadata_path) else None,
-                        "timestamp": capture_dt,
-                        "files": files,
-                    }
+                logs_dir = os.path.join(run_dir, "logs")
+                if not os.path.isdir(logs_dir):
+                    continue
+                _append_capture_entries(
+                    captures,
+                    categoria=categoria,
+                    teste=teste,
+                    run_id=run_id,
+                    logs_dir=logs_dir,
                 )
     captures.sort(key=lambda item: item["timestamp"], reverse=True)
     return captures
+
+
+def _append_capture_entries(
+    captures: list[dict],
+    *,
+    categoria: str,
+    teste: str,
+    run_id: str,
+    logs_dir: str,
+) -> None:
+    for capture_name in os.listdir(logs_dir):
+        capture_dir = os.path.join(logs_dir, capture_name)
+        if not os.path.isdir(capture_dir):
+            continue
+        metadata_path = os.path.join(capture_dir, "capture_metadata.json")
+        metadata = try_load_json(metadata_path)
+        if not isinstance(metadata, dict):
+            metadata = {}
+        files = list_capture_files(capture_dir)
+        capture_dt = parse_capture_datetime(metadata.get("started_at")) or safe_datetime(capture_dir)
+        captures.append(
+            {
+                "label": f"{categoria}/{teste} | {run_id} | {capture_name}",
+                "categoria": categoria,
+                "teste": teste,
+                "run_id": run_id,
+                "capture_name": capture_name,
+                "capture_dir": capture_dir,
+                "logs_dir": logs_dir,
+                "metadata": metadata,
+                "metadata_path": metadata_path if os.path.exists(metadata_path) else None,
+                "timestamp": capture_dt,
+                "files": files,
+            }
+        )

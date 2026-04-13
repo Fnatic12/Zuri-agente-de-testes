@@ -3,8 +3,8 @@ from __future__ import annotations
 import argparse
 import json
 
-from visual_qa.config import load_config
-from visual_qa.interfaces.cli.common import make_container
+from vwait.features.visual_qa.config import load_config
+from vwait.features.visual_qa.interfaces.cli.common import make_container
 
 
 def main() -> None:

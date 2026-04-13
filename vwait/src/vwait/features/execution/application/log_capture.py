@@ -8,6 +8,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable
 
+from vwait.core.paths import SYSTEM_ROOT, TEMPLATES_ROOT, TESTER_CATALOG_ROOT, tester_catalog_dir
+
 from ..domain import DEFAULT_FAILURE_LOG_PATTERNS, LOG_CAPTURE_SEQUENCE_FILENAMES
 
 
@@ -87,9 +89,10 @@ def failure_log_sequence_candidates(
     test_dir: str | Path,
     sequence_filenames: tuple[str, ...] = LOG_CAPTURE_SEQUENCE_FILENAMES,
 ) -> list[str]:
-    category_dir = os.path.join(str(data_root), category)
+    catalog_test_dir = str(tester_catalog_dir(category, test_name))
+    category_dir = str(TESTER_CATALOG_ROOT / str(category).strip())
     candidates = []
-    for root in (str(test_dir), category_dir, str(data_root)):
+    for root in (catalog_test_dir, category_dir, str(TEMPLATES_ROOT), str(SYSTEM_ROOT), str(test_dir), str(data_root)):
         for filename in sequence_filenames:
             candidates.append(os.path.join(root, filename))
     return candidates

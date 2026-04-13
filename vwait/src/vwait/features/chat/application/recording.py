@@ -6,6 +6,17 @@ import time
 from datetime import datetime
 from typing import Callable
 
+from vwait.core.paths import (
+    DATA_ROOT,
+    iter_tester_categories,
+    iter_tester_tests,
+    tester_actions_path,
+    tester_catalog_dir,
+    tester_expected_dir,
+    tester_expected_final_path,
+    tester_system_collection_log_path,
+)
+
 
 def start_recording_flow(session_state) -> str:
     session_state.pending_gravacao = {"step": "categoria"}
@@ -80,18 +91,15 @@ def save_partial_result(
     data_root: str,
     adb_path: str,
 ) -> str:
-    base_dir = os.path.join(data_root, category, test_name)
-    expected_dir = os.path.join(base_dir, "esperados")
-    os.makedirs(expected_dir, exist_ok=True)
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    image_name = f"esperado_{ts}.png"
-    image_path = os.path.join(expected_dir, image_name)
+    expected_dir = tester_expected_dir(category, test_name)
+    expected_dir.mkdir(parents=True, exist_ok=True)
+    image_path = str(tester_expected_final_path(category, test_name))
     try:
         cmd = adb_cmd(adb_path=adb_path, serial=serial) + ["exec-out", "screencap", "-p"]
         with open(image_path, "wb") as handle:
             subprocess.run(cmd, stdout=handle, stderr=subprocess.PIPE)
         if os.path.exists(image_path) and os.path.getsize(image_path) > 0:
-            return f"Resultado esperado salvo: {image_name}"
+            return f"Resultado esperado salvo: {os.path.basename(image_path)}"
         return "Falha ao salvar resultado esperado."
     except Exception as exc:
         return f"Falha ao salvar resultado esperado: {exc}"
@@ -185,7 +193,7 @@ def cancel_recording(
 ) -> str:
     if category and test_name:
         try:
-            path = os.path.join(data_root, category, test_name)
+            path = str(tester_catalog_dir(category, test_name))
             if os.path.exists(path):
                 shutil.rmtree(path)
         except Exception:
@@ -211,24 +219,25 @@ def process_test(category, test_name, *, process_script: str, popen_host_python_
 
 
 def delete_test(category, test_name, *, data_root: str) -> str:
-    path = os.path.join(data_root, category, test_name)
-    if os.path.exists(path):
-        shutil.rmtree(path)
+    removed = False
+    for path in (
+        tester_catalog_dir(category, test_name),
+        DATA_ROOT / "runs" / "tester" / str(category).strip().lower() / str(test_name).strip().lower(),
+    ):
+        if path.exists():
+            shutil.rmtree(path)
+            removed = True
+    if removed:
         return f"Teste **{category}/{test_name}** apagado com sucesso."
     return f"ERRO: teste {category}/{test_name} nao encontrado."
 
 
 def list_categories(*, data_root: str):
-    if not os.path.isdir(data_root):
-        return []
-    return [category for category in os.listdir(data_root) if os.path.isdir(os.path.join(data_root, category))]
+    return iter_tester_categories()
 
 
 def list_tests(category, *, data_root: str):
-    category_path = os.path.join(data_root, category)
-    if os.path.isdir(category_path):
-        return [test_name for test_name in os.listdir(category_path) if os.path.isdir(os.path.join(category_path, test_name))]
-    return []
+    return iter_tester_tests(category)
 
 
 def pause_execution(*, pause_flag_path: str) -> str:
@@ -258,4 +267,3 @@ def stop_execution(*, project_root: str) -> str:
         return "Execucao interrompida completamente."
     except Exception as exc:
         return f"ERRO: falha ao interromper execucao: {exc}"
-

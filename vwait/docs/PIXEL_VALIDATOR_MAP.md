@@ -8,7 +8,7 @@
   - Delegates to `src/vwait/features/execution/application/runner.py`.
   - Performs action-by-action screenshot comparison against expected frames.
   - Typically called from:
-    - `app/cli/main.py` (legacy compatibility menu)
+    - `src/vwait/entrypoints/cli/main.py` (operator menu)
     - `src/vwait/entrypoints/streamlit/menu_tester.py` (buttons "Executar Teste Unico" / "Executar Todos da Categoria")
     - `src/vwait/entrypoints/streamlit/menu_chat.py` (command interpreter for `executar ...`)
 - `src/vwait/entrypoints/streamlit/validacao_hmi.py`
@@ -18,8 +18,8 @@
 - `src/vwait/entrypoints/cli/diff_tool.py`
   - Direct CLI utility for pairwise image diff using `src/vwait/features/hmi/application/diff_engine.py`.
 
-### Compatibility wrapper entrypoints
-- `app/cli/validate.py` -> `vwait.features.visual_qa.interfaces.cli.validate_cli`
+### Additional CLI entrypoints
+- `src/vwait/entrypoints/cli/validate.py` -> `vwait.features.visual_qa.interfaces.cli.validate_cli`
   - Runs Stage 1 classification + Stage 2 pixel compare adapter + Stage 3 report.
   - Stage 2 calls existing validator code (no replacement of core comparator).
 
@@ -63,9 +63,9 @@
 
 ## 3) Where baseline images live and how they are selected today
 
-### A) Test execution baseline (legacy)
+### A) Test execution baseline
 - Baselines live at:
-  - `Data/<categoria>/<teste>/frames/frame_XX.png`
+  - `Data/catalog/tester/<categoria>/<teste>/recorded/frames/frame_XX.png`
 - Selection strategy:
   - Sequential mapping by action index (`resultado_XX.png` vs `frame_XX.png`) in `runner.py`.
 
@@ -82,17 +82,17 @@
 ## 4) Current output artifacts (JSON, diff images, logs)
 
 ### Execution flow (`runner.py`)
-- `Data/<categoria>/<teste>/execucao_log.json`
-- `Data/<categoria>/<teste>/resultados/resultado_XX.png`
-- `Data/<categoria>/<teste>/resultado_final.png`
-- `Data/<categoria>/<teste>/status_<serial>.json`
+- `Data/runs/tester/<categoria>/<teste>/<run_id>/execucao_log.json`
+- `Data/runs/tester/<categoria>/<teste>/<run_id>/artifacts/results/resultado_XX.png`
+- `Data/catalog/tester/<categoria>/<teste>/expected/final.png`
+- `Data/runs/tester/<categoria>/<teste>/<run_id>/status/<serial>.json`
 
 ### HMI validation flow
-- `Data/<categoria>/<teste>/hmi_validation/resultado_hmi.json`
-- `Data/<categoria>/<teste>/hmi_validation/overlays/*`
-- `Data/<categoria>/<teste>/hmi_validation/diff_masks/*`
-- `Data/<categoria>/<teste>/hmi_validation/heatmaps/*`
-- `Data/<categoria>/<teste>/hmi_validation/aligned/*`
+- `Data/runs/tester/<categoria>/<teste>/<run_id>/artifacts/hmi_validation/resultado_hmi.json`
+- `Data/runs/tester/<categoria>/<teste>/<run_id>/artifacts/hmi_validation/overlays/*`
+- `Data/runs/tester/<categoria>/<teste>/<run_id>/artifacts/hmi_validation/diff_masks/*`
+- `Data/runs/tester/<categoria>/<teste>/<run_id>/artifacts/hmi_validation/heatmaps/*`
+- `Data/runs/tester/<categoria>/<teste>/<run_id>/artifacts/hmi_validation/aligned/*`
 
 ### Direct diff utility
 - `src/vwait/entrypoints/cli/diff_tool.py` outputs:

@@ -8,8 +8,8 @@ from datetime import datetime, timezone
 from typing import Any, Dict
 from urllib.error import HTTPError, URLError
 
-from visual_qa.application.ports.report_generator import ReportGenerator
-from visual_qa.domain.entities import Report
+from vwait.features.visual_qa.application.ports.report_generator import ReportGenerator
+from vwait.features.visual_qa.domain.entities import Report
 
 
 SYSTEM_PROMPT = (
