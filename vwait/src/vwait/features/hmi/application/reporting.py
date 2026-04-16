@@ -8,7 +8,26 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 import cv2
 
-REPORT_HEADERS = ("tela", "layout", "tipografia", "icones", "espacamento", "cores", "status")
+REPORT_HEADERS = (
+    "tela",
+    "layout",
+    "tipografia",
+    "icones",
+    "espacamento",
+    "cores",
+    "status",
+    "similaridade_final",
+    "pixel_match",
+    "area_divergente",
+    "pixels_alterados",
+    "regioes_diferentes",
+    "componentes_alterados",
+    "pior_celula",
+    "media_delta",
+    "p95_delta",
+    "referencia",
+    "motivo",
+)
 
 
 def get_validation_dir(test_dir: str) -> str:
@@ -188,6 +207,8 @@ def build_validation_dimension_rows(report: Dict[str, Any]) -> list[Dict[str, st
     rows: list[Dict[str, str]] = []
     for item in report.get("items", []) or []:
         dimensions = _dimension_cells(item)
+        scores = item.get("scores") or {}
+        diff_summary = item.get("diff_summary") or {}
         rows.append(
             {
                 "tela": _format_screen_label(item),
@@ -197,6 +218,31 @@ def build_validation_dimension_rows(report: Dict[str, Any]) -> list[Dict[str, st
                 "espacamento": dimensions["espacamento"],
                 "cores": dimensions["cores"],
                 "status": _format_overall_status(item),
+                "similaridade_final": (
+                    f"{float(scores.get('final', 0.0) or 0.0):.2%}" if scores.get("final") is not None else "N/A"
+                ),
+                "pixel_match": (
+                    f"{float(diff_summary.get('pixel_match_ratio', 0.0) or 0.0):.2%}"
+                    if diff_summary.get("pixel_match_ratio") is not None
+                    else "N/A"
+                ),
+                "area_divergente": (
+                    f"{float(diff_summary.get('diff_area_ratio', 0.0) or 0.0):.2%}"
+                    if diff_summary.get("diff_area_ratio") is not None
+                    else "N/A"
+                ),
+                "pixels_alterados": str(int(diff_summary.get("changed_pixels", 0) or 0)),
+                "regioes_diferentes": str(int(diff_summary.get("diff_count", 0) or 0)),
+                "componentes_alterados": str(int(diff_summary.get("toggle_count", 0) or 0)),
+                "pior_celula": (
+                    f"{float(diff_summary.get('worst_cell_score', 0.0) or 0.0):.2%}"
+                    if diff_summary.get("worst_cell_score") is not None
+                    else "N/A"
+                ),
+                "media_delta": f"{float(diff_summary.get('mean_delta', 0.0) or 0.0):.2f}",
+                "p95_delta": f"{float(diff_summary.get('p95_delta', 0.0) or 0.0):.2f}",
+                "referencia": str(item.get("reference_path") or ""),
+                "motivo": str(item.get("reason") or ""),
             }
         )
     return rows

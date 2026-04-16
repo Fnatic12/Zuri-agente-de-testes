@@ -11,7 +11,9 @@ from .project_paths import PROJECT_ROOT
 
 DATA_ROOT = PROJECT_ROOT / "Data"
 TRAINING_ROOT = PROJECT_ROOT / "TrainingData"
+TRAINING_TAXONOMY_ROOT = TRAINING_ROOT / "taxonomy"
 TRAINING_EPISODES_ROOT = TRAINING_ROOT / "episodes"
+TRAINING_MANIFESTS_ROOT = TRAINING_ROOT / "manifests"
 CATALOG_ROOT = DATA_ROOT / "catalog"
 RUNS_ROOT = DATA_ROOT / "runs"
 CACHE_ROOT = DATA_ROOT / "cache"
@@ -39,7 +41,9 @@ def ensure_data_roots() -> None:
     for path in (
         DATA_ROOT,
         TRAINING_ROOT,
+        TRAINING_TAXONOMY_ROOT,
         TRAINING_EPISODES_ROOT,
+        TRAINING_MANIFESTS_ROOT,
         CATALOG_ROOT,
         RUNS_ROOT,
         CACHE_ROOT,
@@ -64,6 +68,21 @@ def training_test_dir(domain: str, test_name: str) -> Path:
 
 def training_episode_dir(domain: str, test_name: str, episode_id: str) -> Path:
     return training_test_dir(domain, test_name) / normalize_segment(episode_id)
+
+
+def training_taxonomy_categories_path() -> Path:
+    ensure_data_roots()
+    return TRAINING_TAXONOMY_ROOT / "categories.json"
+
+
+def training_taxonomy_flows_path() -> Path:
+    ensure_data_roots()
+    return TRAINING_TAXONOMY_ROOT / "flows.json"
+
+
+def training_manifest_all_episodes_path() -> Path:
+    ensure_data_roots()
+    return TRAINING_MANIFESTS_ROOT / "all_episodes.jsonl"
 
 
 def normalize_segment(value: str) -> str:

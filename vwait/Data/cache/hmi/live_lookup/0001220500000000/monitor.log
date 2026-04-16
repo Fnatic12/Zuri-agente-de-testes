@@ -1,7 +1,34 @@
 [hmi_touch_monitor] comparacao automatica habilitada com biblioteca /home/victor-milani/vwait-ia/vwait/Data/cache/hmi/biblioteca_hmi.json
-[hmi_touch_monitor] iniciando monitor serial=0001220500000000 dev=/dev/input/event2 res=1920x1080 output=/home/victor-milani/vwait-ia/vwait/Data/cache/hmi/live_lookup/0001220500000000/screenshots modo=device target=(1920, 1080) compare=on
-[hmi_touch_monitor] falha ao salvar captura ADB em HMI_TESTE: [Errno 2] No such file or directory: '/home/victor-milani/vwait-ia/vwait/Data/cache/hmi/live_lookup/0001220500000000/screenshots/touch_native_9vkp0vuz.png'
-[hmi_touch_monitor] comparacao enfileirada para touch_20260416_111046_061733.png
-[hmi_touch_monitor] capturado touch_20260416_111046_061733.png no estado inicial via ADB
-[hmi_touch_monitor] comparacao concluida touch_20260416_111046_061733.png -> Tuner.png [FAIL_COMPONENT_STATE] origem=initial_state
+[hmi_touch_monitor] iniciando monitor serial=0001220500000000 dev=/dev/input/event2 res=1920x1080 output=/home/victor-milani/vwait-ia/vwait/Data/cache/hmi/live_lookup/0001220500000000/screenshots modo=screen_watch target=(1920, 1080) compare=on
+[hmi_touch_monitor] monitorando mudancas reais de tela
+[hmi_touch_monitor] capturado screen_20260416_154301_854684.png apos mudanca visual de tela
+[hmi_touch_monitor] comparacao enfileirada para screen_20260416_154301_854684.png
+[hmi_touch_monitor] comparacao concluida screen_20260416_154301_854684.png -> Home.png [FAIL_COMPONENT_STATE] origem=screen_change
+[hmi_touch_monitor] capturado screen_20260416_154311_754645.png apos mudanca visual de tela
+[hmi_touch_monitor] comparacao enfileirada para screen_20260416_154311_754645.png
+[hmi_touch_monitor] capturado screen_20260416_154312_460718.png apos mudanca visual de tela
+[hmi_touch_monitor] comparacao enfileirada para screen_20260416_154312_460718.png
+[hmi_touch_monitor] comparacao concluida screen_20260416_154311_754645.png -> Home.png [FAIL_COMPONENT_STATE] origem=screen_change
+[hmi_touch_monitor] capturado screen_20260416_154329_238921.png apos mudanca visual de tela
+[hmi_touch_monitor] comparacao enfileirada para screen_20260416_154329_238921.png
+[hmi_touch_monitor] capturado screen_20260416_154329_953125.png apos mudanca visual de tela
+[hmi_touch_monitor] comparacao enfileirada para screen_20260416_154329_953125.png
+[hmi_touch_monitor] comparacao concluida screen_20260416_154312_460718.png -> Home.png [FAIL_COMPONENT_STATE] origem=screen_change
+[hmi_touch_monitor] capturado screen_20260416_154346_682384.png apos mudanca visual de tela
+[hmi_touch_monitor] comparacao enfileirada para screen_20260416_154346_682384.png
+[hmi_touch_monitor] capturado screen_20260416_154347_440683.png apos mudanca visual de tela
+[hmi_touch_monitor] comparacao enfileirada para screen_20260416_154347_440683.png
+[hmi_touch_monitor] capturado screen_20260416_154348_358899.png apos mudanca visual de tela
+[hmi_touch_monitor] comparacao enfileirada para screen_20260416_154348_358899.png
+[hmi_touch_monitor] comparacao concluida screen_20260416_154329_238921.png -> Home.png [FAIL_COMPONENT_STATE] origem=screen_change
+[hmi_touch_monitor] capturado screen_20260416_154359_681063.png apos mudanca visual de tela
+[hmi_touch_monitor] comparacao enfileirada para screen_20260416_154359_681063.png
+[hmi_touch_monitor] capturado screen_20260416_154400_541873.png apos mudanca visual de tela
+[hmi_touch_monitor] comparacao enfileirada para screen_20260416_154400_541873.png
 [hmi_touch_monitor] monitor finalizado
+[hmi_touch_monitor] comparacao concluida screen_20260416_154329_953125.png -> Home.png [FAIL_COMPONENT_STATE] origem=screen_change
+[hmi_touch_monitor] comparacao concluida screen_20260416_154346_682384.png -> climarear.png [FAIL_COMPONENT_STATE] origem=screen_change
+[hmi_touch_monitor] comparacao concluida screen_20260416_154347_440683.png -> Home.png [FAIL_COMPONENT_STATE] origem=screen_change
+[hmi_touch_monitor] comparacao concluida screen_20260416_154348_358899.png -> Home.png [FAIL_COMPONENT_STATE] origem=screen_change
+[hmi_touch_monitor] comparacao concluida screen_20260416_154359_681063.png -> climarear.png [FAIL_COMPONENT_STATE] origem=screen_change
+[hmi_touch_monitor] comparacao concluida screen_20260416_154400_541873.png -> Home.png [FAIL_COMPONENT_STATE] origem=screen_change

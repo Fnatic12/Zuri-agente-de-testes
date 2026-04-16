@@ -9,13 +9,15 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+import cv2
 import numpy as np
 import streamlit as st
-from PIL import Image
+from PIL import Image, ImageChops
 from vwait.core.paths import TESTER_RUNS_ROOT, hmi_cache_dir, resolve_tester_run_dir
 from vwait.platform.adb import resolve_adb_path
 from vwait.core.config.ui_theme import apply_dark_background
 
+DEFAULT_HMI_LIBRARY_DIR = "/home/victor-milani/GEI - IMGs"
 PROJECT_ROOT = Path(__file__).resolve().parents[6]
 SRC_DIR = PROJECT_ROOT / "src"
 if str(PROJECT_ROOT) not in sys.path:
@@ -286,6 +288,177 @@ def _show_image_payload(payload: Any, caption: str, empty_message: str) -> None:
         except Exception:
             pass
     st.info(empty_message)
+
+
+def _build_visual_diff_image(actual_path: Any, reference_path: Any) -> Image.Image | None:
+    if not isinstance(actual_path, str) or not isinstance(reference_path, str):
+        return None
+    if not os.path.exists(actual_path) or not os.path.exists(reference_path):
+        return None
+    try:
+        actual = Image.open(actual_path).convert("RGB")
+        reference = Image.open(reference_path).convert("RGB")
+        if actual.size != reference.size:
+            actual = actual.resize(reference.size)
+        return ImageChops.difference(reference, actual)
+    except Exception:
+        return None
+
+
+def _load_rgb_image(path: Any) -> np.ndarray | None:
+    if not isinstance(path, str) or not os.path.exists(path):
+        return None
+    try:
+        with Image.open(path) as image:
+            return np.array(image.convert("RGB"))
+    except Exception:
+        return None
+
+
+def _estimate_visual_shift_px(actual_path: Any, reference_path: Any) -> tuple[float, float] | None:
+    actual = _load_rgb_image(actual_path)
+    reference = _load_rgb_image(reference_path)
+    if actual is None or reference is None:
+        return None
+    if actual.shape[:2] != reference.shape[:2]:
+        actual = cv2.resize(actual, (reference.shape[1], reference.shape[0]))
+    try:
+        actual_gray = cv2.cvtColor(actual, cv2.COLOR_RGB2GRAY).astype(np.float32)
+        reference_gray = cv2.cvtColor(reference, cv2.COLOR_RGB2GRAY).astype(np.float32)
+        shift, _response = cv2.phaseCorrelate(reference_gray, actual_gray)
+        return float(shift[0]), float(shift[1])
+    except Exception:
+        return None
+
+
+def _visual_diff_regions(result: Dict[str, Any], limit: int = 12) -> list[Dict[str, Any]]:
+    debug_images = result.get("debug_images") or {}
+    mask = debug_images.get("diff_mask")
+    if not isinstance(mask, np.ndarray):
+        actual = _load_rgb_image(result.get("screenshot_path"))
+        reference = _load_rgb_image(result.get("reference_path"))
+        if actual is None or reference is None:
+            return []
+        if actual.shape[:2] != reference.shape[:2]:
+            actual = cv2.resize(actual, (reference.shape[1], reference.shape[0]))
+        diff = cv2.absdiff(reference, actual)
+        gray = cv2.cvtColor(diff, cv2.COLOR_RGB2GRAY)
+        _, mask = cv2.threshold(gray, 25, 255, cv2.THRESH_BINARY)
+    if mask.ndim == 3:
+        mask = cv2.cvtColor(mask, cv2.COLOR_RGB2GRAY)
+    mask = np.where(mask > 0, 255, 0).astype(np.uint8)
+    contours, _hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    regions: list[Dict[str, Any]] = []
+    for contour in contours:
+        area = float(cv2.contourArea(contour))
+        if area <= 4:
+            continue
+        x, y, w, h = cv2.boundingRect(contour)
+        regions.append(
+            {
+                "x": int(x),
+                "y": int(y),
+                "w": int(w),
+                "h": int(h),
+                "area_px": int(area),
+                "center_x": int(x + w / 2),
+                "center_y": int(y + h / 2),
+            }
+        )
+    return sorted(regions, key=lambda item: item["area_px"], reverse=True)[:limit]
+
+
+def _difference_severity_label(diff_area_ratio: float, toggle_count: int, critical_count: int) -> str:
+    if critical_count > 0:
+        return "Região crítica alterada"
+    if toggle_count > 0:
+        return "Componente/toggle alterado"
+    if diff_area_ratio >= 0.08:
+        return "Diferença visual alta"
+    if diff_area_ratio >= 0.02:
+        return "Diferença visual moderada"
+    if diff_area_ratio > 0:
+        return "Diferença visual baixa"
+    return "Sem diferença relevante"
+
+
+def _format_percent(value: Any) -> str:
+    try:
+        return f"{float(value or 0.0):.2%}"
+    except Exception:
+        return "-"
+
+
+def _render_hmi_difference_details(result: Dict[str, Any]) -> None:
+    screenshot_path = result.get("screenshot_path")
+    reference_path = result.get("reference_path")
+    diff_summary = result.get("diff_summary") or {}
+    toggle_changes = result.get("toggle_changes") or []
+    critical_failures = result.get("critical_region_failures") or []
+    diff_image = _build_visual_diff_image(screenshot_path, reference_path)
+    debug_images = result.get("debug_images") or {}
+    regions = _visual_diff_regions(result)
+    visual_shift = _estimate_visual_shift_px(screenshot_path, reference_path)
+
+    if not diff_summary and diff_image is None:
+        return
+
+    status = _safe_str(result.get("status"), "SEM_STATUS").upper()
+    similarity = float((result.get("scores") or {}).get("final", 0.0) or 0.0)
+    changed_pixels = int(diff_summary.get("changed_pixels", 0) or 0)
+    diff_count = int(diff_summary.get("diff_count", 0) or 0)
+    toggle_count = int(diff_summary.get("toggle_count", 0) or 0)
+    critical_count = len(critical_failures)
+    diff_area_ratio = float(diff_summary.get("diff_area_ratio", 0.0) or 0.0)
+    severity = _difference_severity_label(diff_area_ratio, toggle_count, critical_count)
+
+    st.markdown("#### O que mudou entre as telas")
+    if status == "PASS":
+        st.success(f"{severity}. Similaridade final: {similarity:.3f}")
+    elif "WARNING" in status:
+        st.warning(f"{severity}. Similaridade final: {similarity:.3f}")
+    else:
+        st.error(f"{severity}. Similaridade final: {similarity:.3f}")
+
+    metric_cols = st.columns(6)
+    metric_cols[0].metric("Área divergente", _format_percent(diff_area_ratio))
+    metric_cols[1].metric("Pixel match", _format_percent(diff_summary.get("pixel_match_ratio")))
+    metric_cols[2].metric("Pixels alterados", f"{changed_pixels:,}".replace(",", "."))
+    metric_cols[3].metric("Regiões visuais", str(len(regions) or diff_count))
+    metric_cols[4].metric("Toggles/componentes", str(toggle_count))
+    if visual_shift:
+        metric_cols[5].metric("Deslocamento", f"x {visual_shift[0]:+.1f}px | y {visual_shift[1]:+.1f}px")
+    else:
+        metric_cols[5].metric("Deslocamento", "-")
+
+    image_tabs = st.tabs(["Mapa de diferenças", "Overlay anotado", "Heatmap"])
+    with image_tabs[0]:
+        if diff_image is not None:
+            st.image(diff_image, caption="Diferença pixel a pixel entre referência e captura real", use_container_width=True)
+        else:
+            st.info("Mapa visual de diferenças indisponível para este resultado.")
+    with image_tabs[1]:
+        overlay = debug_images.get("overlay")
+        if overlay is not None:
+            _show_image_payload(overlay, "Overlay com regiões divergentes e pior célula", "Overlay indisponível")
+        else:
+            st.info("Overlay anotado indisponível para este resultado.")
+    with image_tabs[2]:
+        heatmap = debug_images.get("heatmap")
+        if heatmap is None:
+            heatmap = debug_images.get("diff_mask")
+        if heatmap is not None:
+            _show_image_payload(heatmap, "Mapa de calor das diferenças", "Heatmap indisponível")
+        else:
+            st.info("Heatmap indisponível para este resultado.")
+
+    if critical_failures:
+        st.markdown("##### Regiões críticas alteradas")
+        for idx, region in enumerate(critical_failures, start=1):
+            st.caption(
+                f"Região crítica {idx}: {region.get('name', 'critical_region')} em bbox={region.get('bbox')}, "
+                f"match={_format_percent(region.get('match_ratio'))}, mínimo={_format_percent(region.get('min_match'))}."
+            )
 
 
 def _load_json(path: str) -> Optional[Dict[str, Any]]:
@@ -669,32 +842,7 @@ def _render_library_lookup_result(bundle: Optional[Dict[str, Any]]) -> None:
             st.markdown("**Melhor referencia**")
             _show_image_payload(result.get("reference_path"), "Melhor referencia", "Referencia indisponivel")
 
-    rows = _candidate_rows(result)
-    if rows:
-        st.markdown("#### Top correspondencias")
-        st.dataframe(rows, use_container_width=True, hide_index=True)
-
-    for idx, candidate in enumerate((result.get("candidate_results") or [])[:5], start=1):
-        candidate_scores = candidate.get("scores") or {}
-        candidate_diff = candidate.get("diff_summary") or {}
-        with st.expander(
-            f"Top {idx}: {_safe_str(candidate.get('screen_name'), '-')} | {_safe_str(candidate.get('status'), '-')}"
-        ):
-            detail_cols = st.columns(2)
-            with detail_cols[0]:
-                with st.container(border=True):
-                    st.markdown("**Screenshot real**")
-                    _show_image_payload(result.get("screenshot_path"), "Screenshot real", "Screenshot indisponivel")
-            with detail_cols[1]:
-                with st.container(border=True):
-                    st.markdown("**Referencia candidata**")
-                    _show_image_payload(candidate.get("reference_path"), "Referencia", "Referencia indisponivel")
-
-            stats_cols = st.columns(4)
-            stats_cols[0].metric("Similaridade", f"{float(candidate_scores.get('final', 0.0) or 0.0):.1%}")
-            stats_cols[1].metric("Pixel match", f"{float(candidate_diff.get('pixel_match_ratio', 0.0) or 0.0):.1%}")
-            stats_cols[2].metric("Contexto", _safe_str(candidate.get("feature_context"), "-"))
-            stats_cols[3].metric("Status", _safe_str(candidate.get("status"), "-"))
+    _render_hmi_difference_details(result)
 
 
 def _context_narrative(item: Dict[str, Any]) -> str:
@@ -1056,6 +1204,37 @@ def _reset_live_lookup_session(cache_root: str, serial: str) -> None:
             except OSError:
                 pass
     os.makedirs(root_dir, exist_ok=True)
+
+
+def _clear_live_lookup_outputs(cache_root: str, serial: str) -> None:
+    root_dir = _live_lookup_root(cache_root, serial)
+    shots_dir = _live_lookup_shots_dir(cache_root, serial)
+    image_exts = {".png", ".jpg", ".jpeg", ".bmp", ".webp"}
+
+    if os.path.isdir(shots_dir):
+        for name in os.listdir(shots_dir):
+            file_path = os.path.join(shots_dir, name)
+            if not os.path.isfile(file_path):
+                continue
+            ext = os.path.splitext(name)[1].lower()
+            if ext in image_exts or name.lower() == "manifest.jsonl":
+                try:
+                    os.remove(file_path)
+                except OSError:
+                    pass
+
+    for path in (
+        _live_lookup_preview_path(cache_root, serial),
+        _live_lookup_results_path(cache_root, serial),
+    ):
+        if os.path.exists(path):
+            try:
+                os.remove(path)
+            except OSError:
+                pass
+
+    os.makedirs(root_dir, exist_ok=True)
+    os.makedirs(shots_dir, exist_ok=True)
 
 
 def _pid_is_running(pid: int) -> bool:
@@ -1463,8 +1642,8 @@ def _live_monitor_mode_options() -> list[tuple[str, str]]:
             ("hybrid", "Avancado: scrcpy + mudanca visual da bancada"),
         ]
     return [
-        ("device", "Bancada/ADB por toque"),
-        ("screen_watch", "Mudanca visual da tela"),
+        ("screen_watch", "Scrcpy/ADB: capturar cada mudança visual"),
+        ("device", "Bancada/ADB por toque físico"),
     ]
 
 
@@ -1487,6 +1666,7 @@ def _capture_source_label(source: str) -> str:
 
 
 def _render_live_capture_dashboard(
+    hmi: Dict[str, Any],
     cache_root: str,
     selected_serial: str,
     live_running: bool,
@@ -1550,6 +1730,69 @@ def _render_live_capture_dashboard(
 
     with st.container(border=True):
         st.markdown("#### Acompanhamento da captura")
+        st.markdown(
+            """
+            <style>
+            [class*="st-key-hmi_live_export_"] div[data-testid="stDownloadButton"] button,
+            [class*="st-key-hmi_live_clear_"] div[data-testid="stButton"] button {
+                min-height: 3.25rem !important;
+                border-radius: 14px !important;
+                border: 1px solid rgba(129, 140, 248, 0.55) !important;
+                background: linear-gradient(135deg, rgba(49, 46, 129, 0.96), rgba(99, 102, 241, 0.72)) !important;
+                color: #f5f6ff !important;
+                font-weight: 700 !important;
+                box-shadow: 0 14px 28px rgba(99, 102, 241, 0.16) !important;
+            }
+            [class*="st-key-hmi_live_export_"] div[data-testid="stDownloadButton"] button:hover,
+            [class*="st-key-hmi_live_clear_"] div[data-testid="stButton"] button:hover {
+                transform: translateY(-1px);
+                filter: brightness(1.08);
+            }
+            [class*="st-key-hmi_live_export_"] div[data-testid="stDownloadButton"] button:disabled {
+                opacity: 0.45 !important;
+                filter: grayscale(0.35);
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+        action_col1, action_col2, action_col3 = st.columns([1, 1, 2])
+        live_full_results = _live_lookup_full_results(live_results_payload)
+        if live_full_results:
+            live_report = _build_validation_report_payload(live_full_results)
+            live_rows = hmi["build_validation_dimension_rows"](live_report)
+        else:
+            live_rows = []
+        export_name = (
+            f"hmi_live_{_safe_serial_name(selected_serial)}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        )
+        with action_col1:
+            st.download_button(
+                "Exportar relatório",
+                data=hmi["build_validation_dimension_workbook"](live_rows) if live_rows else b"",
+                file_name=export_name,
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True,
+                disabled=not bool(live_rows),
+                key=f"hmi_live_export_{_safe_serial_name(selected_serial)}",
+            )
+        with action_col2:
+            if st.button("Limpar", use_container_width=True, key=f"hmi_live_clear_{_safe_serial_name(selected_serial)}"):
+                _clear_live_lookup_outputs(cache_root, selected_serial)
+                st.session_state["hmi_lookup_result"] = None
+                _update_live_activity_state(
+                    selected_serial,
+                    "waiting" if live_running else "idle",
+                    "Capturas e análises limpas. Aguardando nova tela.",
+                    0.08 if live_running else 0.0,
+                    preview_path="",
+                    resolution=live_target_size,
+                )
+                st.success("Últimas capturas, imagens e análises foram limpas.")
+                st.rerun()
+        with action_col3:
+            st.caption("Exporte o histórico atual ou limpe as capturas/análises para começar uma nova leitura visual.")
+
         st.progress(float(live_activity.get("progress", 0.0) or 0.0))
         st.caption(
             f"{_safe_str(live_activity.get('message'), 'Aguardando captura.')} | "
@@ -1582,6 +1825,9 @@ def _render_live_capture_dashboard(
                 use_container_width=True,
                 hide_index=True,
             )
+        if isinstance(live_latest_bundle, dict):
+            st.markdown("#### Última comparação automática")
+            _render_library_lookup_result(live_latest_bundle)
         monitor_log_path = _live_monitor_log_path(cache_root, selected_serial)
         if os.path.exists(monitor_log_path):
             with st.expander("Log do monitor automatico"):
@@ -1647,14 +1893,14 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
     cache_root = str(hmi_cache_dir())
     os.makedirs(cache_root, exist_ok=True)
 
-    st.session_state.setdefault("hmi_figma_dir", "")
+    st.session_state.setdefault("hmi_figma_dir", DEFAULT_HMI_LIBRARY_DIR)
     st.session_state.setdefault("hmi_index_path", "")
     st.session_state.setdefault("hmi_index_name_value", "biblioteca_hmi")
     st.session_state.setdefault("hmi_capture_source", "auto")
-    st.session_state.setdefault("hmi_live_monitor_mode", "host_click" if os.name == "nt" else "device")
+    st.session_state.setdefault("hmi_live_monitor_mode", "host_click" if os.name == "nt" else "screen_watch")
     st.session_state.setdefault("hmi_enable_context_routing", True)
     st.session_state.setdefault("hmi_context_top_k", 12)
-    st.session_state.setdefault("vqa_reference_dir", "")
+    st.session_state.setdefault("vqa_reference_dir", DEFAULT_HMI_LIBRARY_DIR)
     st.session_state.setdefault("vqa_index_dir", os.path.join(cache_root, "visual_qa_index"))
     st.session_state.setdefault("vqa_embedding_provider", "auto")
     st.session_state.setdefault("vqa_top_k", 5)
@@ -1675,6 +1921,10 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
     st.session_state.setdefault("hmi_lookup_min_cell", 0.92)
     st.session_state.setdefault("hmi_last_hmi_summary", None)
     st.session_state.setdefault("hmi_last_vqa_summary", None)
+    st.session_state["hmi_figma_dir"] = DEFAULT_HMI_LIBRARY_DIR
+    st.session_state["vqa_reference_dir"] = DEFAULT_HMI_LIBRARY_DIR
+    st.session_state["hmi_lookup_figma_dir"] = DEFAULT_HMI_LIBRARY_DIR
+    st.session_state["hmi_unified_figma_dir"] = DEFAULT_HMI_LIBRARY_DIR
 
     st.title("Validação HMI")
     st.caption("Biblioteca de telas do radio + screenshot real -> melhor correspondencia por similaridade visual.")
@@ -1709,10 +1959,12 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
         with st.container(border=True):
             lookup_dir = st.text_input(
                 "Pasta da biblioteca de telas",
-                value=_safe_str(st.session_state.get("hmi_figma_dir")),
+                value=DEFAULT_HMI_LIBRARY_DIR,
                 key="hmi_lookup_figma_dir",
+                disabled=True,
+                help="Caminho fixo da biblioteca GEI usada pela Validação HMI.",
             )
-            st.session_state["hmi_figma_dir"] = lookup_dir.strip()
+            st.session_state["hmi_figma_dir"] = DEFAULT_HMI_LIBRARY_DIR
             if lookup_dir.strip() and not st.session_state.get("vqa_reference_dir"):
                 st.session_state["vqa_reference_dir"] = lookup_dir.strip()
 
@@ -1790,6 +2042,8 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
 
             mode_options = _live_monitor_mode_options()
             mode_values = [value for value, _label in mode_options]
+            if os.name != "nt" and not live_running and _safe_str(st.session_state.get("hmi_live_monitor_mode")) == "device":
+                st.session_state["hmi_live_monitor_mode"] = "screen_watch"
             if _safe_str(st.session_state.get("hmi_live_monitor_mode")) not in mode_values:
                 st.session_state["hmi_live_monitor_mode"] = mode_values[0]
             selected_mode = st.selectbox(
@@ -1886,7 +2140,7 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
                 st.info("Informe a pasta da biblioteca para habilitar a comparacao automatica da bancada.")
 
             def _live_capture_panel() -> None:
-                _render_live_capture_dashboard(cache_root, selected_serial, live_running, live_state, native_live_size)
+                _render_live_capture_dashboard(hmi, cache_root, selected_serial, live_running, live_state, native_live_size)
 
             if live_running and hasattr(st, "fragment"):
                 st.fragment(run_every=0.5)(_live_capture_panel)()
@@ -1929,9 +2183,10 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
 
         active_live_running = bool(st.session_state.get("hmi_live_is_running"))
         if active_live_running:
-            st.caption("Detalhamento visual e exportacao ficam leves durante a captura automatica para manter o painel responsivo.")
-            if manual_bundle and not live_latest_bundle:
-                _render_library_lookup_result(manual_bundle)
+            st.caption(
+                "A cada nova tela capturada pelo monitor, o resultado abaixo é atualizado automaticamente "
+                "com a correspondência mais próxima da biblioteca."
+            )
         else:
             _render_lookup_results_export(
                 hmi,
@@ -1986,10 +2241,12 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
             with config_col1:
                 figma_dir = st.text_input(
                     "Pasta GEI_SCREENS / exports Figma",
-                    value=_safe_str(st.session_state.get("hmi_figma_dir")),
+                    value=DEFAULT_HMI_LIBRARY_DIR,
                     key="hmi_unified_figma_dir",
+                    disabled=True,
+                    help="Caminho fixo da biblioteca GEI usada para indexar e comparar as telas.",
                 )
-                st.session_state["hmi_figma_dir"] = figma_dir.strip()
+                st.session_state["hmi_figma_dir"] = DEFAULT_HMI_LIBRARY_DIR
                 if figma_dir.strip() and not st.session_state.get("vqa_reference_dir"):
                     st.session_state["vqa_reference_dir"] = figma_dir.strip()
             with config_col2:

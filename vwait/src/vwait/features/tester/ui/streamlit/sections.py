@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -19,6 +20,53 @@ from vwait.core.paths import (
     tester_system_collection_log_path,
     tester_system_exec_log_path,
 )
+
+
+def _action_button(label: str, *, style: str, key: str | None = None, use_container_width: bool = True) -> bool:
+    raw_scope = str(key or label or style).lower()
+    scope_slug = re.sub(r"[^a-z0-9_]+", "-", raw_scope).strip("-") or "button"
+    scope_key = f"tester-btn-{style}-{scope_slug}"
+    try:
+        container = st.container(key=scope_key)
+    except TypeError:
+        container = st.container()
+    with container:
+        st.markdown(f"<span class='tester-button-marker tester-btn-{style}'></span>", unsafe_allow_html=True)
+        return st.button(label, key=key, use_container_width=use_container_width)
+
+
+def _render_training_help_content() -> None:
+    st.markdown("### Como preencher a exportação para TrainingData")
+    st.write("Use esta opção quando a coleta representar um fluxo válido para treinamento supervisionado.")
+    st.write("Se houver dúvida sobre nome de categoria ou fluxo, alinhe antes de salvar.")
+    st.markdown("#### Exemplo claro para o tester")
+    st.markdown(
+        """
+        - Marque `Salvar também para TrainingData` antes de iniciar/finalizar a coleta.
+        - Em `Categoria/DOMÍNIO`, escreva o domínio funcional. Exemplo: `tuner`.
+        - Em `Fluxo/Caso de teste`, escreva o fluxo específico. Exemplo: `validar_funcoes_padrao_do_tuner`.
+        - Em `Objetivo do episódio`, descreva o que o agente deve aprender. Exemplo: `Validar se o Tuner abre, troca de estação e mantém a tela correta`.
+        - Em `Critério de sucesso final`, descreva o estado final esperado. Exemplo: `A tela do Tuner aparece sem erro visual, com frequência visível e botões respondendo`.
+        - Em `Intenção por passo`, use uma linha por ação gravada. Exemplo: `Abrir menu principal`, `Entrar no Tuner`, `Trocar estação`.
+        - Em `Resultado esperado por passo`, use uma linha por ação dizendo o que deve aparecer depois dela.
+        """
+    )
+    st.info(
+        "Dica: a coleta em Data/ continua igual. O TrainingData/ é uma segunda saída para preparar exemplos de treino supervisionado."
+    )
+
+
+def _open_training_help_modal() -> None:
+    dialog = getattr(st, "dialog", None)
+    if callable(dialog):
+        @dialog("Ajuda da exportação supervisionada")
+        def _training_help_dialog() -> None:
+            _render_training_help_content()
+
+        _training_help_dialog()
+        return
+
+    st.session_state["show_training_help_fallback"] = True
 
 
 def render_collection_section(
@@ -56,37 +104,145 @@ def render_collection_section(
         st.caption("A coleta Scrcpy abre uma janela gerenciada pelo VWAIT. Interaja nessa janela para registrar cada toque.")
 
     with st.expander("Exportação supervisionada (TrainingData)", expanded=False):
+        help_col, hint_col = st.columns([1, 3])
+        with help_col:
+            if _action_button("Como preencher", style="help", key="training_help_btn"):
+                _open_training_help_modal()
+        with hint_col:
+            st.caption("Abra a ajuda para ver um exemplo pronto antes de gravar uma coleta para treinamento supervisionado.")
+
+        if st.session_state.get("show_training_help_fallback"):
+            with st.container(border=True):
+                _render_training_help_content()
+                if _action_button("Fechar ajuda", style="open", key="training_help_close"):
+                    st.session_state["show_training_help_fallback"] = False
+                    st.rerun()
+
         export_training_enabled = st.checkbox(
             "Salvar também para TrainingData",
             key="training_export_enabled",
+            help=(
+                "Marque esta opção quando esta coleta também deve virar um episódio "
+                "para futuro treino supervisionado. A coleta normal em Data/ continua igual."
+            ),
         )
-        training_domain = st.text_input(
-            "Domínio/agente alvo (ex: tuner, audio, bluetooth)",
-            key="training_domain",
-            placeholder="tuner",
+        training_category = st.text_input(
+            "Categoria/DOMÍNIO",
+            key="training_category",
+            placeholder="Exemplo: tuner",
+            help=(
+                "Domínio funcional do rádio que este teste cobre. "
+                "Exemplos: tuner, bluetooth, audio, navigation, camera."
+            ),
         )
-        training_goal = st.text_area(
+        training_flow = st.text_input(
+            "Fluxo/Caso de teste",
+            key="training_flow",
+            placeholder="Exemplo: validar_funcoes_padrao_do_tuner",
+            help=(
+                "Nome do fluxo que o agente deverá aprender a executar dentro do domínio. "
+                "Exemplos: validar_funcoes_padrao_do_tuner, parear_dispositivo_bluetooth, ajustar_volume."
+            ),
+        )
+        training_objective = st.text_area(
             "Objetivo do episódio",
-            key="training_goal",
-            placeholder="validar tuner e verificar se as funções padrão estão funcionando",
-            height=90,
+            key="training_objective",
+            placeholder=(
+                "Exemplo: Validar se o Tuner abre corretamente, troca de estação "
+                "e mantém a tela principal funcional."
+            ),
+            help=(
+                "Explique em linguagem natural o que este episódio ensina. "
+                "Pense como se fosse o prompt futuro para o agente."
+            ),
+            height=80,
+        )
+        training_success_criteria = st.text_area(
+            "Critério de sucesso final",
+            key="training_success_criteria",
+            placeholder=(
+                "Exemplo: O rádio deve estar na tela do Tuner, sem erro visual, "
+                "com estação/frequência visível e botões respondendo."
+            ),
+            help=(
+                "Descreva como saber que o teste terminou corretamente. "
+                "Esse texto ajuda o agente/modelo a entender o estado final esperado."
+            ),
+            height=80,
         )
         training_step_intents = st.text_area(
             "Intenção por passo (opcional, 1 por linha)",
             key="training_step_intents",
+            placeholder=(
+                "Exemplo:\n"
+                "Abrir o menu principal\n"
+                "Entrar na tela do Tuner\n"
+                "Selecionar próxima estação\n"
+                "Voltar para a tela anterior"
+            ),
+            help=(
+                "Opcional. Escreva uma intenção para cada toque/gesto gravado, na mesma ordem da coleta. "
+                "Se deixar vazio ou faltar alguma linha, o VWAIT preenche automaticamente com fallback."
+            ),
             height=100,
         )
         training_step_expected = st.text_area(
             "Resultado esperado por passo (opcional, 1 por linha)",
             key="training_step_expected",
+            placeholder=(
+                "Exemplo:\n"
+                "Menu principal aparece na tela\n"
+                "Tela do Tuner é exibida\n"
+                "Frequência muda para a próxima estação\n"
+                "Tela anterior é exibida sem falhas"
+            ),
+            help=(
+                "Opcional. Escreva o resultado visual/comportamental esperado após cada passo. "
+                "Use uma linha por passo, alinhada com as intenções acima."
+            ),
             height=100,
         )
+        training_notes = st.text_area(
+            "Observações (opcional)",
+            key="training_notes",
+            placeholder=(
+                "Exemplo: Teste gravado com rádio em português, tema escuro, "
+                "sem rede conectada e volume em 10."
+            ),
+            help=(
+                "Opcional. Use para contexto extra que pode ajudar no treino ou análise futura, "
+                "como idioma, tema, versão do software, pré-condições ou comportamento observado."
+            ),
+            height=80,
+        )
+        if categoria and nome_teste:
+            current_actions_path = str(tester_actions_path(categoria, nome_teste))
+            if os.path.exists(current_actions_path):
+                try:
+                    with open(current_actions_path, "r", encoding="utf-8") as handle:
+                        current_payload = json.load(handle)
+                    current_actions = current_payload.get("acoes", []) if isinstance(current_payload, dict) else []
+                    if current_actions:
+                        st.caption(f"Passos gravados atualmente: {len(current_actions)}")
+                except Exception:
+                    pass
         if export_training_enabled:
             st.caption("A coleta continua igual. Ao finalizar, o VWAIT exporta um episódio paralelo para TrainingData/ usando os artefatos desta gravação.")
 
+    def _training_required_missing() -> list[str]:
+        if not export_training_enabled:
+            return []
+        fields = [
+            ("Categoria/DOMÍNIO", training_category),
+            ("Fluxo/Caso de teste", training_flow),
+            ("Objetivo do episódio", training_objective),
+            ("Critério de sucesso final", training_success_criteria),
+        ]
+        return [label for label, value in fields if not str(value or "").strip()]
+
     helper_col1, helper_col2 = st.columns([1, 3])
     with helper_col1:
-        if st.button("Abrir Scrcpy", use_container_width=True):
+        if _action_button("Abrir Scrcpy", style="open"):
             if not serial_sel:
                 st.error("Selecione uma bancada/dispositivo ADB antes de abrir o scrcpy.")
             else:
@@ -101,8 +257,12 @@ def render_collection_section(
     col1, col2, col3, col4, col5 = st.columns(5)
 
     with col1:
-        if st.button("Iniciar Coleta", use_container_width=True):
+        if _action_button("Iniciar Coleta", style="open"):
             if categoria and nome_teste:
+                missing_training = _training_required_missing()
+                if missing_training:
+                    st.error("Preencha os campos obrigatórios da TrainingData: " + ", ".join(missing_training))
+                    return
                 if st.session_state.proc_coleta is None:
                     pause_path = os.path.join(base_dir, "pause.flag")
                     if os.path.exists(pause_path):
@@ -143,7 +303,7 @@ def render_collection_section(
                 st.error("Preencha categoria e nome do teste antes de iniciar.")
 
     with col2:
-        if st.button("Finalizar Coleta", use_container_width=True):
+        if _action_button("Finalizar Coleta", style="open"):
             proc = st.session_state.proc_coleta
             if proc:
                 try:
@@ -157,14 +317,19 @@ def render_collection_section(
                     if os.path.exists(acoes_path):
                         st.success("Coleta finalizada com sucesso. Print final e ações salvos.")
                         if export_training_enabled:
-                            training_domain_value = (training_domain or categoria or "").strip()
-                            training_goal_value = (training_goal or f"validar {nome_teste}").strip()
+                            missing_training = _training_required_missing()
+                            if missing_training:
+                                st.error("TrainingData não exportada. Campos obrigatórios ausentes: " + ", ".join(missing_training))
+                                return
                             with st.spinner("Exportando episódio para TrainingData..."):
                                 ok_export, msg_export = exportar_training_episode(
                                     categoria=categoria,
                                     nome_teste=nome_teste,
-                                    domain=training_domain_value or categoria,
-                                    goal=training_goal_value,
+                                    training_category=training_category,
+                                    flow=training_flow,
+                                    objective=training_objective,
+                                    success_criteria_final=training_success_criteria,
+                                    notes=training_notes,
                                     serial=serial_sel,
                                     input_source=fonte_coleta,
                                     step_intents_text=training_step_intents,
@@ -193,7 +358,7 @@ def render_collection_section(
                 st.info("Nenhuma coleta em andamento.")
 
     with col3:
-        if st.button("Salvar Resultado Esperado", use_container_width=True):
+        if _action_button("Salvar Resultado Esperado", style="open"):
             if categoria and nome_teste:
                 ok, msg = salvar_resultado_parcial(categoria, nome_teste, serial_sel)
                 if ok:
@@ -204,7 +369,7 @@ def render_collection_section(
                 st.error("Informe categoria e nome do teste antes de salvar o esperado.")
 
     with col4:
-        if st.button("Capturar Log do Radio", use_container_width=True):
+        if _action_button("Capturar Log do Radio", style="open"):
             if not serial_sel:
                 st.error("Selecione uma bancada conectada para capturar logs.")
             else:
@@ -229,7 +394,7 @@ def render_collection_section(
                         st.error(f"Falha ao capturar logs: {erro_logs or 'erro desconhecido'}")
 
     with col5:
-        if st.button("Abrir Pasta de Logs", use_container_width=True):
+        if _action_button("Abrir Pasta de Logs", style="open"):
             if not serial_sel:
                 st.error("Selecione uma bancada conectada para abrir os logs.")
             else:
@@ -322,7 +487,7 @@ def render_management_and_execution_sections(
     cat_del = st.text_input("Categoria do Teste a deletar", key="cat_del")
     nome_del = st.text_input("Nome do Teste a deletar", key="nome_del")
 
-    if st.button("Deletar Teste", use_container_width=True):
+    if _action_button("Deletar Teste", style="danger"):
         if cat_del and nome_del:
             teste_path = str(tester_catalog_dir(cat_del, nome_del))
             runs_path = os.path.join(base_dir, "Data", "runs", "tester", cat_del, nome_del)
@@ -345,7 +510,7 @@ def render_management_and_execution_sections(
     categoria_ds = st.text_input("Categoria do Dataset", key="cat_dataset")
     nome_teste_ds = st.text_input("Nome do Teste", key="nome_dataset")
 
-    if st.button("Processar Dataset", use_container_width=True):
+    if _action_button("Processar Dataset", style="save"):
         if categoria_ds and nome_teste_ds:
             with st.spinner(f"Processando dataset de {categoria_ds}/{nome_teste_ds}..."):
                 proc_dataset = subprocess.run(
@@ -412,9 +577,9 @@ def render_management_and_execution_sections(
         st.markdown("<h4>Executar teste unico</h4>", unsafe_allow_html=True)
         btn_unico_col, btn_duplo_col = st.columns(2)
         with btn_unico_col:
-            executar_teste_unico = st.button("Executar Teste Unico", use_container_width=True)
+            executar_teste_unico = _action_button("Executar Teste Unico", style="run")
         with btn_duplo_col:
-            executar_duplo = st.button("Rodar Testes em Paralelo", key="executar_teste_duplo", use_container_width=True)
+            executar_duplo = _action_button("Rodar Testes em Paralelo", style="run", key="executar_teste_duplo")
 
         if executar_teste_unico:
             serial_exec = serial_sel or (bancadas[0] if bancadas else None)
@@ -488,7 +653,7 @@ def render_management_and_execution_sections(
         if "teste_em_execucao" in st.session_state and st.session_state["teste_em_execucao"]:
             if not st.session_state.get("teste_pausado", False):
                 st.markdown("<div class='pause-btn'>", unsafe_allow_html=True)
-                if st.button("Pausar Teste", key="pause_teste", use_container_width=True):
+                if _action_button("Pausar Teste", style="pause", key="pause_teste"):
                     with open(os.path.join(base_dir, "pause.flag"), "w") as handle:
                         handle.write("pause")
                     st.session_state["teste_pausado"] = True
@@ -496,7 +661,7 @@ def render_management_and_execution_sections(
                 st.markdown("</div>", unsafe_allow_html=True)
             else:
                 st.markdown("<div class='resume-btn'>", unsafe_allow_html=True)
-                if st.button("Retomar Teste", key="resume_teste", use_container_width=True):
+                if _action_button("Retomar Teste", style="resume", key="resume_teste"):
                     pause_path = os.path.join(base_dir, "pause.flag")
                     if os.path.exists(pause_path):
                         os.remove(pause_path)
@@ -513,7 +678,7 @@ def render_management_and_execution_sections(
         st.markdown("<h4>Executar todos</h4>", unsafe_allow_html=True)
         btn_all_col, _btn_all_spacer = st.columns(2)
         with btn_all_col:
-            executar_todos_categoria = st.button("Executar Todos da Categoria", use_container_width=True)
+            executar_todos_categoria = _action_button("Executar Todos da Categoria", style="run")
 
         if executar_todos_categoria:
             if categoria_exec:
@@ -559,7 +724,7 @@ def render_reports_and_links_section(*, base_dir: str, scripts: dict[str, str], 
     st.divider()
     st.subheader("Gerar Relatórios de Falhas")
 
-    if st.button("Gerar Relatórios de Falhas (execução_log.json)", use_container_width=True):
+    if _action_button("Gerar Relatórios de Falhas (execução_log.json)", style="report"):
         gerar_falha_path = scripts["Gerar Relatórios de Falhas"]
         if not os.path.exists(gerar_falha_path):
             st.error("Arquivo generate_failure_reports.py não encontrado.")
@@ -601,7 +766,7 @@ def render_reports_and_links_section(*, base_dir: str, scripts: dict[str, str], 
     link_col_1, link_col_2, link_col_3 = st.columns(3)
 
     with link_col_1:
-        if st.button("Abrir Dashboard", use_container_width=True):
+        if _action_button("Abrir Dashboard", style="open"):
             try:
                 port = int(os.environ.get("VWAIT_DASHBOARD_PORT", "8504"))
                 pronto = garantir_painel_streamlit(scripts["Abrir Dashboard"], port)
@@ -614,7 +779,7 @@ def render_reports_and_links_section(*, base_dir: str, scripts: dict[str, str], 
                 st.error(f"Falha ao abrir dashboard: {exc}")
 
     with link_col_2:
-        if st.button("Abrir Painel de Logs", use_container_width=True):
+        if _action_button("Abrir Painel de Logs", style="open"):
             try:
                 port = int(os.environ.get("VWAIT_LOGS_PANEL_PORT", "8505"))
                 pronto = garantir_painel_streamlit(scripts["Abrir Painel de Logs"], port)
@@ -627,7 +792,7 @@ def render_reports_and_links_section(*, base_dir: str, scripts: dict[str, str], 
                 st.error(f"Falha ao abrir painel de logs: {exc}")
 
     with link_col_3:
-        if st.button("Abrir Controle de Falhas", use_container_width=True):
+        if _action_button("Abrir Controle de Falhas", style="open"):
             try:
                 port = int(os.environ.get("VWAIT_FAILURE_CONTROL_PORT", "8506"))
                 pronto = garantir_painel_streamlit(scripts["Abrir Controle de Falhas"], port)

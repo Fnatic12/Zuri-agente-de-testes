@@ -20,7 +20,7 @@ O VWAIT abre um conjunto de paineis para execucao e analise de testes:
 
 Os dois paineis principais que abrem automaticamente sao:
 - `http://localhost:8502` para o `Menu Chat`
-- `http://localhost:8503` para o `Menu Tester`
+- `http://localhost:8503` para o `Menu Tester`;
 
 Os paineis auxiliares rodam nestas portas:
 - `http://localhost:8504` para o `Dashboard`

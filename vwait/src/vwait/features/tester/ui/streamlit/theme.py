@@ -64,6 +64,116 @@ def apply_menu_tester_styles() -> None:
             width: 100% !important;
             max-width: none !important;
         }
+        .tester-button-marker {
+            display: none;
+        }
+        [class*="st-key-tester-btn-start"] div.stButton > button,
+        [class*="st-key-tester-btn-start"] div[data-testid="stButton"] button,
+        .tester-btn-start + div[data-testid="stButton"] button,
+        div:has(> [data-testid="stMarkdownContainer"] .tester-btn-start) + div[data-testid="stButton"] button {
+            border-color: rgba(74, 222, 128, 0.52) !important;
+            background: linear-gradient(135deg, rgba(22, 101, 52, 0.96), rgba(34, 197, 94, 0.78)) !important;
+            color: #f0fff7 !important;
+            box-shadow: 0 16px 32px rgba(34, 197, 94, 0.16) !important;
+        }
+        [class*="st-key-tester-btn-stop"] div.stButton > button,
+        [class*="st-key-tester-btn-danger"] div.stButton > button,
+        [class*="st-key-tester-btn-stop"] div[data-testid="stButton"] button,
+        [class*="st-key-tester-btn-danger"] div[data-testid="stButton"] button,
+        .tester-btn-stop + div[data-testid="stButton"] button,
+        .tester-btn-danger + div[data-testid="stButton"] button,
+        div:has(> [data-testid="stMarkdownContainer"] .tester-btn-stop) + div[data-testid="stButton"] button,
+        div:has(> [data-testid="stMarkdownContainer"] .tester-btn-danger) + div[data-testid="stButton"] button {
+            border-color: rgba(248, 113, 113, 0.58) !important;
+            background: linear-gradient(135deg, rgba(127, 29, 29, 0.96), rgba(239, 68, 68, 0.78)) !important;
+            color: #fff5f5 !important;
+            box-shadow: 0 16px 32px rgba(239, 68, 68, 0.16) !important;
+        }
+        [class*="st-key-tester-btn-save"] div.stButton > button,
+        [class*="st-key-tester-btn-export"] div.stButton > button,
+        [class*="st-key-tester-btn-save"] div[data-testid="stButton"] button,
+        [class*="st-key-tester-btn-export"] div[data-testid="stButton"] button,
+        .tester-btn-save + div[data-testid="stButton"] button,
+        .tester-btn-export + div[data-testid="stButton"] button,
+        div:has(> [data-testid="stMarkdownContainer"] .tester-btn-save) + div[data-testid="stButton"] button,
+        div:has(> [data-testid="stMarkdownContainer"] .tester-btn-export) + div[data-testid="stButton"] button {
+            border-color: rgba(56, 189, 248, 0.55) !important;
+            background: linear-gradient(135deg, rgba(14, 116, 144, 0.96), rgba(56, 189, 248, 0.74)) !important;
+            color: #f0fbff !important;
+            box-shadow: 0 16px 32px rgba(56, 189, 248, 0.14) !important;
+        }
+        [class*="st-key-tester-btn-log"] div.stButton > button,
+        [class*="st-key-tester-btn-log"] div[data-testid="stButton"] button,
+        .tester-btn-log + div[data-testid="stButton"] button,
+        div:has(> [data-testid="stMarkdownContainer"] .tester-btn-log) + div[data-testid="stButton"] button {
+            border-color: rgba(250, 204, 21, 0.52) !important;
+            background: linear-gradient(135deg, rgba(133, 77, 14, 0.96), rgba(234, 179, 8, 0.72)) !important;
+            color: #fffbea !important;
+            box-shadow: 0 16px 32px rgba(234, 179, 8, 0.14) !important;
+        }
+        [class*="st-key-tester-btn-open"] div.stButton > button,
+        [class*="st-key-tester-btn-help"] div.stButton > button,
+        [class*="st-key-tester-btn-open"] div[data-testid="stButton"] button,
+        [class*="st-key-tester-btn-help"] div[data-testid="stButton"] button,
+        .tester-btn-open + div[data-testid="stButton"] button,
+        .tester-btn-help + div[data-testid="stButton"] button,
+        div:has(> [data-testid="stMarkdownContainer"] .tester-btn-open) + div[data-testid="stButton"] button,
+        div:has(> [data-testid="stMarkdownContainer"] .tester-btn-help) + div[data-testid="stButton"] button {
+            border-color: rgba(129, 140, 248, 0.55) !important;
+            background: linear-gradient(135deg, rgba(49, 46, 129, 0.96), rgba(99, 102, 241, 0.72)) !important;
+            color: #f5f6ff !important;
+            box-shadow: 0 16px 32px rgba(99, 102, 241, 0.14) !important;
+        }
+        [class*="st-key-tester-btn-run"] div.stButton > button,
+        [class*="st-key-tester-btn-run"] div[data-testid="stButton"] button,
+        .tester-btn-run + div[data-testid="stButton"] button,
+        div:has(> [data-testid="stMarkdownContainer"] .tester-btn-run) + div[data-testid="stButton"] button {
+            border-color: rgba(45, 212, 191, 0.54) !important;
+            background: linear-gradient(135deg, rgba(17, 94, 89, 0.96), rgba(20, 184, 166, 0.76)) !important;
+            color: #effffd !important;
+            box-shadow: 0 16px 32px rgba(20, 184, 166, 0.14) !important;
+        }
+        [class*="st-key-tester-btn-pause"] div.stButton > button,
+        [class*="st-key-tester-btn-pause"] div[data-testid="stButton"] button,
+        .tester-btn-pause + div[data-testid="stButton"] button,
+        div:has(> [data-testid="stMarkdownContainer"] .tester-btn-pause) + div[data-testid="stButton"] button {
+            border-color: rgba(251, 146, 60, 0.56) !important;
+            background: linear-gradient(135deg, rgba(154, 52, 18, 0.96), rgba(249, 115, 22, 0.76)) !important;
+            color: #fff7ed !important;
+        }
+        [class*="st-key-tester-btn-resume"] div.stButton > button,
+        [class*="st-key-tester-btn-resume"] div[data-testid="stButton"] button,
+        .tester-btn-resume + div[data-testid="stButton"] button,
+        div:has(> [data-testid="stMarkdownContainer"] .tester-btn-resume) + div[data-testid="stButton"] button {
+            border-color: rgba(132, 204, 22, 0.56) !important;
+            background: linear-gradient(135deg, rgba(63, 98, 18, 0.96), rgba(132, 204, 22, 0.72)) !important;
+            color: #fbffe8 !important;
+        }
+        [class*="st-key-tester-btn-report"] div.stButton > button,
+        [class*="st-key-tester-btn-report"] div[data-testid="stButton"] button,
+        .tester-btn-report + div[data-testid="stButton"] button,
+        div:has(> [data-testid="stMarkdownContainer"] .tester-btn-report) + div[data-testid="stButton"] button {
+            border-color: rgba(244, 114, 182, 0.52) !important;
+            background: linear-gradient(135deg, rgba(131, 24, 67, 0.96), rgba(236, 72, 153, 0.72)) !important;
+            color: #fff1f7 !important;
+        }
+        [class*="st-key-tester-btn-"] div.stButton > button:hover,
+        [class*="st-key-tester-btn-"] div[data-testid="stButton"] button:hover,
+        .tester-btn-start + div[data-testid="stButton"] button:hover,
+        .tester-btn-stop + div[data-testid="stButton"] button:hover,
+        .tester-btn-danger + div[data-testid="stButton"] button:hover,
+        .tester-btn-save + div[data-testid="stButton"] button:hover,
+        .tester-btn-export + div[data-testid="stButton"] button:hover,
+        .tester-btn-log + div[data-testid="stButton"] button:hover,
+        .tester-btn-open + div[data-testid="stButton"] button:hover,
+        .tester-btn-help + div[data-testid="stButton"] button:hover,
+        .tester-btn-run + div[data-testid="stButton"] button:hover,
+        .tester-btn-pause + div[data-testid="stButton"] button:hover,
+        .tester-btn-resume + div[data-testid="stButton"] button:hover,
+        .tester-btn-report + div[data-testid="stButton"] button:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.08);
+        }
         .tester-link-row {
             margin-top: 0.45rem;
         }

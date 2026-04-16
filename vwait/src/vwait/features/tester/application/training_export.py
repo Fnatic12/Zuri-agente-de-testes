@@ -2,26 +2,44 @@ from __future__ import annotations
 
 import json
 import os
+import secrets
 import shutil
 import subprocess
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from PIL import Image, ImageChops
-
 from vwait.core.paths import (
-    build_run_id,
     ensure_data_roots,
     normalize_segment,
     tester_actions_path,
+    tester_catalog_dir,
     tester_expected_final_path,
     tester_recorded_dir,
     tester_recorded_frames_dir,
     tester_test_metadata_path,
     training_episode_dir,
+    training_manifest_all_episodes_path,
+    training_taxonomy_categories_path,
+    training_taxonomy_flows_path,
 )
 from vwait.platform.adb import resolve_adb_path
+
+
+SCHEMA_VERSION = "1.0"
+
+
+def _utc_now() -> datetime:
+    return datetime.now(UTC)
+
+
+def _iso_utc(moment: datetime | None = None) -> str:
+    return (moment or _utc_now()).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def _episode_id(moment: datetime | None = None) -> str:
+    dt = moment or _utc_now()
+    return f"ep_{dt.strftime('%Y%m%d')}_{dt.strftime('%H%M%S')}_{secrets.token_hex(3)}"
 
 
 def _load_json(path: Path) -> dict[str, Any]:
@@ -36,7 +54,9 @@ def _load_json(path: Path) -> dict[str, Any]:
 
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    os.replace(tmp, path)
 
 
 def _copy_image(src: Path | None, dst: Path) -> bool:
@@ -47,30 +67,34 @@ def _copy_image(src: Path | None, dst: Path) -> bool:
     return True
 
 
-def _save_diff_image(expected_path: Path | None, observed_path: Path | None, diff_path: Path) -> bool:
-    if not expected_path or not observed_path or not expected_path.is_file() or not observed_path.is_file():
-        return False
-    try:
-        expected = Image.open(expected_path).convert("RGB")
-        observed = Image.open(observed_path).convert("RGB")
-        if observed.size != expected.size:
-            observed = observed.resize(expected.size)
-        diff = ImageChops.difference(expected, observed)
-        diff_path.parent.mkdir(parents=True, exist_ok=True)
-        diff.save(diff_path)
-        return True
-    except Exception:
-        return False
-
-
 def _split_lines(raw_text: str | None) -> list[str]:
     return [line.strip() for line in str(raw_text or "").splitlines() if line.strip()]
 
 
-def _adb_shell_text(serial: str | None, *shell_args: str) -> str:
+def _parse_iso_timestamp(value: Any) -> float | None:
+    text = str(value or "").strip()
+    if not text:
+        return None
+    try:
+        return datetime.fromisoformat(text.replace("Z", "+00:00")).timestamp()
+    except Exception:
+        return None
+
+
+def _duration_ms(actions: list[dict[str, Any]]) -> int | None:
+    starts = [_parse_iso_timestamp(item.get("action_timestamp") or item.get("timestamp")) for item in actions if isinstance(item, dict)]
+    ends = [_parse_iso_timestamp(item.get("screenshot_timestamp") or item.get("timestamp")) for item in actions if isinstance(item, dict)]
+    starts = [item for item in starts if item is not None]
+    ends = [item for item in ends if item is not None]
+    if not starts or not ends:
+        return None
+    return max(0, int((max(ends) - min(starts)) * 1000))
+
+
+def _adb_shell_text(serial: str | None, *shell_args: str) -> str | None:
     adb_path = resolve_adb_path()
     if not adb_path:
-        return ""
+        return None
     cmd = [adb_path]
     if serial:
         cmd += ["-s", serial]
@@ -78,14 +102,15 @@ def _adb_shell_text(serial: str | None, *shell_args: str) -> str:
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=6)
     except Exception:
-        return ""
+        return None
     if result.returncode != 0:
-        return ""
-    return (result.stdout or "").strip()
+        return None
+    text = (result.stdout or "").strip()
+    return text or None
 
 
-def _wm_resolution(serial: str | None) -> dict[str, int | None]:
-    raw = _adb_shell_text(serial, "wm", "size")
+def _wm_resolution(serial: str | None, fallback: dict[str, Any]) -> dict[str, int | None]:
+    raw = _adb_shell_text(serial, "wm", "size") or ""
     width = height = None
     for token in raw.split():
         if "x" not in token:
@@ -97,103 +122,105 @@ def _wm_resolution(serial: str | None) -> dict[str, int | None]:
             break
         except Exception:
             continue
-    return {"width": width, "height": height}
-
-
-def _collect_environment(serial: str | None, input_source: str | None, fallback_resolution: dict[str, int | None]) -> dict[str, Any]:
-    resolution = _wm_resolution(serial)
-    width = resolution.get("width") or fallback_resolution.get("width")
-    height = resolution.get("height") or fallback_resolution.get("height")
     return {
-        "captured_at": datetime.now().isoformat(),
-        "serial": serial or "",
-        "device_family": _adb_shell_text(serial, "getprop", "ro.product.model"),
-        "manufacturer": _adb_shell_text(serial, "getprop", "ro.product.manufacturer"),
-        "software_version": _adb_shell_text(serial, "getprop", "ro.build.display.id"),
-        "android_version": _adb_shell_text(serial, "getprop", "ro.build.version.release"),
-        "language": _adb_shell_text(serial, "getprop", "persist.sys.locale") or _adb_shell_text(serial, "getprop", "ro.product.locale"),
-        "theme": "",
-        "input_source": input_source or "",
-        "resolution": {
-            "width": int(width) if width else None,
-            "height": int(height) if height else None,
-        },
+        "width": width or fallback.get("width"),
+        "height": height or fallback.get("height"),
     }
 
 
-def _fallback_intent(action_type: str, step_id: int) -> str:
-    label = str(action_type or "acao").strip().lower()
-    if label == "tap":
-        return f"executar tap do passo {step_id}"
-    if label == "swipe":
-        return f"executar swipe do passo {step_id}"
-    if label == "long_press":
-        return f"executar long press do passo {step_id}"
-    return f"executar acao do passo {step_id}"
+def _fallback_resolution(actions: list[dict[str, Any]]) -> dict[str, int | None]:
+    for item in actions:
+        if not isinstance(item, dict):
+            continue
+        action = item.get("acao") if isinstance(item.get("acao"), dict) else {}
+        resolution = action.get("resolucao") if isinstance(action, dict) else {}
+        if not isinstance(resolution, dict):
+            continue
+        width = resolution.get("largura")
+        height = resolution.get("altura")
+        if width or height:
+            return {
+                "width": int(width) if width else None,
+                "height": int(height) if height else None,
+            }
+    return {"width": None, "height": None}
 
 
-def _fallback_expected_outcome(action_type: str, step_id: int) -> str:
-    label = str(action_type or "acao").strip().lower()
-    return f"estado esperado apos {label} do passo {step_id}"
-
-
-def _normalized_action_payload(action: dict[str, Any]) -> dict[str, Any]:
-    payload = dict(action or {})
-    resolution = payload.get("resolucao") or {}
-    width = int(resolution.get("largura") or 0)
-    height = int(resolution.get("altura") or 0)
-    output = {
-        "type": payload.get("tipo"),
-        "gesture": payload.get("gesture"),
-        "coordinates_abs": {},
-        "coordinates_norm": {},
+def _update_taxonomy(path: Path, key: str, raw_name: str, extra: dict[str, Any] | None = None) -> None:
+    name = str(raw_name or "").strip()
+    if not name:
+        return
+    slug = normalize_segment(name)
+    payload = _load_json(path)
+    entries = payload.get(key)
+    if not isinstance(entries, list):
+        entries = []
+    by_slug = {str(item.get("slug")): item for item in entries if isinstance(item, dict)}
+    item = {
+        "slug": slug,
+        "name": name,
+        "updated_at": _iso_utc(),
     }
-
-    def _norm_x(value: Any) -> float | None:
-        if value is None or width <= 1:
-            return None
-        return round(float(value) / float(width - 1), 6)
-
-    def _norm_y(value: Any) -> float | None:
-        if value is None or height <= 1:
-            return None
-        return round(float(value) / float(height - 1), 6)
-
-    if payload.get("tipo") in {"tap", "long_press"}:
-        x = payload.get("x")
-        y = payload.get("y")
-        output["coordinates_abs"] = {"x": x, "y": y}
-        output["coordinates_norm"] = {"x": _norm_x(x), "y": _norm_y(y)}
-        if "duracao_s" in payload:
-            output["duration_s"] = payload.get("duracao_s")
+    if extra:
+        item.update(extra)
+    if slug in by_slug:
+        by_slug[slug].update(item)
     else:
-        x1 = payload.get("x1")
-        y1 = payload.get("y1")
-        x2 = payload.get("x2")
-        y2 = payload.get("y2")
-        output["coordinates_abs"] = {"x1": x1, "y1": y1, "x2": x2, "y2": y2}
-        output["coordinates_norm"] = {
-            "x1": _norm_x(x1),
-            "y1": _norm_y(y1),
-            "x2": _norm_x(x2),
-            "y2": _norm_y(y2),
-        }
-        if "duracao_ms" in payload:
-            output["duration_ms"] = payload.get("duracao_ms")
+        by_slug[slug] = item
+    ordered = [by_slug[item] for item in sorted(by_slug)]
+    _write_json(path, {"schema_version": SCHEMA_VERSION, key: ordered})
 
-    output["resolution"] = {
-        "width": width or None,
-        "height": height or None,
+
+def _update_manifest(entry: dict[str, Any]) -> None:
+    path = training_manifest_all_episodes_path()
+    entries: dict[str, dict[str, Any]] = {}
+    if path.is_file():
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            try:
+                item = json.loads(line)
+            except Exception:
+                continue
+            if isinstance(item, dict) and item.get("episode_id"):
+                entries[str(item["episode_id"])] = item
+    entries[str(entry["episode_id"])] = entry
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lines = [
+        json.dumps(entries[key], ensure_ascii=False, sort_keys=True)
+        for key in sorted(entries, key=lambda value: str(entries[value].get("created_at", "")))
+    ]
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
+    os.replace(tmp, path)
+
+
+def _action_metadata(action: dict[str, Any]) -> dict[str, Any]:
+    if not isinstance(action, dict):
+        return {}
+    return {
+        "type": action.get("tipo"),
+        "gesture": action.get("gesture"),
+        "coordinates": {
+            key: action.get(key)
+            for key in ("x", "y", "x1", "y1", "x2", "y2")
+            if key in action
+        },
+        "duration_s": action.get("duracao_s"),
+        "duration_ms": action.get("duracao_ms"),
     }
-    return output
 
 
 def export_training_episode(
     *,
     category: str,
     test_name: str,
-    domain: str,
-    goal: str,
+    training_category: str,
+    flow: str,
+    objective: str,
+    success_criteria_final: str,
+    tester_id: str | None = None,
+    notes: str | None = None,
     serial: str | None = None,
     input_source: str | None = None,
     step_intents_text: str | None = None,
@@ -201,141 +228,174 @@ def export_training_episode(
 ) -> tuple[bool, str]:
     ensure_data_roots()
 
-    category_norm = normalize_segment(category)
-    test_name_norm = normalize_segment(test_name)
-    domain_norm = normalize_segment(domain or category_norm)
-    episode_id = build_run_id()
-    episode_dir = training_episode_dir(domain_norm, test_name_norm, episode_id)
+    operational_category = normalize_segment(category)
+    operational_test = normalize_segment(test_name)
+    category_name = str(training_category or "").strip()
+    flow_name = str(flow or "").strip()
+    objective_text = str(objective or "").strip()
+    success_text = str(success_criteria_final or "").strip()
+
+    missing = [
+        label
+        for label, value in (
+            ("Categoria/DOMINIO", category_name),
+            ("Fluxo/Caso de teste", flow_name),
+            ("Objetivo do episodio", objective_text),
+            ("Criterio de sucesso final", success_text),
+        )
+        if not value
+    ]
+    if missing:
+        return False, "Campos obrigatorios ausentes: " + ", ".join(missing)
+
+    category_slug = normalize_segment(category_name)
+    flow_slug = normalize_segment(flow_name)
+    created_at = _iso_utc()
+    episode_id = _episode_id()
+    episode_dir = training_episode_dir(category_slug, flow_slug, episode_id)
     steps_root = episode_dir / "steps"
 
-    actions_payload = _load_json(tester_actions_path(category_norm, test_name_norm))
+    actions_path = tester_actions_path(operational_category, operational_test)
+    actions_payload = _load_json(actions_path)
     actions = actions_payload.get("acoes")
     if not isinstance(actions, list) or not actions:
         return False, "Nenhuma acao encontrada para exportar."
 
-    test_meta = _load_json(tester_test_metadata_path(category_norm, test_name_norm))
-    recorded_dir = tester_recorded_dir(category_norm, test_name_norm)
-    frames_dir = tester_recorded_frames_dir(category_norm, test_name_norm)
+    test_meta = _load_json(tester_test_metadata_path(operational_category, operational_test))
+    data_source_path = tester_catalog_dir(operational_category, operational_test)
+    recorded_dir = tester_recorded_dir(operational_category, operational_test)
+    frames_dir = tester_recorded_frames_dir(operational_category, operational_test)
     initial_state_path = recorded_dir / "initial_state.png"
-    expected_final_path = tester_expected_final_path(category_norm, test_name_norm)
-
-    step_intents = _split_lines(step_intents_text)
-    step_expected = _split_lines(step_expected_text)
-
-    fallback_resolution = {"width": None, "height": None}
-    first_action = actions[0].get("acao", {}) if isinstance(actions[0], dict) else {}
-    if isinstance(first_action, dict):
-        raw_res = first_action.get("resolucao") or {}
-        fallback_resolution = {
-            "width": raw_res.get("largura"),
-            "height": raw_res.get("altura"),
-        }
-
-    environment = _collect_environment(serial, input_source or str(actions_payload.get("fonte") or ""), fallback_resolution)
+    final_expected_src = tester_expected_final_path(operational_category, operational_test)
 
     episode_dir.mkdir(parents=True, exist_ok=True)
+    steps_root.mkdir(parents=True, exist_ok=True)
 
+    intents = _split_lines(step_intents_text)
+    expected_results = _split_lines(step_expected_text)
+    manual_step_annotations = bool(intents or expected_results)
+
+    previous_after = initial_state_path if initial_state_path.is_file() else None
     steps_written = 0
-    previous_after_expected = initial_state_path if initial_state_path.is_file() else None
+    missing_artifacts: list[dict[str, Any]] = []
+
     for index, item in enumerate(actions, start=1):
         if not isinstance(item, dict):
             continue
         action = item.get("acao") if isinstance(item.get("acao"), dict) else {}
-        image_name = str(item.get("imagem") or "").strip()
-        if not image_name:
-            image_name = f"frame_{index:02d}.png"
-
-        after_expected_src = frames_dir / image_name
-        after_observed_src = after_expected_src if after_expected_src.is_file() else None
-        before_src = previous_after_expected if previous_after_expected and previous_after_expected.is_file() else after_expected_src
+        image_name = str(item.get("imagem") or f"frame_{index:02d}.png").strip()
+        after_src = frames_dir / image_name
+        before_src = previous_after if previous_after and previous_after.is_file() else None
 
         step_dir = steps_root / f"{index:04d}"
-        before_dst = step_dir / "before.png"
-        after_observed_dst = step_dir / "after_observed.png"
-        after_expected_dst = step_dir / "after_expected.png"
-        diff_dst = step_dir / "diff.png"
+        before_copied = _copy_image(before_src, step_dir / "before.png")
+        after_copied = _copy_image(after_src, step_dir / "after.png")
+        if not before_copied:
+            missing_artifacts.append({"step_index": index, "artifact": "before.png", "source": str(before_src or "")})
+        if not after_copied:
+            missing_artifacts.append({"step_index": index, "artifact": "after.png", "source": str(after_src)})
 
-        _copy_image(before_src, before_dst)
-        _copy_image(after_observed_src, after_observed_dst)
-        _copy_image(after_expected_src, after_expected_dst)
-        _save_diff_image(after_expected_dst if after_expected_dst.is_file() else None, after_observed_dst if after_observed_dst.is_file() else None, diff_dst)
-
-        intent = step_intents[index - 1] if index - 1 < len(step_intents) else _fallback_intent(action.get("tipo"), index)
-        expected_outcome = (
-            step_expected[index - 1]
-            if index - 1 < len(step_expected)
-            else _fallback_expected_outcome(action.get("tipo"), index)
+        intent = intents[index - 1] if index - 1 < len(intents) else f"fallback_step_{index}"
+        expected_result = (
+            expected_results[index - 1]
+            if index - 1 < len(expected_results)
+            else f"state_changed_after_step_{index}"
         )
-
-        similarity = 1.0 if after_expected_dst.is_file() and after_observed_dst.is_file() else 0.0
         step_payload = {
-            "step_id": index,
+            "schema_version": SCHEMA_VERSION,
+            "step_index": index,
             "intent": intent,
-            "expected_outcome": expected_outcome,
-            "action": _normalized_action_payload(action),
-            "timing": {
-                "action_timestamp": item.get("action_timestamp") or item.get("timestamp"),
-                "screenshot_timestamp": item.get("screenshot_timestamp"),
-                "duration_s": action.get("duracao_s"),
-                "duration_ms": action.get("duracao_ms"),
-            },
+            "expected_result": expected_result,
+            "action_source": "recorded_touch",
+            "timestamp_start": item.get("action_timestamp") or item.get("timestamp"),
+            "timestamp_end": item.get("screenshot_timestamp") or item.get("timestamp"),
             "artifacts": {
-                "before_image": "before.png" if before_dst.is_file() else "",
-                "after_observed_image": "after_observed.png" if after_observed_dst.is_file() else "",
-                "after_expected_image": "after_expected.png" if after_expected_dst.is_file() else "",
-                "diff_image": "diff.png" if diff_dst.is_file() else "",
+                "before": "before.png" if before_copied else None,
+                "after": "after.png" if after_copied else None,
             },
-            "validation": {
-                "status": "ok",
-                "similarity": similarity,
-                "step_result": "passed",
-            },
+            "recorded_action": _action_metadata(action),
             "source_refs": {
-                "actions_json": str(tester_actions_path(category_norm, test_name_norm)),
-                "recorded_frame": str(after_expected_src) if after_expected_src else "",
+                "recorded_frame": str(after_src),
+                "action_id": item.get("id", index),
             },
         }
         _write_json(step_dir / "step.json", step_payload)
-        previous_after_expected = after_expected_src if after_expected_src.is_file() else previous_after_expected
+        previous_after = after_src if after_src.is_file() else previous_after
         steps_written += 1
 
+    final_expected_copied = _copy_image(final_expected_src, episode_dir / "final_expected.png")
+    resolution = _wm_resolution(serial, _fallback_resolution(actions))
+    source_value = input_source or actions_payload.get("fonte") or test_meta.get("input_source") or None
+
     episode_payload = {
+        "schema_version": SCHEMA_VERSION,
         "episode_id": episode_id,
-        "domain": domain_norm,
-        "catalog": category_norm,
-        "test_name": test_name_norm,
-        "goal": goal.strip() or f"validar {test_name_norm}",
-        "source_test_ref": str(Path("Data") / "catalog" / "tester" / category_norm / test_name_norm),
-        "golden": True,
-        "input_source": input_source or actions_payload.get("fonte") or test_meta.get("input_source") or "",
-        "labels": {
-            "final_result": "passed",
-            "contains_failures": False,
-        },
+        "category": category_slug,
+        "category_name": category_name,
+        "flow": flow_slug,
+        "flow_name": flow_name,
+        "objective": objective_text,
+        "success_criteria_final": success_text,
+        "tester_id": tester_id or None,
+        "created_at": created_at,
+        "step_count": steps_written,
+        "notes": str(notes or "").strip(),
     }
+    environment_payload = {
+        "schema_version": SCHEMA_VERSION,
+        "device_id": serial or None,
+        "source": source_value,
+        "os_version": _adb_shell_text(serial, "getprop", "ro.build.version.release"),
+        "build_version": _adb_shell_text(serial, "getprop", "ro.build.display.id"),
+        "resolution": {
+            "width": resolution.get("width"),
+            "height": resolution.get("height"),
+        },
+        "device_model": _adb_shell_text(serial, "getprop", "ro.product.model"),
+        "manufacturer": _adb_shell_text(serial, "getprop", "ro.product.manufacturer"),
+    }
+    summary_payload = {
+        "schema_version": SCHEMA_VERSION,
+        "status": "completed",
+        "duration_ms": _duration_ms([item for item in actions if isinstance(item, dict)]),
+        "steps_recorded": steps_written,
+        "manual_step_annotations": manual_step_annotations,
+        "missing_artifacts": missing_artifacts,
+    }
+    source_refs_payload = {
+        "schema_version": SCHEMA_VERSION,
+        "data_source_path": str(data_source_path),
+        "recorded_initial_state": str(initial_state_path) if initial_state_path.is_file() else None,
+        "source_session_id": test_meta.get("latest_run_id") or test_meta.get("recorded_at") or None,
+        "actions_path": str(actions_path),
+        "expected_final_path": str(final_expected_src) if final_expected_src.is_file() else None,
+        "final_expected_exported": "final_expected.png" if final_expected_copied else None,
+    }
+
     _write_json(episode_dir / "episode.json", episode_payload)
-    _write_json(episode_dir / "environment.json", environment)
-    _write_json(
-        episode_dir / "summary.json",
-        {
-            "total_steps": steps_written,
-            "passed_steps": steps_written,
-            "failed_steps": 0,
-            "avg_similarity": 1.0 if steps_written else 0.0,
-            "expected_final_image": "expected_final.png" if expected_final_path.is_file() else "",
-        },
+    _write_json(episode_dir / "environment.json", environment_payload)
+    _write_json(episode_dir / "summary.json", summary_payload)
+    _write_json(episode_dir / "source_refs.json", source_refs_payload)
+
+    _update_taxonomy(training_taxonomy_categories_path(), "categories", category_name)
+    _update_taxonomy(
+        training_taxonomy_flows_path(),
+        "flows",
+        flow_name,
+        {"category": category_slug, "category_name": category_name},
     )
-
-    if expected_final_path.is_file():
-        _copy_image(expected_final_path, episode_dir / "expected_final.png")
-
-    source_meta = {
-        "test_metadata": test_meta,
-        "actions_path": str(tester_actions_path(category_norm, test_name_norm)),
-        "expected_final_path": str(expected_final_path),
-        "initial_state_path": str(initial_state_path) if initial_state_path.is_file() else "",
-    }
-    _write_json(episode_dir / "source_refs.json", source_meta)
+    _update_manifest(
+        {
+            "episode_id": episode_id,
+            "category": category_slug,
+            "flow": flow_slug,
+            "objective": objective_text,
+            "success_criteria_final": success_text,
+            "path": str(episode_dir),
+            "created_at": created_at,
+            "step_count": steps_written,
+        }
+    )
 
     return True, str(episode_dir)
 
