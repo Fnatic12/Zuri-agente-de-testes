@@ -6,7 +6,8 @@ from typing import Any, Callable
 
 import matplotlib.pyplot as plt
 import streamlit as st
-from PIL import Image
+from PIL import Image, ImageChops
+from vwait.core.paths import tester_recorded_frames_dir
 
 from .helpers import (
     clean_display_text,
@@ -31,6 +32,59 @@ CountImagesFn = Callable[[str | None], int]
 ListAdbDevicesFn = Callable[[], set[str]]
 LoadStatusMapFn = Callable[[], dict[str, Any]]
 FilterRealBenchesFn = Callable[[dict[str, Any], set[str]], dict[str, Any]]
+
+
+def _catalog_test_ref_from_run_dir(base_dir: str) -> tuple[str, str] | None:
+    normalized = str(base_dir).replace("\\", "/")
+    marker = "/Data/runs/tester/"
+    if marker not in normalized:
+        return None
+    rel = normalized.split(marker, 1)[1]
+    parts = rel.split("/", 3)
+    if len(parts) < 2:
+        return None
+    return parts[0], parts[1]
+
+
+def _resolve_action_image_paths(base_dir: str, acao: dict[str, Any]) -> tuple[str | None, str | None]:
+    frame_raw = str(acao.get("frame_esperado", "") or "").strip()
+    resultado_raw = str(acao.get("screenshot", "") or "").strip()
+
+    frame_path = None
+    if frame_raw:
+        candidate = frame_raw if os.path.isabs(frame_raw) else os.path.abspath(os.path.join(base_dir, frame_raw))
+        if os.path.exists(candidate):
+            frame_path = candidate
+        else:
+            test_ref = _catalog_test_ref_from_run_dir(base_dir)
+            if test_ref:
+                category, test_name = test_ref
+                fallback = tester_recorded_frames_dir(category, test_name) / os.path.basename(frame_raw)
+                if fallback.exists():
+                    frame_path = str(fallback)
+
+    resultado_path = None
+    if resultado_raw:
+        candidate = resultado_raw if os.path.isabs(resultado_raw) else os.path.abspath(os.path.join(base_dir, resultado_raw))
+        if os.path.exists(candidate):
+            resultado_path = candidate
+        else:
+            fallback = os.path.abspath(os.path.join(base_dir, "artifacts", "results", os.path.basename(resultado_raw)))
+            if os.path.exists(fallback):
+                resultado_path = fallback
+
+    return frame_path, resultado_path
+
+
+def _build_action_diff_image(frame_path: str, resultado_path: str) -> Image.Image | None:
+    try:
+        esperado = Image.open(frame_path).convert("RGB")
+        obtido = Image.open(resultado_path).convert("RGB")
+        if obtido.size != esperado.size:
+            obtido = obtido.resize(esperado.size)
+        return ImageChops.difference(esperado, obtido)
+    except Exception:
+        return None
 
 
 def portfolio_live_summary(
@@ -457,32 +511,50 @@ def render_actions(execucao: list[dict[str, Any]], base_dir: str) -> None:
     )
 
     acao = execucao[indice_acao]
-    frame_path = os.path.join(base_dir, str(acao.get("frame_esperado", "")))
-    resultado_path = os.path.join(base_dir, str(acao.get("screenshot", "")))
+    frame_path, resultado_path = _resolve_action_image_paths(base_dir, acao)
 
     col_meta_1, col_meta_2, col_meta_3 = st.columns(3)
     col_meta_1.metric("Status", acao.get("status", "-"))
     col_meta_2.metric("Similaridade", f"{float(acao.get('similaridade', 0.0) or 0.0):.2f}")
     col_meta_3.metric("Duracao", f"{float(acao.get('duracao', 0.0) or 0.0):.2f}s")
 
+    st.markdown("**Frame coletado vs resultado da execucao**")
+
     col1, col2 = st.columns(2)
     if frame_path and os.path.exists(frame_path):
         col1.image(
             Image.open(frame_path),
-            caption=f"Esperado: {acao.get('frame_esperado', '-')}",
+            caption=f"Frame coletado: {os.path.basename(frame_path)}",
             use_container_width=True,
         )
     else:
-        col1.warning("Frame esperado nao encontrado")
+        col1.warning("Frame coletado nao encontrado")
 
     if resultado_path and os.path.exists(resultado_path):
         col2.image(
             Image.open(resultado_path),
-            caption=f"Obtido: {acao.get('screenshot', '-')}",
+            caption=f"Resultado da execucao: {os.path.basename(resultado_path)}",
             use_container_width=True,
         )
     else:
-        col2.warning("Screenshot nao encontrado")
+        col2.warning("Resultado da execucao nao encontrado")
+
+    if frame_path and resultado_path and os.path.exists(frame_path) and os.path.exists(resultado_path):
+        diff_image = _build_action_diff_image(frame_path, resultado_path)
+        if diff_image is not None:
+            st.markdown("**Comparacao visual da acao**")
+            diff_col1, diff_col2 = st.columns([1, 2])
+            similarity = float(acao.get("similaridade", 0.0) or 0.0)
+            status = str(acao.get("status", "-") or "-")
+            if "OK" in status.upper():
+                diff_col1.success(f"Acao consistente\n\nSimilaridade: {similarity:.3f}")
+            else:
+                diff_col1.error(f"Acao divergente\n\nSimilaridade: {similarity:.3f}")
+            diff_col2.image(diff_image, caption="Mapa visual de diferencas", use_container_width=True)
+
+    meta_col1, meta_col2 = st.columns(2)
+    meta_col1.caption(f"Origem esperada: {acao.get('frame_esperado', '-')}")
+    meta_col2.caption(f"Origem obtida: {acao.get('screenshot', '-')}")
 
 
 __all__ = [

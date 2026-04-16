@@ -1,8 +1,8 @@
 ﻿from __future__ import annotations
-
 import os
 import platform
 import subprocess
+import shutil
 import pandas as pd
 import threading
 import time
@@ -24,6 +24,7 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 from vwait.platform.adb import resolve_adb_path
+from vwait.platform.scrcpy_events import ensure_persistent_scrcpy_session
 from vwait.core.paths import (
     DATA_ROOT as DATA_ROOT_PATH,
     create_tester_run_dir,
@@ -184,6 +185,37 @@ def print_color(msg, color="white"):
         "cyan": "\033[96m"
     }
     print(f"{cores.get(color,'')}{msg}{cores['white']}", flush=True)
+
+
+def scrcpy_running() -> bool:
+    try:
+        if os.name == "nt":
+            output = subprocess.check_output(["tasklist"], text=True).lower()
+            return "scrcpy.exe" in output
+        if shutil.which("pgrep"):
+            return subprocess.run(["pgrep", "-x", "scrcpy"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+        if shutil.which("pidof"):
+            return subprocess.run(["pidof", "scrcpy"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+    except Exception:
+        return False
+    return False
+
+
+def start_execution_scrcpy_window(serial: str | None = None) -> tuple[dict, bool]:
+    title = "VWAIT_DEVICE"
+    extra_args = []
+    env_args = os.environ.get("SCRCPY_EXEC_ARGS")
+    if env_args:
+        try:
+            import shlex
+            extra_args = shlex.split(env_args)
+        except Exception:
+            extra_args = []
+
+    try:
+        return ensure_persistent_scrcpy_session(serial=serial, window_title=title, extra_args=extra_args)
+    except Exception:
+        return {}, False
 
 
 def run_subprocess(cmd, timeout=ADB_TIMEOUT, quiet=False):
@@ -834,6 +866,23 @@ def main():
         if idx + 1 < len(sys.argv):
             serial = sys.argv[idx + 1]
 
+    input_source = "adb"
+    if "--input-source" in sys.argv:
+        idx = sys.argv.index("--input-source")
+        if idx + 1 < len(sys.argv):
+            input_source = sys.argv[idx + 1].strip().lower() or "adb"
+    if "--source" in sys.argv:
+        idx = sys.argv.index("--source")
+        if idx + 1 < len(sys.argv):
+            input_source = sys.argv[idx + 1].strip().lower() or input_source
+    if "--scrcpy" in sys.argv:
+        input_source = "scrcpy"
+    if input_source not in {"adb", "scrcpy"}:
+        input_source = "adb"
+
+    if input_source == "scrcpy":
+        print_color("Modo de execucao: scrcpy (janela gerenciada + eventos enviados via ADB).", "cyan")
+
     # ðŸ”¹ Garante que sempre exista uma bancada_key
     if not serial or serial.strip() == "":
         print_color("âš ï¸ Nenhum serial ADB detectado â€” atribuindo Bancada 1 (2801761952320038)", "yellow")
@@ -884,8 +933,19 @@ def main():
     except Exception as exc:
         print_color(f"âš ï¸ Falha ao preparar limpeza preventiva dos logs: {exc}", "yellow")
 
+    if input_source == "scrcpy":
+        session_meta, created = start_execution_scrcpy_window(serial)
+        scrcpy_title = str(session_meta.get("window_title") or "VWAIT_DEVICE")
+        if session_meta:
+            if created:
+                print_color(f"ðŸ–¥ï¸ Scrcpy aberto para execucao: {scrcpy_title}", "cyan")
+                time.sleep(1.2)
+            else:
+                print_color(f"ðŸ–¥ï¸ Reutilizando scrcpy persistente: {scrcpy_title}", "cyan")
+        else:
+            print_color("âš ï¸ Nao foi possivel abrir/reutilizar a sessao do scrcpy.", "yellow")
+
     run_dir = str(create_tester_run_dir(categoria, nome_teste))
-    teste_dir = run_dir
     limpar_relatorio_falha_automatico(categoria, nome_teste)
     dataset_path = str(tester_dataset_path(categoria, nome_teste))
     frames_dir = str(tester_recorded_frames_dir(categoria, nome_teste))
@@ -1011,8 +1071,17 @@ def main():
         screenshot_nome = f"resultado_{action_idx:02d}.png"
         screenshot_path = capturar_screenshot(resultados_dir, screenshot_nome, serial)
 
-        esperado_rel = os.path.join("frames", f"frame_{action_idx:02d}.png")
-        esperado_abs = os.path.join(teste_dir, esperado_rel)
+        esperado_abs = os.path.join(frames_dir, f"frame_{action_idx:02d}.png")
+        try:
+            esperado_rel = os.path.relpath(esperado_abs, run_dir)
+        except Exception:
+            esperado_rel = esperado_abs
+
+        if not os.path.exists(esperado_abs):
+            print_color(
+                f"⚠️ Frame esperado nao encontrado para a acao {action_idx}: {esperado_abs}",
+                "yellow",
+            )
 
         similaridade = comparar_imagens(screenshot_path, esperado_abs)
         fim = time.time()
@@ -1022,7 +1091,7 @@ def main():
             action_idx,
             tipo,
             _execution_sanitize_action_payload(row.to_dict(), is_missing=pd.isna),
-            os.path.join("resultados", screenshot_nome),
+            os.path.join("artifacts", "results", screenshot_nome),
             esperado_rel,
             similaridade,
             duracao,

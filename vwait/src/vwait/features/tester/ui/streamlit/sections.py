@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import subprocess
@@ -28,6 +29,8 @@ def render_collection_section(
     bancadas: list[str],
     clean_display_text,
     salvar_resultado_parcial,
+    abrir_scrcpy_persistente,
+    exportar_training_episode,
     resolver_teste_por_serial,
     capturar_logs_radio,
     resolver_pasta_logs_teste,
@@ -42,6 +45,58 @@ def render_collection_section(
         serial_sel = st.selectbox("Bancada/Dispositivo ADB", options=bancadas, index=0)
     else:
         st.info("Nenhum dispositivo ADB encontrado. Conecte o radio e clique em iniciar.")
+
+    fonte_coleta_label = st.selectbox(
+        "Fonte de coleta",
+        options=["Bancada (ADB)", "Scrcpy (ADB)"],
+        index=0,
+    )
+    fonte_coleta = "scrcpy" if fonte_coleta_label.lower().startswith("scrcpy") else "adb"
+    if fonte_coleta == "scrcpy":
+        st.caption("A coleta Scrcpy abre uma janela gerenciada pelo VWAIT. Interaja nessa janela para registrar cada toque.")
+
+    with st.expander("Exportação supervisionada (TrainingData)", expanded=False):
+        export_training_enabled = st.checkbox(
+            "Salvar também para TrainingData",
+            key="training_export_enabled",
+        )
+        training_domain = st.text_input(
+            "Domínio/agente alvo (ex: tuner, audio, bluetooth)",
+            key="training_domain",
+            placeholder="tuner",
+        )
+        training_goal = st.text_area(
+            "Objetivo do episódio",
+            key="training_goal",
+            placeholder="validar tuner e verificar se as funções padrão estão funcionando",
+            height=90,
+        )
+        training_step_intents = st.text_area(
+            "Intenção por passo (opcional, 1 por linha)",
+            key="training_step_intents",
+            height=100,
+        )
+        training_step_expected = st.text_area(
+            "Resultado esperado por passo (opcional, 1 por linha)",
+            key="training_step_expected",
+            height=100,
+        )
+        if export_training_enabled:
+            st.caption("A coleta continua igual. Ao finalizar, o VWAIT exporta um episódio paralelo para TrainingData/ usando os artefatos desta gravação.")
+
+    helper_col1, helper_col2 = st.columns([1, 3])
+    with helper_col1:
+        if st.button("Abrir Scrcpy", use_container_width=True):
+            if not serial_sel:
+                st.error("Selecione uma bancada/dispositivo ADB antes de abrir o scrcpy.")
+            else:
+                ok_scrcpy, msg_scrcpy = abrir_scrcpy_persistente(serial_sel)
+                if ok_scrcpy:
+                    st.success(msg_scrcpy)
+                else:
+                    st.error(f"Falha ao abrir o scrcpy: {msg_scrcpy}")
+    with helper_col2:
+        st.caption("Use este botao para manter uma sessao persistente do scrcpy aberta e reutiliza-la nas gravacoes e execucoes.")
 
     col1, col2, col3, col4, col5 = st.columns(5)
 
@@ -70,6 +125,8 @@ def render_collection_section(
                     cmd = [sys.executable, "-u", scripts["Coletar Teste"], categoria, nome_teste]
                     if serial_sel:
                         cmd += ["--serial", serial_sel]
+                    if fonte_coleta != "adb":
+                        cmd += ["--source", fonte_coleta]
 
                     st.session_state.proc_coleta = subprocess.Popen(
                         cmd,
@@ -92,25 +149,33 @@ def render_collection_section(
                 try:
                     with open(stop_flag_path, "w") as handle:
                         handle.write("stop")
-                    st.warning("Toque na tela do rádio para capturar o print final...")
-                    acoes_path = str(tester_actions_path(categoria, nome_teste))
+                    st.info("Finalizando coleta e aguardando o fechamento da sessao...")
                     timeout_s = 60
-                    t0 = time.time()
-                    while time.time() - t0 < timeout_s:
-                        if os.path.exists(acoes_path):
-                            break
-                        if proc.poll() is not None:
-                            break
-                        time.sleep(1)
+                    proc.wait(timeout=timeout_s)
 
+                    acoes_path = str(tester_actions_path(categoria, nome_teste))
                     if os.path.exists(acoes_path):
                         st.success("Coleta finalizada com sucesso. Print final e ações salvos.")
+                        if export_training_enabled:
+                            training_domain_value = (training_domain or categoria or "").strip()
+                            training_goal_value = (training_goal or f"validar {nome_teste}").strip()
+                            with st.spinner("Exportando episódio para TrainingData..."):
+                                ok_export, msg_export = exportar_training_episode(
+                                    categoria=categoria,
+                                    nome_teste=nome_teste,
+                                    domain=training_domain_value or categoria,
+                                    goal=training_goal_value,
+                                    serial=serial_sel,
+                                    input_source=fonte_coleta,
+                                    step_intents_text=training_step_intents,
+                                    step_expected_text=training_step_expected,
+                                )
+                            if ok_export:
+                                st.success(f"Episódio supervisionado exportado em: {msg_export}")
+                            else:
+                                st.error(f"Falha ao exportar TrainingData: {msg_export}")
                     else:
-                        proc.wait(timeout=10)
-                        if os.path.exists(acoes_path):
-                            st.success("Coleta finalizada com sucesso. Print final e ações salvos.")
-                        else:
-                            st.warning("Coleta finalizada, mas o acoes.json não apareceu. Verifique o log.")
+                        st.warning("Coleta finalizada, mas o acoes.json não apareceu. Verifique o log.")
                 except subprocess.TimeoutExpired:
                     proc.kill()
                     st.warning("Coletor não respondeu, finalizado à força.")
@@ -191,16 +256,46 @@ def render_collection_section(
     if log_path and os.path.exists(log_path):
         st.markdown("**Logs da coleta (ao vivo)**" if proc is not None else "**Logs da ultima coleta**")
         if proc is not None and proc.poll() is None:
-            st_autorefresh(interval=1000, limit=None, key="coleta_refresh")
+            st_autorefresh(interval=150, limit=None, key="coleta_refresh")
 
         try:
             with open(log_path, "r", encoding="utf-8", errors="ignore") as handle:
                 lines = handle.readlines()
-            logs_txt = clean_display_text("".join(lines[-200:]))
+            logs_txt = clean_display_text("".join(lines[-300:]))
         except Exception:
             logs_txt = ""
 
         st.text_area("Toques e eventos", value=logs_txt, height=220)
+
+        acoes_path = None
+        if categoria and nome_teste:
+            acoes_path = str(tester_actions_path(categoria, nome_teste))
+
+        if acoes_path and os.path.exists(acoes_path):
+            try:
+                with open(acoes_path, "r", encoding="utf-8") as handle:
+                    acoes_payload = json.load(handle)
+                acoes_items = acoes_payload.get("acoes", []) if isinstance(acoes_payload, dict) else []
+            except Exception:
+                acoes_items = []
+
+            if acoes_items:
+                rows = []
+                for item in acoes_items[-12:]:
+                    acao = item.get("acao", {}) if isinstance(item, dict) else {}
+                    rows.append(
+                        {
+                            "id": item.get("id"),
+                            "tipo": acao.get("tipo", ""),
+                            "gesture": acao.get("gesture", ""),
+                            "action_timestamp": item.get("action_timestamp", item.get("timestamp", "")),
+                            "screenshot_timestamp": item.get("screenshot_timestamp", ""),
+                            "imagem": item.get("imagem", ""),
+                        }
+                    )
+
+                st.markdown("**Tempos das ações coletadas**")
+                st.dataframe(rows, use_container_width=True, hide_index=True)
 
         if proc is not None and proc.poll() is not None:
             st.warning(f"Coleta finalizada com codigo {proc.returncode}. Veja o log acima.")
@@ -278,6 +373,13 @@ def render_management_and_execution_sections(
     st.subheader("Executar Testes")
     categoria_exec = st.text_input("Categoria do Teste", key="cat_exec")
     nome_teste_exec = st.text_input("Nome do Teste (deixe vazio para rodar todos)", key="nome_exec")
+    fonte_exec_label = st.selectbox(
+        "Fonte de execucao",
+        options=["Bancada (ADB)", "Scrcpy (ADB)"],
+        index=0,
+        key="fonte_exec",
+    )
+    fonte_exec = "scrcpy" if fonte_exec_label.lower().startswith("scrcpy") else "adb"
     st.markdown("**Execucao paralela por bancada**")
 
     execucoes_paralelas_config = []
@@ -296,6 +398,7 @@ def render_management_and_execution_sections(
                             "teste": nome_teste_exec_b.strip(),
                             "serial": serial_bancada,
                             "label": f"Bancada {idx}",
+                            "input_source": fonte_exec,
                         }
                     )
     else:
@@ -319,6 +422,7 @@ def render_management_and_execution_sections(
                 categoria_exec,
                 nome_teste_exec,
                 [serial_exec] if serial_exec else [],
+                input_source=fonte_exec,
             )
             if ok_exec and processos:
                 serial = processos[0]["serial"]
@@ -371,7 +475,7 @@ def render_management_and_execution_sections(
             status_msgs.append(f"{item.get('label', 'Bancada')} ({item.get('serial', '-')}): {resumo.lower()}.")
 
         if existe_execucao_ativa:
-            st_autorefresh(interval=1500, limit=None, key="execucao_unica_refresh")
+            st_autorefresh(interval=500, limit=None, key="execucao_unica_refresh")
 
         st.session_state["teste_em_execucao"] = existe_execucao_ativa
         if not existe_execucao_ativa:
@@ -431,7 +535,14 @@ def render_management_and_execution_sections(
                             st.session_state["execucao_log_path"] = log_path
                             log_file = open(log_path, "a", encoding="utf-8", errors="ignore", buffering=1)
                             subprocess.Popen(
-                                ["python", scripts["Executar Teste"], categoria_exec, teste],
+                                [
+                                    "python",
+                                    scripts["Executar Teste"],
+                                    categoria_exec,
+                                    teste,
+                                    "--input-source",
+                                    fonte_exec,
+                                ],
                                 cwd=base_dir,
                                 stdout=log_file,
                                 stderr=subprocess.STDOUT,

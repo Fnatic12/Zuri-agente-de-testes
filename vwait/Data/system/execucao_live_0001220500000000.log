@@ -1,0 +1,106 @@
+ðŸ“ ExecuÃ§Ã£o AutomÃ¡tica de Testes no RÃ¡dio via ADB
+[96mModo de execucao: scrcpy (janela gerenciada + eventos enviados via ADB).[0m
+[96mðŸ” Verificando dispositivos ADB conectados...[0m
+[96mðŸ§¹ Limpeza preventiva dos logs remotos concluida: 0/14 origem(ns).[0m
+[96mðŸ–¥ï¸ Reutilizando scrcpy persistente: VWAIT_DEVICE[0m
+[96m
+ðŸ—‚ï¸ Dataset: /home/victor-milani/vwait-ia/vwait/Data/catalog/tester/door___windows/geral_1/dataset.csv[0m
+[96mðŸ—‚ï¸ Frames:  /home/victor-milani/vwait-ia/vwait/Data/catalog/tester/door___windows/geral_1/recorded/frames[0m
+[96mðŸ—‚ï¸ Result.: /home/victor-milani/vwait-ia/vwait/Data/runs/tester/door___windows/geral_1/2026-04-15T12-16-04Z/artifacts/results
+[0m
+[96m
+ðŸŽ¬ Executando 30 aÃ§Ãµes do dataset...
+[0m
+[0mâ–¶ï¸ AÃ§Ã£o 1/30 (tap)[0m
+[92mðŸ‘‰ TAP em (956,1005)[0m
+[96mðŸ”Ž Similaridade: 0.998 â†’ OK | â±ï¸ 2.84s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 2/30 (tap)[0m
+[92mðŸ‘‰ TAP em (1075,1008)[0m
+[96mðŸ”Ž Similaridade: 0.918 â†’ OK | â±ï¸ 2.70s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 3/30 (tap)[0m
+[92mðŸ‘‰ TAP em (986,910)[0m
+[96mðŸ”Ž Similaridade: 1.000 â†’ OK | â±ï¸ 2.70s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 4/30 (tap)[0m
+[92mðŸ‘‰ TAP em (1086,626)[0m
+[96mðŸ”Ž Similaridade: 1.000 â†’ OK | â±ï¸ 2.68s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 5/30 (tap)[0m
+[92mðŸ‘‰ TAP em (589,367)[0m
+[96mðŸ”Ž Similaridade: 1.000 â†’ OK | â±ï¸ 2.68s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 6/30 (tap)[0m
+[92mðŸ‘‰ TAP em (573,462)[0m
+[96mðŸ”Ž Similaridade: 1.000 â†’ OK | â±ï¸ 2.73s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 7/30 (tap)[0m
+[92mðŸ‘‰ TAP em (573,585)[0m
+[96mðŸ”Ž Similaridade: 0.999 â†’ OK | â±ï¸ 2.75s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 8/30 (tap)[0m
+[92mðŸ‘‰ TAP em (602,848)[0m
+[96mðŸ”Ž Similaridade: 0.999 â†’ OK | â±ï¸ 2.76s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 9/30 (tap)[0m
+[92mðŸ‘‰ TAP em (603,848)[0m
+[96mðŸ”Ž Similaridade: 0.999 â†’ OK | â±ï¸ 2.63s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 10/30 (swipe_inicio)[0m
+[92mðŸ‘‰ SWIPE (982,710) â†’ (1048,216) [300ms][0m
+[96mðŸ”Ž Similaridade: 0.895 â†’ OK | â±ï¸ 2.95s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 11/30 (tap)[0m
+[92mðŸ‘‰ TAP em (605,374)[0m
+[96mðŸ”Ž Similaridade: 0.894 â†’ OK | â±ï¸ 2.65s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 12/30 (tap)[0m
+[92mðŸ‘‰ TAP em (600,458)[0m
+[96mðŸ”Ž Similaridade: 0.894 â†’ OK | â±ï¸ 2.61s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 13/30 (tap)[0m
+[92mðŸ‘‰ TAP em (609,585)[0m
+[96mðŸ”Ž Similaridade: 0.893 â†’ OK | â±ï¸ 2.65s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 14/30 (tap)[0m
+[92mðŸ‘‰ TAP em (607,690)[0m
+[96mðŸ”Ž Similaridade: 0.892 â†’ OK | â±ï¸ 2.67s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 15/30 (tap)[0m
+[92mðŸ‘‰ TAP em (613,812)[0m
+[96mðŸ”Ž Similaridade: 0.891 â†’ OK | â±ï¸ 2.63s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 16/30 (tap)[0m
+[92mðŸ‘‰ TAP em (613,914)[0m
+[96mðŸ”Ž Similaridade: 0.890 â†’ OK | â±ï¸ 2.64s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 17/30 (tap)[0m
+[92mðŸ‘‰ TAP em (599,686)[0m
+[96mðŸ”Ž Similaridade: 0.898 â†’ OK | â±ï¸ 2.65s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 18/30 (swipe_inicio)[0m
+[92mðŸ‘‰ SWIPE (972,800) â†’ (1041,339) [300ms][0m
+[96mðŸ”Ž Similaridade: 0.902 â†’ OK | â±ï¸ 2.97s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 19/30 (tap)[0m
+[92mðŸ‘‰ TAP em (620,498)[0m
+[96mðŸ”Ž Similaridade: 0.901 â†’ OK | â±ï¸ 2.64s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 20/30 (tap)[0m
+[92mðŸ‘‰ TAP em (612,614)[0m
+[96mðŸ”Ž Similaridade: 0.901 â†’ OK | â±ï¸ 2.67s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 21/30 (tap)[0m
+[92mðŸ‘‰ TAP em (618,721)[0m
+[96mðŸ”Ž Similaridade: 0.900 â†’ OK | â±ï¸ 2.67s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 22/30 (tap)[0m
+[92mðŸ‘‰ TAP em (615,841)[0m
+[96mðŸ”Ž Similaridade: 0.899 â†’ OK | â±ï¸ 2.61s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 23/30 (swipe_inicio)[0m
+[92mðŸ‘‰ SWIPE (991,810) â†’ (1092,333) [300ms][0m
+[96mðŸ”Ž Similaridade: 0.999 â†’ OK | â±ï¸ 2.95s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 24/30 (tap)[0m
+[92mðŸ‘‰ TAP em (1183,871)[0m
+[96mðŸ”Ž Similaridade: 0.999 â†’ OK | â±ï¸ 2.69s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 25/30 (tap)[0m
+[92mðŸ‘‰ TAP em (1556,855)[0m
+[96mðŸ”Ž Similaridade: 0.999 â†’ OK | â±ï¸ 2.63s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 26/30 (tap)[0m
+[92mðŸ‘‰ TAP em (792,162)[0m
+[96mðŸ”Ž Similaridade: 0.996 â†’ OK | â±ï¸ 2.66s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 27/30 (tap)[0m
+[92mðŸ‘‰ TAP em (717,369)[0m
+[96mðŸ”Ž Similaridade: 0.999 â†’ OK | â±ï¸ 2.74s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 28/30 (tap)[0m
+[92mðŸ‘‰ TAP em (696,473)[0m
+[96mðŸ”Ž Similaridade: 0.999 â†’ OK | â±ï¸ 2.77s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 29/30 (tap)[0m
+[92mðŸ‘‰ TAP em (681,593)[0m
+[96mðŸ”Ž Similaridade: 0.999 â†’ OK | â±ï¸ 2.71s[0m
+[0mâ–¶ï¸ AÃ§Ã£o 30/30 (tap)[0m
+[92mðŸ‘‰ TAP em (1171,687)[0m
+[96mðŸ”Ž Similaridade: 0.999 â†’ OK | â±ï¸ 2.75s[0m
+[92m
+âœ… ExecuÃ§Ã£o finalizada. Log salvo em: /home/victor-milani/vwait-ia/vwait/Data/runs/tester/door___windows/geral_1/2026-04-15T12-16-04Z/execucao_log.json[0m
+[96mStatus atualizado em: Data/runs/tester/door_&_windows/geral_1/<run>/status/0001220500000000.json[0m

@@ -40,7 +40,6 @@ from vwait.features.execution.application import (
 from .analysis_blocks import (
     render_expected_comparison as _ui_render_expected_comparison,
     render_failure_report as _ui_render_failure_report,
-    render_final_validation as _ui_render_final_validation,
     render_toggle_comparison as _ui_render_toggle_comparison,
 )
 from .dashboard_blocks import (
@@ -347,10 +346,6 @@ def exibir_comparacao_toggles(base_dir: str) -> None:
     _ui_render_toggle_comparison(base_dir)
 
 
-def exibir_validacao_final(execucao: list[dict[str, Any]], base_dir: str) -> None:
-    _ui_render_final_validation(execucao, base_dir)
-
-
 def exibir_relatorio_falha(base_dir: str, selected: str, status_payload: dict[str, Any]) -> None:
     _ui_render_failure_report(
         base_dir,
@@ -438,7 +433,6 @@ def render_dashboard_page() -> None:
     exibir_timeline(execucao)
     exibir_comparacao_toggles(base_dir)
     exibir_comparacao_esperados(base_dir)
-    exibir_validacao_final(execucao, base_dir)
     exibir_acoes(execucao, base_dir)
 
 

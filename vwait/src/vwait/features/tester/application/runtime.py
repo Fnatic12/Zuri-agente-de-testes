@@ -8,6 +8,8 @@ import time
 from datetime import datetime
 
 from vwait.core.paths import tester_expected_dir, tester_expected_final_path
+from vwait.platform.scrcpy_events import ensure_persistent_scrcpy_session
+from vwait.features.tester.application.training_export import export_training_episode
 
 
 def subprocess_windowless_kwargs() -> dict:
@@ -146,11 +148,50 @@ def abrir_pasta_local(path: str):
         return False, str(exc)
 
 
+def abrir_scrcpy_persistente(serial: str | None = None):
+    try:
+        meta, created = ensure_persistent_scrcpy_session(serial=serial)
+        titulo = str(meta.get("window_title") or "VWAIT_DEVICE")
+        if created:
+            return True, f"Scrcpy aberto com sucesso: {titulo}"
+        return True, f"Scrcpy ja estava aberto: {titulo}"
+    except Exception as exc:
+        return False, str(exc)
+
+
+def exportar_training_episode(
+    *,
+    categoria: str,
+    nome_teste: str,
+    domain: str,
+    goal: str,
+    serial: str | None = None,
+    input_source: str | None = None,
+    step_intents_text: str | None = None,
+    step_expected_text: str | None = None,
+):
+    try:
+        return export_training_episode(
+            category=categoria,
+            test_name=nome_teste,
+            domain=domain,
+            goal=goal,
+            serial=serial,
+            input_source=input_source,
+            step_intents_text=step_intents_text,
+            step_expected_text=step_expected_text,
+        )
+    except Exception as exc:
+        return False, str(exc)
+
+
 __all__ = [
     "abrir_pasta_local",
+    "abrir_scrcpy_persistente",
     "adb_cmd",
     "aguardar_porta_local",
     "capturar_logs_radio",
+    "exportar_training_episode",
     "garantir_painel_streamlit",
     "listar_bancadas",
     "parse_adb_devices",

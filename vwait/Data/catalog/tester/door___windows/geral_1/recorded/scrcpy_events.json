@@ -1,0 +1,3602 @@
+[
+  {
+    "timestamp": "2026-04-15T09:13:47.529494",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 956,
+    "y": 1005,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:13:47.580057",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 956,
+    "y": 1005,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:13:51.495972",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 1075,
+    "y": 1008,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:13:51.697139",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 1075,
+    "y": 1008,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:13:57.219060",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 986,
+    "y": 910,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:13:57.270016",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 986,
+    "y": 910,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:01.735986",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 1086,
+    "y": 626,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:01.936970",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 1086,
+    "y": 626,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:07.507634",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 589,
+    "y": 367,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:07.658713",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 589,
+    "y": 367,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:11.374099",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 573,
+    "y": 462,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:11.575548",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 573,
+    "y": 462,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:15.444752",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 573,
+    "y": 585,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:15.596680",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 573,
+    "y": 585,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:19.162502",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 602,
+    "y": 848,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:19.313902",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 602,
+    "y": 848,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:23.933157",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 603,
+    "y": 848,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:23.933658",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 603,
+    "y": 848,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:26.552420",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 982,
+    "y": 710,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:26.804036",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 982,
+    "y": 707,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:26.804418",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 981,
+    "y": 702,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:26.813174",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 981,
+    "y": 699,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:26.863848",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 981,
+    "y": 696,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:26.864655",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 980,
+    "y": 693,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:26.865253",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 980,
+    "y": 688,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:26.865834",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 979,
+    "y": 685,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:26.866429",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 979,
+    "y": 682,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:26.867455",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 978,
+    "y": 678,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:26.867859",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 978,
+    "y": 675,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:26.868154",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 977,
+    "y": 672,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:26.918876",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 976,
+    "y": 670,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:26.919296",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 976,
+    "y": 665,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:26.919539",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 975,
+    "y": 662,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:26.919791",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 974,
+    "y": 659,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:26.920068",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 974,
+    "y": 655,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:26.920322",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 974,
+    "y": 653,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:26.920582",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 973,
+    "y": 649,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:26.971157",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 973,
+    "y": 647,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:26.971868",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 973,
+    "y": 643,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:26.972357",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 973,
+    "y": 640,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:26.972817",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 973,
+    "y": 637,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:26.973253",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 972,
+    "y": 632,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:26.973731",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 972,
+    "y": 628,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:26.974161",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 970,
+    "y": 623,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.024759",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 970,
+    "y": 616,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.025290",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 970,
+    "y": 609,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.025691",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 969,
+    "y": 604,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.026422",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 969,
+    "y": 597,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.026879",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 968,
+    "y": 591,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.027357",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 968,
+    "y": 582,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.027858",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 968,
+    "y": 574,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.028289",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 968,
+    "y": 567,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.078915",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 967,
+    "y": 559,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.079503",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 967,
+    "y": 553,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.080689",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 967,
+    "y": 547,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.081581",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 967,
+    "y": 541,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.082347",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 967,
+    "y": 535,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.082927",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 967,
+    "y": 529,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.083478",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 967,
+    "y": 522,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.134451",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 968,
+    "y": 515,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.135162",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 968,
+    "y": 509,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.135754",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 968,
+    "y": 502,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.136551",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 968,
+    "y": 496,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.137401",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 969,
+    "y": 489,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.137985",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 969,
+    "y": 484,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.138547",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 970,
+    "y": 477,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.139428",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 972,
+    "y": 472,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.190250",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 973,
+    "y": 464,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.191586",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 973,
+    "y": 459,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.192301",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 973,
+    "y": 453,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.192804",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 974,
+    "y": 448,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.193284",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 976,
+    "y": 442,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.193768",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 977,
+    "y": 438,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.194253",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 978,
+    "y": 432,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.194836",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 979,
+    "y": 426,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.245561",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 980,
+    "y": 420,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.246436",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 981,
+    "y": 416,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.247092",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 982,
+    "y": 409,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.247650",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 985,
+    "y": 404,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.248236",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 987,
+    "y": 400,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.248785",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 988,
+    "y": 394,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.249367",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 989,
+    "y": 389,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.300227",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 991,
+    "y": 383,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.301076",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 994,
+    "y": 378,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.301780",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 997,
+    "y": 371,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.302742",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 998,
+    "y": 365,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.303571",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1001,
+    "y": 359,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.304573",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1003,
+    "y": 354,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.305271",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1004,
+    "y": 347,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.305849",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1008,
+    "y": 342,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.356645",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1010,
+    "y": 336,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.357606",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1011,
+    "y": 330,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.358367",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1013,
+    "y": 323,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.359090",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1014,
+    "y": 319,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.359700",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1015,
+    "y": 313,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.360304",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1016,
+    "y": 309,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.360954",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1018,
+    "y": 304,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.361739",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1020,
+    "y": 300,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.412946",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1021,
+    "y": 297,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.413850",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1022,
+    "y": 294,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.414498",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1023,
+    "y": 290,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.415220",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1024,
+    "y": 289,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.415967",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1025,
+    "y": 285,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.417040",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1026,
+    "y": 283,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.417727",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1027,
+    "y": 282,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.468853",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1028,
+    "y": 279,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.469748",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1028,
+    "y": 278,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.470609",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1029,
+    "y": 276,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.471345",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1029,
+    "y": 275,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.472137",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1030,
+    "y": 274,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.472818",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1030,
+    "y": 272,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.474052",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1032,
+    "y": 270,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.525084",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1033,
+    "y": 267,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.526121",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1034,
+    "y": 266,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.526868",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1035,
+    "y": 263,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.527647",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1035,
+    "y": 260,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.528477",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1036,
+    "y": 257,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.529422",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1036,
+    "y": 253,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.530446",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1037,
+    "y": 251,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.531386",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1038,
+    "y": 248,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.582494",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1039,
+    "y": 244,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.583485",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1040,
+    "y": 242,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.584282",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1041,
+    "y": 240,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.585072",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1041,
+    "y": 238,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.585941",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1043,
+    "y": 236,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.586973",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1043,
+    "y": 235,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.587913",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1044,
+    "y": 235,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.588971",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1044,
+    "y": 233,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.640223",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1044,
+    "y": 232,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.641298",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1045,
+    "y": 231,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.642156",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1045,
+    "y": 230,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.642951",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1045,
+    "y": 229,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.643752",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1045,
+    "y": 227,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.644540",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1046,
+    "y": 227,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.645387",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1046,
+    "y": 226,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.696511",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1047,
+    "y": 224,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.697593",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1047,
+    "y": 222,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.698522",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1047,
+    "y": 221,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.699624",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1048,
+    "y": 219,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.751040",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1048,
+    "y": 218,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.753642",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1048,
+    "y": 217,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:27.756486",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1048,
+    "y": 216,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:28.310737",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 1048,
+    "y": 216,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:32.328505",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 605,
+    "y": 374,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:32.380676",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 605,
+    "y": 374,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:35.147889",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 600,
+    "y": 458,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:35.300350",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 600,
+    "y": 458,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:38.112960",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 609,
+    "y": 585,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:38.315483",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 609,
+    "y": 585,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:41.127627",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 607,
+    "y": 690,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:41.329181",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 607,
+    "y": 690,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:44.094162",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 613,
+    "y": 812,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:44.246291",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 613,
+    "y": 812,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:46.909919",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 613,
+    "y": 914,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:47.111924",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 613,
+    "y": 914,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:50.675822",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 1092,
+    "y": 314,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:50.827568",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1092,
+    "y": 310,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:50.828882",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1091,
+    "y": 302,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:50.838164",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1089,
+    "y": 297,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:50.889418",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1089,
+    "y": 288,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:50.890659",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1089,
+    "y": 282,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:50.892281",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1091,
+    "y": 276,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:50.893519",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1092,
+    "y": 271,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:50.894661",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1092,
+    "y": 265,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:50.895505",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1093,
+    "y": 261,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:50.896396",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1094,
+    "y": 257,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:50.897295",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1095,
+    "y": 253,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:50.948446",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1096,
+    "y": 250,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:50.949787",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1097,
+    "y": 248,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:50.950985",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1098,
+    "y": 244,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:50.952236",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1098,
+    "y": 242,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:50.953269",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1099,
+    "y": 241,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:50.954130",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1099,
+    "y": 239,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:50.955012",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1099,
+    "y": 238,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:50.956164",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1099,
+    "y": 237,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.007490",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1099,
+    "y": 236,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.009012",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1099,
+    "y": 235,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.010259",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1099,
+    "y": 233,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.011363",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1099,
+    "y": 232,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.012362",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1099,
+    "y": 230,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.013521",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1099,
+    "y": 227,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.014701",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1099,
+    "y": 226,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.016405",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1099,
+    "y": 222,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.017663",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1099,
+    "y": 219,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.069950",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1099,
+    "y": 217,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.071445",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1099,
+    "y": 215,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.072491",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1099,
+    "y": 210,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.073671",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1099,
+    "y": 208,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.074827",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1099,
+    "y": 204,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.076439",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1099,
+    "y": 201,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.077604",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1099,
+    "y": 196,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.078982",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1099,
+    "y": 193,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.130457",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1100,
+    "y": 189,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.132337",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1100,
+    "y": 184,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.133933",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1101,
+    "y": 179,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.135293",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1103,
+    "y": 173,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.136637",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1103,
+    "y": 168,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.137815",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1104,
+    "y": 161,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.139210",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1105,
+    "y": 154,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.140692",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1106,
+    "y": 146,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.142209",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1107,
+    "y": 138,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.193898",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1108,
+    "y": 131,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.195167",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1108,
+    "y": 124,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.196557",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1109,
+    "y": 118,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.198320",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1110,
+    "y": 112,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.199612",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1111,
+    "y": 106,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.200947",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1112,
+    "y": 99,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.202181",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1113,
+    "y": 94,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.203216",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1115,
+    "y": 88,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.254682",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1116,
+    "y": 83,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.256472",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1117,
+    "y": 77,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.257869",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1118,
+    "y": 73,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.259138",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1120,
+    "y": 67,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.260346",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1122,
+    "y": 64,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.261490",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1123,
+    "y": 59,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.263252",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1124,
+    "y": 54,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.264731",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1127,
+    "y": 51,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.265995",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1129,
+    "y": 47,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.317792",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1131,
+    "y": 41,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.319367",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1132,
+    "y": 36,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.320591",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1134,
+    "y": 31,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.321995",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1136,
+    "y": 27,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.323584",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1138,
+    "y": 21,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.324935",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1140,
+    "y": 18,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.326308",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1140,
+    "y": 13,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.327509",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1142,
+    "y": 9,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.379109",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1143,
+    "y": 5,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:51.380775",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1145,
+    "y": 2,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:53.440974",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 599,
+    "y": 686,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:53.444558",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 599,
+    "y": 686,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.607059",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 972,
+    "y": 800,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.659123",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 972,
+    "y": 799,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.711836",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 973,
+    "y": 794,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.714235",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 973,
+    "y": 791,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.716168",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 973,
+    "y": 785,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.718359",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 974,
+    "y": 780,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.720887",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 974,
+    "y": 773,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.722820",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 974,
+    "y": 767,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.724540",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 974,
+    "y": 759,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.726500",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 974,
+    "y": 753,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.728057",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 974,
+    "y": 745,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.729523",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 974,
+    "y": 737,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.781110",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 974,
+    "y": 730,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.782906",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 973,
+    "y": 722,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.784668",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 973,
+    "y": 714,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.786213",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 972,
+    "y": 707,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.788102",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 972,
+    "y": 699,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.789638",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 970,
+    "y": 690,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.790795",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 969,
+    "y": 684,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.792572",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 968,
+    "y": 676,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.793853",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 968,
+    "y": 668,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.845358",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 968,
+    "y": 662,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.847478",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 967,
+    "y": 655,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.849181",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 967,
+    "y": 648,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.851081",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 967,
+    "y": 639,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.852952",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 967,
+    "y": 630,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.854441",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 967,
+    "y": 621,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.856075",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 968,
+    "y": 613,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.857616",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 968,
+    "y": 603,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.909729",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 969,
+    "y": 594,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.912123",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 970,
+    "y": 584,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.914244",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 972,
+    "y": 576,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.916265",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 973,
+    "y": 567,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.917989",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 974,
+    "y": 558,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.919431",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 975,
+    "y": 549,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.921154",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 976,
+    "y": 541,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.922994",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 977,
+    "y": 532,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.924664",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 979,
+    "y": 523,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.926262",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 981,
+    "y": 513,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.977803",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 984,
+    "y": 503,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.979690",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 985,
+    "y": 492,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.981626",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 988,
+    "y": 483,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.983906",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 991,
+    "y": 471,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.985954",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 993,
+    "y": 458,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.988164",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 996,
+    "y": 445,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.990109",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 998,
+    "y": 433,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.992157",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1000,
+    "y": 424,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:55.993788",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1002,
+    "y": 413,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.045627",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1003,
+    "y": 405,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.048331",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1004,
+    "y": 397,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.050529",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1005,
+    "y": 392,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.053024",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1006,
+    "y": 386,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.055440",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1008,
+    "y": 384,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.057884",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1008,
+    "y": 381,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.059816",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1009,
+    "y": 379,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.061815",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1010,
+    "y": 377,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.063999",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1010,
+    "y": 376,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.116579",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1011,
+    "y": 374,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.120317",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1012,
+    "y": 372,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.122765",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1014,
+    "y": 371,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.124635",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1016,
+    "y": 370,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.126323",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1020,
+    "y": 369,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.128110",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1021,
+    "y": 368,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.130227",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1022,
+    "y": 368,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.132463",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1024,
+    "y": 367,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.184967",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1025,
+    "y": 366,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.187180",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1026,
+    "y": 366,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.188984",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1027,
+    "y": 366,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.592866",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1028,
+    "y": 364,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.595637",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1029,
+    "y": 361,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.605527",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1032,
+    "y": 358,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.607993",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1032,
+    "y": 355,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.609944",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1034,
+    "y": 353,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.611518",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1035,
+    "y": 350,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.664018",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1037,
+    "y": 348,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.667276",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1038,
+    "y": 346,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.669931",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1038,
+    "y": 345,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.671945",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1039,
+    "y": 345,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.674317",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1039,
+    "y": 344,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.726459",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1039,
+    "y": 343,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.728168",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1039,
+    "y": 342,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.830612",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1040,
+    "y": 341,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.883798",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1040,
+    "y": 339,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.936694",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1041,
+    "y": 339,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:56.989217",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 1041,
+    "y": 339,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:58.999818",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 620,
+    "y": 498,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:14:59.053317",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 620,
+    "y": 498,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:01.468360",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 612,
+    "y": 614,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:01.471152",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 612,
+    "y": 614,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:03.540952",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 618,
+    "y": 721,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:03.593736",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 618,
+    "y": 721,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:06.156487",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 615,
+    "y": 841,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:06.159421",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 615,
+    "y": 841,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.372021",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 991,
+    "y": 810,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.476068",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 991,
+    "y": 801,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.479278",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 990,
+    "y": 795,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.483029",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 990,
+    "y": 788,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.486057",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 990,
+    "y": 780,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.488816",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 990,
+    "y": 771,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.491729",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 991,
+    "y": 761,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.494709",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 992,
+    "y": 754,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.547603",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 993,
+    "y": 743,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.550361",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 996,
+    "y": 732,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.551963",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 996,
+    "y": 721,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.553791",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 997,
+    "y": 709,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.555814",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 999,
+    "y": 698,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.557740",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1000,
+    "y": 686,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.559531",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1001,
+    "y": 672,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.561851",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1003,
+    "y": 659,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.564659",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1004,
+    "y": 647,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.567589",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1006,
+    "y": 635,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.619927",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1006,
+    "y": 623,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.623043",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1009,
+    "y": 611,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.625355",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1011,
+    "y": 602,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.627592",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1013,
+    "y": 592,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.630070",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1015,
+    "y": 583,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.633337",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1016,
+    "y": 574,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.636305",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1018,
+    "y": 567,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.639898",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1021,
+    "y": 558,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.643141",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1023,
+    "y": 550,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.645725",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1025,
+    "y": 543,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.649786",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1027,
+    "y": 536,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.654677",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1029,
+    "y": 530,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.709563",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1030,
+    "y": 523,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.712861",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1033,
+    "y": 517,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.716352",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1035,
+    "y": 510,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.719711",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1037,
+    "y": 503,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.723193",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1038,
+    "y": 497,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.726484",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1040,
+    "y": 490,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.728319",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1043,
+    "y": 484,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.730487",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1044,
+    "y": 478,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.732754",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1046,
+    "y": 473,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.735227",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1047,
+    "y": 465,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.737896",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1049,
+    "y": 459,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.740060",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1051,
+    "y": 451,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.792036",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1053,
+    "y": 443,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.794253",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1056,
+    "y": 436,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.796840",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1058,
+    "y": 428,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.799576",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1061,
+    "y": 419,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.803530",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1063,
+    "y": 412,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.808270",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1067,
+    "y": 404,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.811597",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1070,
+    "y": 395,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.814061",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1072,
+    "y": 388,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.816825",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1074,
+    "y": 380,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.819880",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1077,
+    "y": 372,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.822508",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1079,
+    "y": 367,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.875224",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1080,
+    "y": 361,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.877544",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1082,
+    "y": 357,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.879596",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1084,
+    "y": 353,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.881830",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1085,
+    "y": 349,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.884124",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1086,
+    "y": 346,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.886378",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1088,
+    "y": 342,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.888830",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1089,
+    "y": 339,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.891324",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1091,
+    "y": 336,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:08.893204",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1092,
+    "y": 333,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:09.045754",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 1092,
+    "y": 333,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:10.955367",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 1183,
+    "y": 871,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:11.009416",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 1183,
+    "y": 871,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:14.022954",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 1556,
+    "y": 855,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:14.075404",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 1556,
+    "y": 855,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:18.246489",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 792,
+    "y": 162,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:18.249885",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 792,
+    "y": 162,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:20.726699",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 717,
+    "y": 369,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:20.729963",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 717,
+    "y": 369,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:23.253863",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 696,
+    "y": 473,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:23.459935",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 696,
+    "y": 473,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:26.223333",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 681,
+    "y": 593,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:26.428062",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 681,
+    "y": 593,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:33.862653",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 1171,
+    "y": 687,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-15T09:15:34.066004",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 1171,
+    "y": 687,
+    "pressure": 0.0
+  }
+]

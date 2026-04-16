@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from vwait.core.paths import project_root
+from vwait.core.paths import project_root, root_path
 
 
 PAGINA_CHAT = "Chat"
@@ -66,9 +66,10 @@ def render_selected_page(
     from vwait.features.failures.ui.streamlit import render_failure_control_page
     from vwait.features.hmi.ui.streamlit import render_hmi_validation_page
     from vwait.features.logs.ui.streamlit import render_logs_panel_page
+    from vwait.features.tester.ui.streamlit import render_tester_page
 
     project_root_path = project_root()
-    data_root = str(project_root_path / "Data")
+    data_root = root_path("Data")
 
     if pagina == PAGINA_DASHBOARD:
         apply_panel_button_theme()
@@ -86,14 +87,8 @@ def render_selected_page(
         render_failure_control_page()
         return
     if pagina == PAGINA_MENU_TESTER:
-        st.title("Menu Tester - VWAIT")
-        st.info("Abra o menu_tester em uma nova aba para executar coletas e testes.")
-        if st.button("Abrir Menu Tester"):
-            resposta = abrir_menu_tester()
-            if resposta.startswith("Falha"):
-                st.error(resposta)
-            else:
-                st.success(resposta)
+        apply_panel_button_theme()
+        render_tester_page(embedded=True)
         return
     if pagina == PAGINA_VALIDACAO_HMI:
         render_hmi_validation_page(str(project_root_path), data_root)

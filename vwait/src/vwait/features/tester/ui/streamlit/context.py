@@ -11,7 +11,9 @@ from vwait.features.tester.application.execution import (
 from vwait.features.tester.application.paths import BASE_DIR, SCRIPTS, STOP_FLAG_PATH
 from vwait.features.tester.application.runtime import (
     abrir_pasta_local as _runtime_abrir_pasta_local,
+    abrir_scrcpy_persistente as _runtime_abrir_scrcpy_persistente,
     capturar_logs_radio as _runtime_capturar_logs_radio,
+    exportar_training_episode as _runtime_exportar_training_episode,
     garantir_painel_streamlit as _runtime_garantir_painel_streamlit,
     listar_bancadas as _runtime_listar_bancadas,
     salvar_resultado_parcial as _runtime_salvar_resultado_parcial,
@@ -58,6 +60,12 @@ def build_tester_context() -> dict[str, object]:
     def abrir_pasta_local(path):
         return _runtime_abrir_pasta_local(path)
 
+    def abrir_scrcpy_persistente(serial=None):
+        return _runtime_abrir_scrcpy_persistente(serial)
+
+    def exportar_training_episode(**kwargs):
+        return _runtime_exportar_training_episode(**kwargs)
+
     def resolver_pasta_logs_teste(categoria, nome_teste, serial=None):
         return _status_resolver_pasta_logs_teste(BASE_DIR, categoria, nome_teste, serial)
 
@@ -88,11 +96,12 @@ def build_tester_context() -> dict[str, object]:
             execucao_log_path_por_serial=execucao_log_path_por_serial,
         )
 
-    def iniciar_execucoes_teste_unico(categoria_exec, nome_teste_exec, seriais):
+    def iniciar_execucoes_teste_unico(categoria_exec, nome_teste_exec, seriais, input_source="adb"):
         return _execution_iniciar_execucoes_teste_unico(
             categoria_exec,
             nome_teste_exec,
             seriais,
+            input_source=input_source,
             iniciar_execucoes_configuradas_fn=iniciar_execucoes_configuradas,
         )
 
@@ -112,7 +121,9 @@ def build_tester_context() -> dict[str, object]:
         "carregar_status_execucao": carregar_status_execucao,
         "resolver_teste_por_serial": resolver_teste_por_serial,
         "capturar_logs_radio": capturar_logs_radio,
+        "exportar_training_episode": exportar_training_episode,
         "abrir_pasta_local": abrir_pasta_local,
+        "abrir_scrcpy_persistente": abrir_scrcpy_persistente,
         "resolver_pasta_logs_teste": resolver_pasta_logs_teste,
         "formatar_resumo_execucao": formatar_resumo_execucao,
         "tem_execucao_unica_ativa": tem_execucao_unica_ativa,

@@ -45,7 +45,7 @@ def generate_failure_report(
 
 
 def main() -> None:
-    printc("Procurando execucao_log.json em Data/*/*/...", "cyan")
+    printc("Procurando execucao_log.json em Data/runs/tester/*/*/*/...", "cyan")
     logs = find_execution_logs()
     if not logs:
         printc("Nenhum log de execucao encontrado.", "red")

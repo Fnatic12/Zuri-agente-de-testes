@@ -1,0 +1,585 @@
+{
+    "teste": "geral_1",
+    "categoria": "door_&_windows",
+    "fonte": "scrcpy",
+    "acoes": [
+        {
+            "id": 1,
+            "timestamp": "2026-04-15T09:13:47.580057",
+            "action_timestamp": "2026-04-15T09:13:47.580057",
+            "screenshot_timestamp": "2026-04-15T09:13:49.041799",
+            "imagem": "frame_01.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 956,
+                "y": 1005,
+                "duracao_s": 0.05,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 2,
+            "timestamp": "2026-04-15T09:13:51.697139",
+            "action_timestamp": "2026-04-15T09:13:51.697139",
+            "screenshot_timestamp": "2026-04-15T09:13:53.183909",
+            "imagem": "frame_02.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 1075,
+                "y": 1008,
+                "duracao_s": 0.2,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 3,
+            "timestamp": "2026-04-15T09:13:57.270016",
+            "action_timestamp": "2026-04-15T09:13:57.270016",
+            "screenshot_timestamp": "2026-04-15T09:13:58.760628",
+            "imagem": "frame_03.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 986,
+                "y": 910,
+                "duracao_s": 0.05,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 4,
+            "timestamp": "2026-04-15T09:14:01.936970",
+            "action_timestamp": "2026-04-15T09:14:01.936970",
+            "screenshot_timestamp": "2026-04-15T09:14:03.394404",
+            "imagem": "frame_04.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 1086,
+                "y": 626,
+                "duracao_s": 0.2,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 5,
+            "timestamp": "2026-04-15T09:14:07.658713",
+            "action_timestamp": "2026-04-15T09:14:07.658713",
+            "screenshot_timestamp": "2026-04-15T09:14:09.148926",
+            "imagem": "frame_05.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 589,
+                "y": 367,
+                "duracao_s": 0.15,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 6,
+            "timestamp": "2026-04-15T09:14:11.575548",
+            "action_timestamp": "2026-04-15T09:14:11.575548",
+            "screenshot_timestamp": "2026-04-15T09:14:13.075088",
+            "imagem": "frame_06.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 573,
+                "y": 462,
+                "duracao_s": 0.2,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 7,
+            "timestamp": "2026-04-15T09:14:15.596680",
+            "action_timestamp": "2026-04-15T09:14:15.596680",
+            "screenshot_timestamp": "2026-04-15T09:14:17.090179",
+            "imagem": "frame_07.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 573,
+                "y": 585,
+                "duracao_s": 0.15,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 8,
+            "timestamp": "2026-04-15T09:14:19.313902",
+            "action_timestamp": "2026-04-15T09:14:19.313902",
+            "screenshot_timestamp": "2026-04-15T09:14:20.798291",
+            "imagem": "frame_08.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 602,
+                "y": 848,
+                "duracao_s": 0.15,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 9,
+            "timestamp": "2026-04-15T09:14:23.933658",
+            "action_timestamp": "2026-04-15T09:14:23.933658",
+            "screenshot_timestamp": "2026-04-15T09:14:25.504314",
+            "imagem": "frame_09.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 603,
+                "y": 848,
+                "duracao_s": 0.0,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 10,
+            "timestamp": "2026-04-15T09:14:28.310737",
+            "action_timestamp": "2026-04-15T09:14:28.310737",
+            "screenshot_timestamp": "2026-04-15T09:14:29.760903",
+            "imagem": "frame_10.png",
+            "acao": {
+                "tipo": "swipe",
+                "gesture": "drag",
+                "x1": 982,
+                "y1": 710,
+                "x2": 1048,
+                "y2": 216,
+                "duracao_ms": 1758,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 11,
+            "timestamp": "2026-04-15T09:14:32.380676",
+            "action_timestamp": "2026-04-15T09:14:32.380676",
+            "screenshot_timestamp": "2026-04-15T09:14:33.832632",
+            "imagem": "frame_11.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 605,
+                "y": 374,
+                "duracao_s": 0.05,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 12,
+            "timestamp": "2026-04-15T09:14:35.300350",
+            "action_timestamp": "2026-04-15T09:14:35.300350",
+            "screenshot_timestamp": "2026-04-15T09:14:36.783760",
+            "imagem": "frame_12.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 600,
+                "y": 458,
+                "duracao_s": 0.15,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 13,
+            "timestamp": "2026-04-15T09:14:38.315483",
+            "action_timestamp": "2026-04-15T09:14:38.315483",
+            "screenshot_timestamp": "2026-04-15T09:14:39.782280",
+            "imagem": "frame_13.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 609,
+                "y": 585,
+                "duracao_s": 0.2,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 14,
+            "timestamp": "2026-04-15T09:14:41.329181",
+            "action_timestamp": "2026-04-15T09:14:41.329181",
+            "screenshot_timestamp": "2026-04-15T09:14:42.812473",
+            "imagem": "frame_14.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 607,
+                "y": 690,
+                "duracao_s": 0.2,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 15,
+            "timestamp": "2026-04-15T09:14:44.246291",
+            "action_timestamp": "2026-04-15T09:14:44.246291",
+            "screenshot_timestamp": "2026-04-15T09:14:45.699149",
+            "imagem": "frame_15.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 613,
+                "y": 812,
+                "duracao_s": 0.15,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 16,
+            "timestamp": "2026-04-15T09:14:47.111924",
+            "action_timestamp": "2026-04-15T09:14:47.111924",
+            "screenshot_timestamp": "2026-04-15T09:14:48.573725",
+            "imagem": "frame_16.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 613,
+                "y": 914,
+                "duracao_s": 0.2,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 17,
+            "timestamp": "2026-04-15T09:14:53.444558",
+            "action_timestamp": "2026-04-15T09:14:53.444558",
+            "screenshot_timestamp": "2026-04-15T09:14:54.910302",
+            "imagem": "frame_17.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 599,
+                "y": 686,
+                "duracao_s": 0.0,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 18,
+            "timestamp": "2026-04-15T09:14:56.989217",
+            "action_timestamp": "2026-04-15T09:14:56.989217",
+            "screenshot_timestamp": "2026-04-15T09:14:58.485502",
+            "imagem": "frame_18.png",
+            "acao": {
+                "tipo": "swipe",
+                "gesture": "drag",
+                "x1": 972,
+                "y1": 800,
+                "x2": 1041,
+                "y2": 339,
+                "duracao_ms": 1382,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 19,
+            "timestamp": "2026-04-15T09:14:59.053317",
+            "action_timestamp": "2026-04-15T09:14:59.053317",
+            "screenshot_timestamp": "2026-04-15T09:15:00.509206",
+            "imagem": "frame_19.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 620,
+                "y": 498,
+                "duracao_s": 0.05,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 20,
+            "timestamp": "2026-04-15T09:15:01.471152",
+            "action_timestamp": "2026-04-15T09:15:01.471152",
+            "screenshot_timestamp": "2026-04-15T09:15:02.936883",
+            "imagem": "frame_20.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 612,
+                "y": 614,
+                "duracao_s": 0.0,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 21,
+            "timestamp": "2026-04-15T09:15:03.593736",
+            "action_timestamp": "2026-04-15T09:15:03.593736",
+            "screenshot_timestamp": "2026-04-15T09:15:05.042345",
+            "imagem": "frame_21.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 618,
+                "y": 721,
+                "duracao_s": 0.05,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 22,
+            "timestamp": "2026-04-15T09:15:06.159421",
+            "action_timestamp": "2026-04-15T09:15:06.159421",
+            "screenshot_timestamp": "2026-04-15T09:15:07.615450",
+            "imagem": "frame_22.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 615,
+                "y": 841,
+                "duracao_s": 0.0,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 23,
+            "timestamp": "2026-04-15T09:15:09.045754",
+            "action_timestamp": "2026-04-15T09:15:09.045754",
+            "screenshot_timestamp": "2026-04-15T09:15:10.532405",
+            "imagem": "frame_23.png",
+            "acao": {
+                "tipo": "swipe",
+                "gesture": "drag",
+                "x1": 991,
+                "y1": 810,
+                "x2": 1092,
+                "y2": 333,
+                "duracao_ms": 674,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 24,
+            "timestamp": "2026-04-15T09:15:11.009416",
+            "action_timestamp": "2026-04-15T09:15:11.009416",
+            "screenshot_timestamp": "2026-04-15T09:15:12.464549",
+            "imagem": "frame_24.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 1183,
+                "y": 871,
+                "duracao_s": 0.05,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 25,
+            "timestamp": "2026-04-15T09:15:14.075404",
+            "action_timestamp": "2026-04-15T09:15:14.075404",
+            "screenshot_timestamp": "2026-04-15T09:15:15.570031",
+            "imagem": "frame_25.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 1556,
+                "y": 855,
+                "duracao_s": 0.05,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 26,
+            "timestamp": "2026-04-15T09:15:18.249885",
+            "action_timestamp": "2026-04-15T09:15:18.249885",
+            "screenshot_timestamp": "2026-04-15T09:15:19.709814",
+            "imagem": "frame_26.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 792,
+                "y": 162,
+                "duracao_s": 0.0,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 27,
+            "timestamp": "2026-04-15T09:15:20.729963",
+            "action_timestamp": "2026-04-15T09:15:20.729963",
+            "screenshot_timestamp": "2026-04-15T09:15:22.233420",
+            "imagem": "frame_27.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 717,
+                "y": 369,
+                "duracao_s": 0.0,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 28,
+            "timestamp": "2026-04-15T09:15:23.459935",
+            "action_timestamp": "2026-04-15T09:15:23.459935",
+            "screenshot_timestamp": "2026-04-15T09:15:24.955947",
+            "imagem": "frame_28.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 696,
+                "y": 473,
+                "duracao_s": 0.21,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 29,
+            "timestamp": "2026-04-15T09:15:26.428062",
+            "action_timestamp": "2026-04-15T09:15:26.428062",
+            "screenshot_timestamp": "2026-04-15T09:15:27.933734",
+            "imagem": "frame_29.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 681,
+                "y": 593,
+                "duracao_s": 0.2,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 30,
+            "timestamp": "2026-04-15T09:15:34.066004",
+            "action_timestamp": "2026-04-15T09:15:34.066004",
+            "screenshot_timestamp": "2026-04-15T09:15:35.532640",
+            "imagem": "frame_30.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 1171,
+                "y": 687,
+                "duracao_s": 0.2,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        }
+    ],
+    "resultado_esperado": "expected/final.png",
+    "scrcpy_events": "recorded/scrcpy_events.json"
+}

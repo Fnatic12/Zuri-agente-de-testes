@@ -62,6 +62,10 @@ def iniciar_execucoes_configuradas(
         nome_teste_exec = str(execucao.get("teste", "")).strip()
         serial = str(execucao.get("serial", "")).strip()
         label = str(execucao.get("label", f"Bancada {idx}")).strip() or f"Bancada {idx}"
+        input_source = str(execucao.get("input_source", "adb")).strip().lower() or "adb"
+
+        if input_source not in {"adb", "scrcpy"}:
+            input_source = "adb"
 
         if not categoria_exec or not nome_teste_exec:
             return False, f"Informe categoria e nome do teste para {label}.", []
@@ -82,6 +86,7 @@ def iniciar_execucoes_configuradas(
                 "teste": nome_teste_exec,
                 "serial": serial,
                 "label": label,
+                "input_source": input_source,
             }
         )
 
@@ -93,12 +98,17 @@ def iniciar_execucoes_configuradas(
             nome_teste_exec = execucao["teste"]
             serial = execucao["serial"]
             label = execucao["label"]
+            input_source = execucao.get("input_source", "adb")
 
             log_path = execucao_log_path_por_serial(serial)
             log_file = open(log_path, "w", encoding="utf-8", errors="ignore", buffering=1)
 
+            cmd = [sys.executable, scripts["Executar Teste"], categoria_exec, nome_teste_exec, "--serial", serial]
+            if input_source:
+                cmd += ["--input-source", str(input_source)]
+
             proc_exec = subprocess.Popen(
-                [sys.executable, scripts["Executar Teste"], categoria_exec, nome_teste_exec, "--serial", serial],
+                cmd,
                 cwd=base_dir,
                 stdout=log_file,
                 stderr=subprocess.STDOUT,
@@ -145,6 +155,7 @@ def iniciar_execucoes_teste_unico(
     categoria_exec: str,
     nome_teste_exec: str,
     seriais: list[str],
+    input_source: str = "adb",
     *,
     iniciar_execucoes_configuradas_fn: Callable[[list[dict]], tuple[bool, str, list]],
 ):
@@ -156,6 +167,7 @@ def iniciar_execucoes_teste_unico(
                 "teste": nome_teste_exec,
                 "serial": serial,
                 "label": "Bancada selecionada" if len(seriais_validos) == 1 else f"Bancada {idx}",
+                "input_source": input_source,
             }
             for idx, serial in enumerate(seriais_validos, start=1)
         ]

@@ -14,7 +14,6 @@ from .analysis_blocks import (
     find_bboxes,
     render_expected_comparison,
     render_failure_report,
-    render_final_validation,
     render_toggle_comparison,
     simple_similarity,
 )
@@ -66,7 +65,6 @@ __all__ = [
     "render_dashboard_page",
     "render_expected_comparison",
     "render_failure_report",
-    "render_final_validation",
     "render_metrics",
     "render_realtime_dashboard",
     "render_timeline",

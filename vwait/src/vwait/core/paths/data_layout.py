@@ -10,6 +10,8 @@ from .project_paths import PROJECT_ROOT
 
 
 DATA_ROOT = PROJECT_ROOT / "Data"
+TRAINING_ROOT = PROJECT_ROOT / "TrainingData"
+TRAINING_EPISODES_ROOT = TRAINING_ROOT / "episodes"
 CATALOG_ROOT = DATA_ROOT / "catalog"
 RUNS_ROOT = DATA_ROOT / "runs"
 CACHE_ROOT = DATA_ROOT / "cache"
@@ -36,6 +38,8 @@ _RESERVED_DATA_NAMES = {
 def ensure_data_roots() -> None:
     for path in (
         DATA_ROOT,
+        TRAINING_ROOT,
+        TRAINING_EPISODES_ROOT,
         CATALOG_ROOT,
         RUNS_ROOT,
         CACHE_ROOT,
@@ -47,6 +51,19 @@ def ensure_data_roots() -> None:
         HMI_CACHE_ROOT,
     ):
         path.mkdir(parents=True, exist_ok=True)
+
+
+def training_domain_dir(domain: str) -> Path:
+    ensure_data_roots()
+    return TRAINING_EPISODES_ROOT / normalize_segment(domain)
+
+
+def training_test_dir(domain: str, test_name: str) -> Path:
+    return training_domain_dir(domain) / normalize_segment(test_name)
+
+
+def training_episode_dir(domain: str, test_name: str, episode_id: str) -> Path:
+    return training_test_dir(domain, test_name) / normalize_segment(episode_id)
 
 
 def normalize_segment(value: str) -> str:

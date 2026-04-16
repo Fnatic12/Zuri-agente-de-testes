@@ -1976,7 +1976,9 @@ def render_hmi_validation_page(base_dir: str, data_root: str) -> None:
             unsafe_allow_html=True,
         )
         st.markdown("### Execuçõoes salvas e validacao em lote")
-        st.caption("Use esta area para rodar validacao HMI em execucoes gravadas no Data/ e inspecionar resultados tecnicos.")
+        st.caption(
+            "Use esta area para rodar validacao HMI em execucoes gravadas no Data/runs/tester/ e inspecionar resultados tecnicos."
+        )
 
         with st.container(border=True):
             st.markdown("#### Biblioteca")

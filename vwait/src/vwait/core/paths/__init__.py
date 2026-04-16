@@ -7,6 +7,8 @@ from .data_layout import (
     RUNS_ROOT,
     SYSTEM_ROOT,
     TEMPLATES_ROOT,
+    TRAINING_EPISODES_ROOT,
+    TRAINING_ROOT,
     TESTER_CATALOG_ROOT,
     TESTER_RUNS_ROOT,
     build_run_id,
@@ -43,6 +45,9 @@ from .data_layout import (
     tester_system_collection_log_path,
     tester_system_exec_log_path,
     tester_test_metadata_path,
+    training_domain_dir,
+    training_episode_dir,
+    training_test_dir,
 )
 from .project_paths import PROJECT_ROOT, project_root, root_path
 
@@ -56,6 +61,8 @@ __all__ = [
     "RUNS_ROOT",
     "SYSTEM_ROOT",
     "TEMPLATES_ROOT",
+    "TRAINING_EPISODES_ROOT",
+    "TRAINING_ROOT",
     "TESTER_CATALOG_ROOT",
     "TESTER_RUNS_ROOT",
     "build_run_id",
@@ -94,4 +101,7 @@ __all__ = [
     "tester_system_collection_log_path",
     "tester_system_exec_log_path",
     "tester_test_metadata_path",
+    "training_domain_dir",
+    "training_episode_dir",
+    "training_test_dir",
 ]

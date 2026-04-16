@@ -17,10 +17,11 @@ from vwait.features.tester.ui.streamlit.theme import (
 )
 
 
-def main() -> None:
+def render_tester_page(*, embedded: bool = False) -> None:
     initialize_session_state()
 
-    st.set_page_config(page_title="Menu Tester", page_icon="", layout="centered")
+    if not embedded:
+        st.set_page_config(page_title="Menu Tester", page_icon="", layout="centered")
     apply_dark_background(hide_header=True)
     apply_panel_button_theme()
     apply_menu_tester_styles()
@@ -37,6 +38,8 @@ def main() -> None:
         bancadas=bancadas,
         clean_display_text=context["clean_display_text"],
         salvar_resultado_parcial=context["salvar_resultado_parcial"],
+        abrir_scrcpy_persistente=context["abrir_scrcpy_persistente"],
+        exportar_training_episode=context["exportar_training_episode"],
         resolver_teste_por_serial=context["resolver_teste_por_serial"],
         capturar_logs_radio=context["capturar_logs_radio"],
         resolver_pasta_logs_teste=context["resolver_pasta_logs_teste"],
@@ -59,6 +62,10 @@ def main() -> None:
         scripts=context["scripts"],
         garantir_painel_streamlit=context["garantir_painel_streamlit"],
     )
+
+
+def main() -> None:
+    render_tester_page(embedded=False)
 
 
 if __name__ == "__main__":
