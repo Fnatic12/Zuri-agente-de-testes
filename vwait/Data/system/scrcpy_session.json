@@ -1,10 +1,10 @@
 {
   "meta_version": 2,
-  "pid": 166150,
+  "pid": 193588,
   "serial": "0001220500000000",
   "window_title": "VWAIT_DEVICE",
   "log_path": "/home/victor-milani/vwait-ia/vwait/Data/system/scrcpy_session_verbose.log",
-  "started_at": "2026-04-16T15:03:33.409782",
+  "started_at": "2026-04-16T18:01:02.088741",
   "line_buffered": true,
   "no_audio": true
 }

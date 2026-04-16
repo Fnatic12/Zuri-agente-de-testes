@@ -9,7 +9,7 @@ from datetime import datetime
 
 from vwait.core.paths import tester_expected_dir, tester_expected_final_path
 from vwait.platform.scrcpy_events import ensure_persistent_scrcpy_session
-from vwait.features.tester.application.training_export import export_training_episode
+from vwait.features.tester.application.training_export import create_training_episode_draft, export_training_episode
 
 
 def subprocess_windowless_kwargs() -> dict:
@@ -173,6 +173,7 @@ def exportar_training_episode(
     input_source: str | None = None,
     step_intents_text: str | None = None,
     step_expected_text: str | None = None,
+    episode_id: str | None = None,
 ):
     try:
         return export_training_episode(
@@ -188,9 +189,44 @@ def exportar_training_episode(
             input_source=input_source,
             step_intents_text=step_intents_text,
             step_expected_text=step_expected_text,
+            episode_id=episode_id,
         )
     except Exception as exc:
         return False, str(exc)
+
+
+def criar_training_episode_draft(
+    *,
+    categoria: str,
+    nome_teste: str,
+    training_category: str,
+    flow: str,
+    objective: str,
+    success_criteria_final: str,
+    tester_id: str | None = None,
+    notes: str | None = None,
+    serial: str | None = None,
+    input_source: str | None = None,
+    step_intents_text: str | None = None,
+    step_expected_text: str | None = None,
+):
+    try:
+        return create_training_episode_draft(
+            category=categoria,
+            test_name=nome_teste,
+            training_category=training_category,
+            flow=flow,
+            objective=objective,
+            success_criteria_final=success_criteria_final,
+            tester_id=tester_id,
+            notes=notes,
+            serial=serial,
+            input_source=input_source,
+            step_intents_text=step_intents_text,
+            step_expected_text=step_expected_text,
+        )
+    except Exception as exc:
+        return False, str(exc), None
 
 
 __all__ = [
@@ -199,6 +235,7 @@ __all__ = [
     "adb_cmd",
     "aguardar_porta_local",
     "capturar_logs_radio",
+    "criar_training_episode_draft",
     "exportar_training_episode",
     "garantir_painel_streamlit",
     "listar_bancadas",

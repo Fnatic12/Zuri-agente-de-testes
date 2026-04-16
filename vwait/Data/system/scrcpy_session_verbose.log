@@ -8014,3 +8014,215 @@ VERBOSE: input: touch [id=mouse] down position=1160,162 pressure=1.000000 action
 VERBOSE: input: touch [id=mouse] up   position=1160,162 pressure=0.000000 action_button=000001 buttons=000000
 VERBOSE: input: touch [id=mouse] down position=784,170 pressure=1.000000 action_button=000001 buttons=000001
 VERBOSE: input: touch [id=mouse] up   position=784,170 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=937,979 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=937,979 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1916,144 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1916,144 pressure=0.000000 action_button=000001 buttons=000000
+DEBUG: User requested to quit
+DEBUG: quit...
+DEBUG: Controller stopped
+DEBUG: Demuxer 'video': end of frames
+DEBUG: Receiver stopped
+[server] DEBUG: Controller stopped
+[server] DEBUG: Device message sender stopped
+[server] DEBUG: Screen streaming stopped
+DEBUG: Server disconnected
+DEBUG: Server terminated
+scrcpy 3.3.4 <https://github.com/Genymobile/scrcpy>
+INFO: ADB device found:
+INFO:     -->   (usb)  0001220500000000                device  malagueta
+DEBUG: Device serial: 0001220500000000
+DEBUG: Using server: /usr/local/share/scrcpy/scrcpy-server
+/usr/local/share/scrcpy/scrcpy-server: 1 file pushed, 0 skipped. 89.6 MB/s (90980 bytes in 0.001s)
+[server] INFO: Device: [SiEngine] SiEngine malagueta (Android 15)
+DEBUG: Server connected
+DEBUG: Starting controller thread
+DEBUG: Starting receiver thread
+DEBUG: Using icon: /usr/local/share/icons/hicolor/256x256/apps/scrcpy.png
+[server] DEBUG: Using video encoder: 'c2.hantro.avc.encoder'
+[server] DEBUG: Display: using DisplayManager API
+[server] VERBOSE: DisplaySizeMonitor: onDisplayConfigurationChanged(6)
+INFO: Renderer: opengl
+INFO: OpenGL version: 4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.25.10.1
+INFO: Trilinear filtering enabled
+DEBUG: Demuxer 'video': starting thread
+INFO: Texture: 1920x1080
+VERBOSE: input: touch [id=mouse] down position=705,750 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=705,750 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=961,989 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=961,989 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1068,981 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1068,981 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=814,538 hscroll=-1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=1178,648 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=1178,648 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=1178,648 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=1178,648 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=1178,648 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=1178,648 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=1178,648 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=1178,648 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=1178,648 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=1178,648 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=1178,648 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=1178,648 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=1178,648 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=1178,648 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=1178,648 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=962,679 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=962,679 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=962,679 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=962,679 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=962,679 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=962,679 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=962,679 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=962,679 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=962,679 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=962,679 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=962,679 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=962,679 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=962,679 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=962,679 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=962,679 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=962,679 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=962,679 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=962,679 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=962,679 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=962,679 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=962,679 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: scroll position=962,679 hscroll=1.000000 vscroll=0.000000 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=292,583 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=292,583 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=633,837 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=633,837 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=972,1018 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=972,1018 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1095,998 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1095,998 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=277,626 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=277,626 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=630,846 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=630,846 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=630,846 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=630,846 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1554,770 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1554,770 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=989,1014 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=989,1014 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1083,1010 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1083,1010 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=354,651 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=354,651 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=294,616 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=294,616 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=987,1025 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=987,1025 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=943,1000 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=943,1000 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=943,1000 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=943,1000 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1081,1007 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1081,1007 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1089,616 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1089,616 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=117,183 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=117,183 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=117,183 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=117,183 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1099,1034 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1099,1034 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=968,989 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=968,989 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1083,1008 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1083,1008 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1138,640 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1138,640 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=266,401 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=266,401 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=113,201 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=113,201 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1049,1004 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1049,1004 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=934,1028 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=934,1028 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1097,1007 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1097,1007 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1100,582 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1100,582 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=263,398 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=263,398 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1752,214 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1752,214 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=107,166 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=107,166 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=795,381 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=795,381 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=92,145 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=92,145 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=405,661 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=405,661 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=89,155 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=89,155 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=987,1006 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=987,1006 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=957,1016 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=957,1016 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1081,1000 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1081,1000 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1089,617 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1089,617 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=378,699 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=378,699 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1309,642 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1309,642 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=993,1011 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=993,1011 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=993,1011 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=993,1011 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: key down code=3 repeat=0 meta=000000
+VERBOSE: input: key up   code=3 repeat=0 meta=000000
+VERBOSE: input: touch [id=mouse] down position=964,999 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=964,999 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1061,996 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1061,996 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1099,619 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1099,619 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1764,749 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1764,749 pressure=0.000000 action_button=000001 buttons=000000

@@ -1,0 +1,104 @@
+{
+    "teste": "validar_função_favorito",
+    "categoria": "radio",
+    "fonte": "scrcpy",
+    "acoes": [
+        {
+            "id": 1,
+            "timestamp": "2026-04-16T18:06:09.654770",
+            "action_timestamp": "2026-04-16T18:06:09.654770",
+            "screenshot_timestamp": "2026-04-16T18:06:11.125798",
+            "imagem": "frame_01.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 972,
+                "y": 1018,
+                "duracao_s": 0.05,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 2,
+            "timestamp": "2026-04-16T18:06:13.872955",
+            "action_timestamp": "2026-04-16T18:06:13.872955",
+            "screenshot_timestamp": "2026-04-16T18:06:15.352841",
+            "imagem": "frame_02.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 1095,
+                "y": 998,
+                "duracao_s": 0.05,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 3,
+            "timestamp": "2026-04-16T18:06:17.236801",
+            "action_timestamp": "2026-04-16T18:06:17.236801",
+            "screenshot_timestamp": "2026-04-16T18:06:18.705854",
+            "imagem": "frame_03.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 277,
+                "y": 626,
+                "duracao_s": 0.05,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 4,
+            "timestamp": "2026-04-16T18:06:20.152804",
+            "action_timestamp": "2026-04-16T18:06:20.152804",
+            "screenshot_timestamp": "2026-04-16T18:06:21.620177",
+            "imagem": "frame_04.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 630,
+                "y": 846,
+                "duracao_s": 0.0,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 5,
+            "timestamp": "2026-04-16T18:06:22.113846",
+            "action_timestamp": "2026-04-16T18:06:22.113846",
+            "screenshot_timestamp": "2026-04-16T18:06:23.587234",
+            "imagem": "frame_05.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 630,
+                "y": 846,
+                "duracao_s": 0.05,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        }
+    ],
+    "resultado_esperado": "expected/final.png",
+    "scrcpy_events": "recorded/scrcpy_events.json"
+}

@@ -1,0 +1,92 @@
+[
+  {
+    "timestamp": "2026-04-16T18:06:09.604265",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 972,
+    "y": 1018,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-16T18:06:09.654770",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 972,
+    "y": 1018,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-16T18:06:13.822450",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 1095,
+    "y": 998,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-16T18:06:13.872955",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 1095,
+    "y": 998,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-16T18:06:17.186114",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 277,
+    "y": 626,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-16T18:06:17.236801",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 277,
+    "y": 626,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-16T18:06:20.152324",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 630,
+    "y": 846,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-16T18:06:20.152804",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 630,
+    "y": 846,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-16T18:06:22.062996",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 630,
+    "y": 846,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-16T18:06:22.113846",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 630,
+    "y": 846,
+    "pressure": 0.0
+  }
+]

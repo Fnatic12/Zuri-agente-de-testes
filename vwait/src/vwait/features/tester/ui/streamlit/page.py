@@ -39,6 +39,7 @@ def render_tester_page(*, embedded: bool = False) -> None:
         clean_display_text=context["clean_display_text"],
         salvar_resultado_parcial=context["salvar_resultado_parcial"],
         abrir_scrcpy_persistente=context["abrir_scrcpy_persistente"],
+        criar_training_episode_draft=context["criar_training_episode_draft"],
         exportar_training_episode=context["exportar_training_episode"],
         resolver_teste_por_serial=context["resolver_teste_por_serial"],
         capturar_logs_radio=context["capturar_logs_radio"],

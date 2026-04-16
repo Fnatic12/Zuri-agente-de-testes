@@ -19,6 +19,10 @@ def initialize_chat_state(*, session_state, preload_whisper_default, init_naviga
         session_state.chat_history = []
     if "chat_voice_browser_audio_sig" not in session_state:
         session_state.chat_voice_browser_audio_sig = ""
+    if "chat_voice_browser_audio_key" not in session_state:
+        session_state.chat_voice_browser_audio_key = 0
+    if "chat_voice_last_status" not in session_state:
+        session_state.chat_voice_last_status = "idle"
     if "coletas_ativas" not in session_state:
         session_state.coletas_ativas = set()
     if "coleta_atual" not in session_state:
@@ -35,4 +39,3 @@ def initialize_chat_state(*, session_state, preload_whisper_default, init_naviga
         session_state.stt_whisper_warmup_started = True
         threading.Thread(target=preload_whisper_default, daemon=True).start()
     init_navigation_state()
-

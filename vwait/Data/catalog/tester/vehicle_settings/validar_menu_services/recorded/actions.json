@@ -1,0 +1,85 @@
+{
+    "teste": "validar_menu_services",
+    "categoria": "vehicle_settings",
+    "fonte": "scrcpy",
+    "acoes": [
+        {
+            "id": 1,
+            "timestamp": "2026-04-16T18:22:04.195893",
+            "action_timestamp": "2026-04-16T18:22:04.195893",
+            "screenshot_timestamp": "2026-04-16T18:22:05.687582",
+            "imagem": "frame_01.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 957,
+                "y": 1016,
+                "duracao_s": 0.0,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 2,
+            "timestamp": "2026-04-16T18:22:07.460105",
+            "action_timestamp": "2026-04-16T18:22:07.460105",
+            "screenshot_timestamp": "2026-04-16T18:22:08.952987",
+            "imagem": "frame_02.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 1081,
+                "y": 1000,
+                "duracao_s": 0.05,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 3,
+            "timestamp": "2026-04-16T18:22:10.373312",
+            "action_timestamp": "2026-04-16T18:22:10.373312",
+            "screenshot_timestamp": "2026-04-16T18:22:12.037876",
+            "imagem": "frame_03.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 1089,
+                "y": 617,
+                "duracao_s": 0.1,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 4,
+            "timestamp": "2026-04-16T18:22:13.336513",
+            "action_timestamp": "2026-04-16T18:22:13.336513",
+            "screenshot_timestamp": "2026-04-16T18:22:14.809508",
+            "imagem": "frame_04.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 378,
+                "y": 699,
+                "duracao_s": 0.05,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        }
+    ],
+    "resultado_esperado": "expected/final.png",
+    "scrcpy_events": "recorded/scrcpy_events.json"
+}

@@ -211,6 +211,163 @@ def _action_metadata(action: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _validated_training_metadata(
+    *,
+    training_category: str,
+    flow: str,
+    objective: str,
+    success_criteria_final: str,
+) -> tuple[bool, str, dict[str, str]]:
+    category_name = str(training_category or "").strip()
+    flow_name = str(flow or "").strip()
+    objective_text = str(objective or "").strip()
+    success_text = str(success_criteria_final or "").strip()
+    missing = [
+        label
+        for label, value in (
+            ("Categoria/DOMINIO", category_name),
+            ("Fluxo/Caso de teste", flow_name),
+            ("Objetivo do episodio", objective_text),
+            ("Criterio de sucesso final", success_text),
+        )
+        if not value
+    ]
+    if missing:
+        return False, "Campos obrigatorios ausentes: " + ", ".join(missing), {}
+    return True, "", {
+        "category_name": category_name,
+        "flow_name": flow_name,
+        "objective_text": objective_text,
+        "success_text": success_text,
+        "category_slug": normalize_segment(category_name),
+        "flow_slug": normalize_segment(flow_name),
+    }
+
+
+def create_training_episode_draft(
+    *,
+    category: str,
+    test_name: str,
+    training_category: str,
+    flow: str,
+    objective: str,
+    success_criteria_final: str,
+    tester_id: str | None = None,
+    notes: str | None = None,
+    serial: str | None = None,
+    input_source: str | None = None,
+    step_intents_text: str | None = None,
+    step_expected_text: str | None = None,
+) -> tuple[bool, str, str | None]:
+    ensure_data_roots()
+
+    ok, error, meta = _validated_training_metadata(
+        training_category=training_category,
+        flow=flow,
+        objective=objective,
+        success_criteria_final=success_criteria_final,
+    )
+    if not ok:
+        return False, error, None
+
+    created_at = _iso_utc()
+    episode_id = _episode_id()
+    episode_dir = training_episode_dir(meta["category_slug"], meta["flow_slug"], episode_id)
+    steps_root = episode_dir / "steps"
+    data_source_path = tester_catalog_dir(category, test_name)
+    initial_state_path = tester_recorded_dir(category, test_name) / "initial_state.png"
+    final_expected_src = tester_expected_final_path(category, test_name)
+    resolution = _wm_resolution(serial, {"width": None, "height": None})
+
+    steps_root.mkdir(parents=True, exist_ok=True)
+    _write_json(
+        episode_dir / "episode.json",
+        {
+            "schema_version": SCHEMA_VERSION,
+            "episode_id": episode_id,
+            "category": meta["category_slug"],
+            "category_name": meta["category_name"],
+            "flow": meta["flow_slug"],
+            "flow_name": meta["flow_name"],
+            "objective": meta["objective_text"],
+            "success_criteria_final": meta["success_text"],
+            "tester_id": tester_id or None,
+            "created_at": created_at,
+            "step_count": 0,
+            "notes": str(notes or "").strip(),
+            "status": "recording",
+        },
+    )
+    _write_json(
+        episode_dir / "environment.json",
+        {
+            "schema_version": SCHEMA_VERSION,
+            "device_id": serial or None,
+            "source": input_source or None,
+            "os_version": _adb_shell_text(serial, "getprop", "ro.build.version.release"),
+            "build_version": _adb_shell_text(serial, "getprop", "ro.build.display.id"),
+            "resolution": {"width": resolution.get("width"), "height": resolution.get("height")},
+            "device_model": _adb_shell_text(serial, "getprop", "ro.product.model"),
+            "manufacturer": _adb_shell_text(serial, "getprop", "ro.product.manufacturer"),
+        },
+    )
+    _write_json(
+        episode_dir / "summary.json",
+        {
+            "schema_version": SCHEMA_VERSION,
+            "status": "recording",
+            "duration_ms": None,
+            "steps_recorded": 0,
+            "manual_step_annotations": bool(_split_lines(step_intents_text) or _split_lines(step_expected_text)),
+            "missing_artifacts": [],
+        },
+    )
+    _write_json(
+        episode_dir / "manual_annotations.json",
+        {
+            "schema_version": SCHEMA_VERSION,
+            "step_intents": _split_lines(step_intents_text),
+            "step_expected_results": _split_lines(step_expected_text),
+            "raw_step_intents_text": str(step_intents_text or ""),
+            "raw_step_expected_text": str(step_expected_text or ""),
+        },
+    )
+    _write_json(
+        episode_dir / "source_refs.json",
+        {
+            "schema_version": SCHEMA_VERSION,
+            "data_source_path": str(data_source_path),
+            "recorded_initial_state": str(initial_state_path) if initial_state_path.is_file() else None,
+            "source_session_id": None,
+            "actions_path": str(tester_actions_path(category, test_name)),
+            "expected_final_path": str(final_expected_src) if final_expected_src.is_file() else None,
+            "final_expected_exported": None,
+        },
+    )
+
+    _update_taxonomy(training_taxonomy_categories_path(), "categories", meta["category_name"])
+    _update_taxonomy(
+        training_taxonomy_flows_path(),
+        "flows",
+        meta["flow_name"],
+        {"category": meta["category_slug"], "category_name": meta["category_name"]},
+    )
+    _update_manifest(
+        {
+            "episode_id": episode_id,
+            "category": meta["category_slug"],
+            "flow": meta["flow_slug"],
+            "objective": meta["objective_text"],
+            "success_criteria_final": meta["success_text"],
+            "path": str(episode_dir),
+            "created_at": created_at,
+            "step_count": 0,
+            "status": "recording",
+        }
+    )
+    return True, str(episode_dir), episode_id
+
+
 def export_training_episode(
     *,
     category: str,
@@ -225,34 +382,30 @@ def export_training_episode(
     input_source: str | None = None,
     step_intents_text: str | None = None,
     step_expected_text: str | None = None,
+    episode_id: str | None = None,
 ) -> tuple[bool, str]:
     ensure_data_roots()
 
     operational_category = normalize_segment(category)
     operational_test = normalize_segment(test_name)
-    category_name = str(training_category or "").strip()
-    flow_name = str(flow or "").strip()
-    objective_text = str(objective or "").strip()
-    success_text = str(success_criteria_final or "").strip()
+    ok, error, meta = _validated_training_metadata(
+        training_category=training_category,
+        flow=flow,
+        objective=objective,
+        success_criteria_final=success_criteria_final,
+    )
+    if not ok:
+        return False, error
 
-    missing = [
-        label
-        for label, value in (
-            ("Categoria/DOMINIO", category_name),
-            ("Fluxo/Caso de teste", flow_name),
-            ("Objetivo do episodio", objective_text),
-            ("Criterio de sucesso final", success_text),
-        )
-        if not value
-    ]
-    if missing:
-        return False, "Campos obrigatorios ausentes: " + ", ".join(missing)
-
-    category_slug = normalize_segment(category_name)
-    flow_slug = normalize_segment(flow_name)
+    category_name = meta["category_name"]
+    flow_name = meta["flow_name"]
+    objective_text = meta["objective_text"]
+    success_text = meta["success_text"]
+    category_slug = meta["category_slug"]
+    flow_slug = meta["flow_slug"]
     created_at = _iso_utc()
-    episode_id = _episode_id()
-    episode_dir = training_episode_dir(category_slug, flow_slug, episode_id)
+    final_episode_id = normalize_segment(episode_id) if episode_id else _episode_id()
+    episode_dir = training_episode_dir(category_slug, flow_slug, final_episode_id)
     steps_root = episode_dir / "steps"
 
     actions_path = tester_actions_path(operational_category, operational_test)
@@ -329,7 +482,7 @@ def export_training_episode(
 
     episode_payload = {
         "schema_version": SCHEMA_VERSION,
-        "episode_id": episode_id,
+        "episode_id": final_episode_id,
         "category": category_slug,
         "category_name": category_name,
         "flow": flow_slug,
@@ -340,6 +493,7 @@ def export_training_episode(
         "created_at": created_at,
         "step_count": steps_written,
         "notes": str(notes or "").strip(),
+        "status": "completed",
     }
     environment_payload = {
         "schema_version": SCHEMA_VERSION,
@@ -386,7 +540,7 @@ def export_training_episode(
     )
     _update_manifest(
         {
-            "episode_id": episode_id,
+            "episode_id": final_episode_id,
             "category": category_slug,
             "flow": flow_slug,
             "objective": objective_text,
@@ -394,10 +548,11 @@ def export_training_episode(
             "path": str(episode_dir),
             "created_at": created_at,
             "step_count": steps_written,
+            "status": "completed",
         }
     )
 
     return True, str(episode_dir)
 
 
-__all__ = ["export_training_episode"]
+__all__ = ["create_training_episode_draft", "export_training_episode"]

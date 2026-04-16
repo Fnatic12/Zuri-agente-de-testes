@@ -1,0 +1,10 @@
+VERBOSE: input: touch [id=mouse] down position=972,1018 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=972,1018 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1095,998 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1095,998 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=277,626 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=277,626 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=630,846 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=630,846 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=630,846 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=630,846 pressure=0.000000 action_button=000001 buttons=000000

@@ -3,6 +3,178 @@ import re
 from typing import Callable
 
 import streamlit as st
+import streamlit.components.v1 as components
+
+
+def _render_voice_orb(status: str = "idle") -> None:
+    label = {
+        "idle": "",
+        "listening": "Ouvindo...",
+        "processing": "",
+        "done": "",
+    }.get(status, "")
+    st.markdown(
+        f"""
+        <style>
+        .voice-sidebar-offset {{
+            height: 1.55rem;
+        }}
+        .voice-command-shell {{
+            position: relative;
+            display: none;
+            place-items: center;
+            padding: 0.15rem 0 0.65rem 0;
+        }}
+        .voice-orb {{
+            width: 86px;
+            height: 86px;
+            border-radius: 999px;
+            position: relative;
+            display: grid;
+            place-items: center;
+            background:
+                radial-gradient(circle at 35% 30%, rgba(255,255,255,0.88), rgba(125, 211, 252, 0.45) 18%, transparent 32%),
+                radial-gradient(circle at 55% 58%, rgba(59, 130, 246, 0.88), rgba(37, 99, 235, 0.72) 46%, rgba(15, 23, 42, 0.96) 78%);
+            box-shadow:
+                0 0 0 1px rgba(147, 197, 253, 0.28),
+                0 18px 42px rgba(37, 99, 235, 0.28),
+                inset 0 1px 12px rgba(255,255,255,0.18);
+            animation: voiceIdle 3.2s ease-in-out infinite;
+        }}
+        .voice-orb::before,
+        .voice-orb::after {{
+            content: "";
+            position: absolute;
+            inset: -12px;
+            border-radius: inherit;
+            border: 1px solid rgba(96, 165, 250, 0.28);
+            opacity: 0.75;
+            animation: voiceRing 2.2s ease-out infinite;
+        }}
+        .voice-orb::after {{
+            inset: -24px;
+            animation-delay: 0.55s;
+            opacity: 0.42;
+        }}
+        .voice-bars {{
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            height: 38px;
+            z-index: 1;
+        }}
+        .voice-bars span {{
+            width: 5px;
+            border-radius: 999px;
+            background: rgba(240, 249, 255, 0.96);
+            box-shadow: 0 0 12px rgba(240, 249, 255, 0.45);
+            animation: voiceBar 1.05s ease-in-out infinite;
+        }}
+        .voice-bars span:nth-child(1) {{ height: 13px; animation-delay: 0.0s; }}
+        .voice-bars span:nth-child(2) {{ height: 24px; animation-delay: 0.12s; }}
+        .voice-bars span:nth-child(3) {{ height: 33px; animation-delay: 0.24s; }}
+        .voice-bars span:nth-child(4) {{ height: 21px; animation-delay: 0.36s; }}
+        .voice-bars span:nth-child(5) {{ height: 15px; animation-delay: 0.48s; }}
+        .voice-command-label {{
+            margin-top: 0.72rem;
+            color: rgba(226, 232, 240, 0.86);
+            font-size: 0.86rem;
+            text-align: center;
+            letter-spacing: 0.01em;
+        }}
+        body:not(.vwait-voice-listening) .voice-bars span {{
+            animation-duration: 1.95s;
+            opacity: 0.68;
+        }}
+        body.vwait-voice-listening .voice-command-shell {{
+            display: grid;
+        }}
+        body.vwait-voice-listening .voice-orb {{
+            animation: voiceLive 0.72s ease-in-out infinite;
+            box-shadow:
+                0 0 0 1px rgba(56, 189, 248, 0.45),
+                0 0 34px rgba(14, 165, 233, 0.40),
+                0 22px 52px rgba(37, 99, 235, 0.30),
+                inset 0 1px 12px rgba(255,255,255,0.22);
+        }}
+        body.vwait-voice-listening .voice-command-label::after {{
+            content: " falando";
+            color: #7dd3fc;
+        }}
+        div[data-testid="stAudioInput"] label {{
+            display: none !important;
+        }}
+        div[data-testid="stAudioInput"] [role="alert"],
+        div[data-testid="stAudioInput"] [data-testid="stAlert"],
+        div[data-testid="stAudioInput"] p:has(+ div),
+        div[data-testid="stAudioInput"] div:has(> p) {{
+            border-color: rgba(30, 41, 59, 0.2) !important;
+        }}
+        div[data-testid="stAudioInput"] {{
+            margin-top: -0.15rem;
+        }}
+        @keyframes voiceIdle {{
+            0%, 100% {{ transform: scale(0.96); }}
+            50% {{ transform: scale(1.02); }}
+        }}
+        @keyframes voiceLive {{
+            0%, 100% {{ transform: scale(0.98); }}
+            50% {{ transform: scale(1.08); }}
+        }}
+        @keyframes voiceRing {{
+            0% {{ transform: scale(0.72); opacity: 0.58; }}
+            100% {{ transform: scale(1.35); opacity: 0; }}
+        }}
+        @keyframes voiceBar {{
+            0%, 100% {{ transform: scaleY(0.42); }}
+            50% {{ transform: scaleY(1.08); }}
+        }}
+        </style>
+        <div class="voice-command-shell">
+            <div class="voice-orb" aria-hidden="true">
+                <div class="voice-bars">
+                    <span></span><span></span><span></span><span></span><span></span>
+                </div>
+            </div>
+            <div class="voice-command-label">{label}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _install_voice_widget_state_bridge() -> None:
+    components.html(
+        """
+        <script>
+        const root = window.parent?.document || document;
+        function hasRecordingSignal() {
+          const audioInputs = Array.from(root.querySelectorAll('[data-testid="stAudioInput"]'));
+          const text = audioInputs.map(el => el.innerText || '').join(' ').toLowerCase();
+          const hasTimer = /0:0[1-9]|0:[1-5][0-9]/.test(text);
+          const hasStopLike = /stop|parar|recording|gravando/.test(text);
+          return hasTimer || hasStopLike;
+        }
+        function tick() {
+          root.body.classList.toggle('vwait-voice-listening', hasRecordingSignal());
+          const audioInputs = Array.from(root.querySelectorAll('[data-testid="stAudioInput"]'));
+          for (const el of audioInputs) {
+            const nodes = Array.from(el.querySelectorAll('*'));
+            for (const node of nodes) {
+              const txt = (node.innerText || '').trim();
+              if (txt === 'An error has occurred, please try again.') {
+                node.style.display = 'none';
+              }
+            }
+          }
+        }
+        tick();
+        setInterval(tick, 180);
+        </script>
+        """,
+        height=0,
+        width=0,
+    )
 
 
 def render_voice_sidebar(
@@ -18,7 +190,12 @@ def render_voice_sidebar(
         browser_audio = None
         audio_input_widget = getattr(st, "audio_input", None)
         if callable(audio_input_widget):
-            browser_audio = audio_input_widget("Falar comando", key="chat_voice_browser_audio")
+            st.markdown('<div class="voice-sidebar-offset"></div>', unsafe_allow_html=True)
+            voice_status = str(st.session_state.get("chat_voice_last_status", "idle") or "idle")
+            _render_voice_orb(voice_status)
+            _install_voice_widget_state_bridge()
+            audio_key = int(st.session_state.get("chat_voice_browser_audio_key", 0) or 0)
+            browser_audio = audio_input_widget("Falar comando", key=f"chat_voice_browser_audio_{audio_key}")
             st.caption("Use o microfone do navegador para gravar seu comando.")
         else:
             st.button("Falar comando", use_container_width=True, disabled=True)
@@ -33,6 +210,7 @@ def render_voice_sidebar(
         audio_sig = hashlib.sha1(audio_bytes).hexdigest() if audio_bytes else ""
         if audio_sig and audio_sig != st.session_state.get("chat_voice_browser_audio_sig", ""):
             st.session_state.chat_voice_browser_audio_sig = audio_sig
+            st.session_state.chat_voice_last_status = "processing"
             recognizer = configure_recognizer()
             st.toast("Reconhecendo fala do navegador...")
             audio = audio_input_to_sr_audio(browser_audio)
@@ -46,12 +224,14 @@ def render_voice_sidebar(
                 detail = f" Detalhes: {stt_error}" if stt_error else ""
                 raise RuntimeError("Falha ao reconhecer fala do navegador." + detail)
             st.toast(f"Reconhecido via {stt_engine}")
+            st.session_state.chat_voice_last_status = "done"
             process_voice_command(command_text)
+            st.session_state.chat_voice_browser_audio_key = int(st.session_state.get("chat_voice_browser_audio_key", 0) or 0) + 1
             st.rerun()
     except Exception as exc:
-        st.session_state.chat_history.append(
-            {"role": "assistant", "content": f"Falha ao reconhecer fala do navegador: {exc}"}
-        )
+        st.session_state.chat_voice_last_status = "idle"
+        st.session_state.chat_voice_browser_audio_key = int(st.session_state.get("chat_voice_browser_audio_key", 0) or 0) + 1
+        st.toast(f"Falha ao reconhecer fala do navegador: {exc}")
         st.rerun()
 
 
@@ -220,4 +400,3 @@ def render_chat_shell(
             st.session_state.chat_history.append({"role": "assistant", "content": response})
         st.session_state.chat_inline_input_nonce += 1
         st.rerun()
-

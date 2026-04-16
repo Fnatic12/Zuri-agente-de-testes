@@ -1,0 +1,102 @@
+[
+  {
+    "id": 1,
+    "timestamp": "2026-04-16T18:08:03.081873",
+    "acao": "tap",
+    "coordenadas": {
+      "x": 972,
+      "y": 1018,
+      "tipo": "tap",
+      "timestamp": "2026-04-16T18:06:09.654770",
+      "resolucao_largura": 1920,
+      "resolucao_altura": 1080,
+      "x_norm": 0.50625,
+      "y_norm": 0.9425925925925924
+    },
+    "screenshot": "artifacts/results/resultado_01.png",
+    "frame_esperado": "../../../../../catalog/tester/radio/validar_fun_o_favorito/recorded/frames/frame_01.png",
+    "similaridade": 0.9982689502368062,
+    "status": "OK",
+    "duracao": 2.92
+  },
+  {
+    "id": 2,
+    "timestamp": "2026-04-16T18:08:07.542851",
+    "acao": "tap",
+    "coordenadas": {
+      "x": 1095,
+      "y": 998,
+      "tipo": "tap",
+      "timestamp": "2026-04-16T18:06:13.872955",
+      "resolucao_largura": 1920,
+      "resolucao_altura": 1080,
+      "x_norm": 0.5703125,
+      "y_norm": 0.924074074074074
+    },
+    "screenshot": "artifacts/results/resultado_02.png",
+    "frame_esperado": "../../../../../catalog/tester/radio/validar_fun_o_favorito/recorded/frames/frame_02.png",
+    "similaridade": 0.9996727232503461,
+    "status": "OK",
+    "duracao": 2.76
+  },
+  {
+    "id": 3,
+    "timestamp": "2026-04-16T18:08:11.903230",
+    "acao": "tap",
+    "coordenadas": {
+      "x": 277,
+      "y": 626,
+      "tipo": "tap",
+      "timestamp": "2026-04-16T18:06:17.236801",
+      "resolucao_largura": 1920,
+      "resolucao_altura": 1080,
+      "x_norm": 0.1442708333333333,
+      "y_norm": 0.5796296296296296
+    },
+    "screenshot": "artifacts/results/resultado_03.png",
+    "frame_esperado": "../../../../../catalog/tester/radio/validar_fun_o_favorito/recorded/frames/frame_03.png",
+    "similaridade": 0.9996727232503461,
+    "status": "OK",
+    "duracao": 2.66
+  },
+  {
+    "id": 4,
+    "timestamp": "2026-04-16T18:08:16.339628",
+    "acao": "tap",
+    "coordenadas": {
+      "x": 630,
+      "y": 846,
+      "tipo": "tap",
+      "timestamp": "2026-04-16T18:06:20.152804",
+      "resolucao_largura": 1920,
+      "resolucao_altura": 1080,
+      "x_norm": 0.328125,
+      "y_norm": 0.7833333333333333
+    },
+    "screenshot": "artifacts/results/resultado_04.png",
+    "frame_esperado": "../../../../../catalog/tester/radio/validar_fun_o_favorito/recorded/frames/frame_04.png",
+    "similaridade": 0.9996727232503461,
+    "status": "OK",
+    "duracao": 2.73
+  },
+  {
+    "id": 5,
+    "timestamp": "2026-04-16T18:08:20.761516",
+    "acao": "tap",
+    "coordenadas": {
+      "x": 630,
+      "y": 846,
+      "tipo": "tap",
+      "timestamp": "2026-04-16T18:06:22.113846",
+      "resolucao_largura": 1920,
+      "resolucao_altura": 1080,
+      "x_norm": 0.328125,
+      "y_norm": 0.7833333333333333
+    },
+    "screenshot": "artifacts/results/resultado_05.png",
+    "frame_esperado": "../../../../../catalog/tester/radio/validar_fun_o_favorito/recorded/frames/frame_05.png",
+    "similaridade": 0.9996727232503461,
+    "status": "OK",
+    "duracao": 2.72
+  }
+]

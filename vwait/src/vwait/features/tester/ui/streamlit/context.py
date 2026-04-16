@@ -13,6 +13,7 @@ from vwait.features.tester.application.runtime import (
     abrir_pasta_local as _runtime_abrir_pasta_local,
     abrir_scrcpy_persistente as _runtime_abrir_scrcpy_persistente,
     capturar_logs_radio as _runtime_capturar_logs_radio,
+    criar_training_episode_draft as _runtime_criar_training_episode_draft,
     exportar_training_episode as _runtime_exportar_training_episode,
     garantir_painel_streamlit as _runtime_garantir_painel_streamlit,
     listar_bancadas as _runtime_listar_bancadas,
@@ -65,6 +66,9 @@ def build_tester_context() -> dict[str, object]:
 
     def exportar_training_episode(**kwargs):
         return _runtime_exportar_training_episode(**kwargs)
+
+    def criar_training_episode_draft(**kwargs):
+        return _runtime_criar_training_episode_draft(**kwargs)
 
     def resolver_pasta_logs_teste(categoria, nome_teste, serial=None):
         return _status_resolver_pasta_logs_teste(BASE_DIR, categoria, nome_teste, serial)
@@ -121,6 +125,7 @@ def build_tester_context() -> dict[str, object]:
         "carregar_status_execucao": carregar_status_execucao,
         "resolver_teste_por_serial": resolver_teste_por_serial,
         "capturar_logs_radio": capturar_logs_radio,
+        "criar_training_episode_draft": criar_training_episode_draft,
         "exportar_training_episode": exportar_training_episode,
         "abrir_pasta_local": abrir_pasta_local,
         "abrir_scrcpy_persistente": abrir_scrcpy_persistente,

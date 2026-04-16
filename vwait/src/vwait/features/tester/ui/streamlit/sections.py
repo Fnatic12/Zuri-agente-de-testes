@@ -78,6 +78,7 @@ def render_collection_section(
     clean_display_text,
     salvar_resultado_parcial,
     abrir_scrcpy_persistente,
+    criar_training_episode_draft,
     exportar_training_episode,
     resolver_teste_por_serial,
     capturar_logs_radio,
@@ -227,7 +228,10 @@ def render_collection_section(
                 except Exception:
                     pass
         if export_training_enabled:
-            st.caption("A coleta continua igual. Ao finalizar, o VWAIT exporta um episódio paralelo para TrainingData/ usando os artefatos desta gravação.")
+            st.caption(
+                "A coleta continua igual. O episódio em TrainingData/ será exportado depois que você finalizar "
+                "a coleta e capturar/salvar o resultado esperado final."
+            )
 
     def _training_required_missing() -> list[str]:
         if not export_training_enabled:
@@ -239,6 +243,88 @@ def render_collection_section(
             ("Critério de sucesso final", training_success_criteria),
         ]
         return [label for label, value in fields if not str(value or "").strip()]
+
+    def _export_training_from_payload(payload: dict) -> tuple[bool, str]:
+        with st.spinner("Exportando episódio para TrainingData..."):
+            return exportar_training_episode(
+                categoria=payload.get("categoria", ""),
+                nome_teste=payload.get("nome_teste", ""),
+                training_category=payload.get("training_category", ""),
+                flow=payload.get("training_flow", ""),
+                objective=payload.get("training_objective", ""),
+                success_criteria_final=payload.get("training_success_criteria", ""),
+                notes=payload.get("training_notes", ""),
+                serial=payload.get("serial"),
+                input_source=payload.get("fonte_coleta"),
+                step_intents_text=payload.get("training_step_intents", ""),
+                step_expected_text=payload.get("training_step_expected", ""),
+                episode_id=payload.get("training_episode_id"),
+            )
+
+    def _current_training_payload() -> dict:
+        return {
+            "categoria": categoria,
+            "nome_teste": nome_teste,
+            "serial": serial_sel,
+            "fonte_coleta": fonte_coleta,
+            "export_training_enabled": bool(export_training_enabled),
+            "training_category": training_category,
+            "training_flow": training_flow,
+            "training_objective": training_objective,
+            "training_success_criteria": training_success_criteria,
+            "training_notes": training_notes,
+            "training_step_intents": training_step_intents,
+            "training_step_expected": training_step_expected,
+        }
+
+    def _export_training_if_enabled(payload: dict) -> None:
+        if not payload.get("export_training_enabled"):
+            return
+        required_payload_fields = [
+            ("Categoria/DOMÍNIO", payload.get("training_category")),
+            ("Fluxo/Caso de teste", payload.get("training_flow")),
+            ("Objetivo do episódio", payload.get("training_objective")),
+            ("Critério de sucesso final", payload.get("training_success_criteria")),
+        ]
+        missing_training = [label for label, value in required_payload_fields if not str(value or "").strip()]
+        if missing_training:
+            st.error("TrainingData não exportada. Campos obrigatórios ausentes: " + ", ".join(missing_training))
+            return
+        ok_export, msg_export = _export_training_from_payload(payload)
+        if ok_export:
+            st.success(f"Episódio supervisionado exportado em: {msg_export}")
+            st.session_state["coleta_expected_pending"] = None
+        else:
+            st.error(f"Falha ao exportar TrainingData: {msg_export}")
+
+    pending_expected = st.session_state.get("coleta_expected_pending")
+    if isinstance(pending_expected, dict):
+        with st.container(border=True):
+            st.warning("Toque na tela para gravar o resultado esperado do teste.")
+            st.caption(
+                "Depois de tocar no rádio/scrcpy e deixar a tela no estado final correto, "
+                "clique no botão abaixo para capturar o esperado e finalizar a exportação."
+            )
+            pending_label = f"{pending_expected.get('categoria', '-')}/{pending_expected.get('nome_teste', '-')}"
+            st.caption(f"Coleta aguardando resultado esperado: {pending_label}")
+            confirm_col, cancel_col = st.columns([2, 1])
+            with confirm_col:
+                if _action_button("Capturar esperado e finalizar", style="open", key="confirmar_resultado_esperado"):
+                    pending_category = str(pending_expected.get("categoria") or "").strip()
+                    pending_test = str(pending_expected.get("nome_teste") or "").strip()
+                    pending_serial = pending_expected.get("serial")
+                    ok_expected, msg_expected = salvar_resultado_parcial(pending_category, pending_test, pending_serial)
+                    if ok_expected:
+                        st.success(f"Resultado esperado salvo: {msg_expected}")
+                        _export_training_if_enabled(pending_expected)
+                        if not pending_expected.get("export_training_enabled"):
+                            st.session_state["coleta_expected_pending"] = None
+                    else:
+                        st.error(msg_expected)
+            with cancel_col:
+                if _action_button("Cancelar etapa", style="open", key="cancelar_resultado_esperado"):
+                    st.session_state["coleta_expected_pending"] = None
+                    st.rerun()
 
     helper_col1, helper_col2 = st.columns([1, 3])
     with helper_col1:
@@ -282,6 +368,28 @@ def render_collection_section(
                     st.session_state.coleta_log_file = log_file
                     env = os.environ.copy()
                     env["PYTHONUNBUFFERED"] = "1"
+                    training_payload = _current_training_payload()
+                    if export_training_enabled:
+                        ok_draft, msg_draft, episode_id = criar_training_episode_draft(
+                            categoria=categoria,
+                            nome_teste=nome_teste,
+                            training_category=training_category,
+                            flow=training_flow,
+                            objective=training_objective,
+                            success_criteria_final=training_success_criteria,
+                            notes=training_notes,
+                            serial=serial_sel,
+                            input_source=fonte_coleta,
+                            step_intents_text=training_step_intents,
+                            step_expected_text=training_step_expected,
+                        )
+                        if not ok_draft:
+                            st.error(f"Não consegui iniciar o TrainingData: {msg_draft}")
+                            return
+                        training_payload["training_episode_id"] = episode_id
+                        training_payload["training_episode_path"] = msg_draft
+                        st.success(f"TrainingData iniciado em: {msg_draft}")
+                    st.session_state["coleta_training_payload"] = training_payload
                     cmd = [sys.executable, "-u", scripts["Coletar Teste"], categoria, nome_teste]
                     if serial_sel:
                         cmd += ["--serial", serial_sel]
@@ -297,6 +405,8 @@ def render_collection_section(
                         env=env,
                     )
                     st.success(f"Coleta iniciada para {categoria}/{nome_teste}")
+                    if export_training_enabled:
+                        st.info("TrainingData preparado. Finalize a coleta e salve o resultado esperado para exportar o episódio.")
                 else:
                     st.warning("Já existe uma coleta em andamento.")
             else:
@@ -307,38 +417,23 @@ def render_collection_section(
             proc = st.session_state.proc_coleta
             if proc:
                 try:
+                    missing_training = _training_required_missing()
+                    if missing_training:
+                        st.error("TrainingData não exportada. Campos obrigatórios ausentes: " + ", ".join(missing_training))
+                        return
                     with open(stop_flag_path, "w") as handle:
                         handle.write("stop")
-                    st.info("Finalizando coleta e aguardando o fechamento da sessao...")
+                    st.info("Finalizando coleta. Em seguida, toque na tela para gravar o resultado esperado do teste.")
                     timeout_s = 60
                     proc.wait(timeout=timeout_s)
 
                     acoes_path = str(tester_actions_path(categoria, nome_teste))
                     if os.path.exists(acoes_path):
-                        st.success("Coleta finalizada com sucesso. Print final e ações salvos.")
-                        if export_training_enabled:
-                            missing_training = _training_required_missing()
-                            if missing_training:
-                                st.error("TrainingData não exportada. Campos obrigatórios ausentes: " + ", ".join(missing_training))
-                                return
-                            with st.spinner("Exportando episódio para TrainingData..."):
-                                ok_export, msg_export = exportar_training_episode(
-                                    categoria=categoria,
-                                    nome_teste=nome_teste,
-                                    training_category=training_category,
-                                    flow=training_flow,
-                                    objective=training_objective,
-                                    success_criteria_final=training_success_criteria,
-                                    notes=training_notes,
-                                    serial=serial_sel,
-                                    input_source=fonte_coleta,
-                                    step_intents_text=training_step_intents,
-                                    step_expected_text=training_step_expected,
-                                )
-                            if ok_export:
-                                st.success(f"Episódio supervisionado exportado em: {msg_export}")
-                            else:
-                                st.error(f"Falha ao exportar TrainingData: {msg_export}")
+                        st.session_state["coleta_expected_pending"] = (
+                            st.session_state.get("coleta_training_payload") or _current_training_payload()
+                        )
+                        st.success("Coleta finalizada com sucesso. Ações salvas.")
+                        st.warning("Toque na tela para gravar o resultado esperado do teste.")
                     else:
                         st.warning("Coleta finalizada, mas o acoes.json não apareceu. Verifique o log.")
                 except subprocess.TimeoutExpired:
@@ -354,8 +449,12 @@ def render_collection_section(
                             pass
                         st.session_state.coleta_log_file = None
                     st.session_state.proc_coleta = None
+                st.rerun()
             else:
-                st.info("Nenhuma coleta em andamento.")
+                if st.session_state.get("coleta_expected_pending"):
+                    st.warning("Toque na tela para gravar o resultado esperado do teste.")
+                else:
+                    st.info("Nenhuma coleta em andamento.")
 
     with col3:
         if _action_button("Salvar Resultado Esperado", style="open"):
@@ -363,6 +462,12 @@ def render_collection_section(
                 ok, msg = salvar_resultado_parcial(categoria, nome_teste, serial_sel)
                 if ok:
                     st.success(f"Resultado esperado salvo: {msg}")
+                    payload = st.session_state.get("coleta_expected_pending")
+                    if not isinstance(payload, dict):
+                        payload = st.session_state.get("coleta_training_payload")
+                    if not isinstance(payload, dict):
+                        payload = _current_training_payload()
+                    _export_training_if_enabled(payload)
                 else:
                     st.error(msg)
             else:
