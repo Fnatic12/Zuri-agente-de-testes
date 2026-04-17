@@ -1,0 +1,9 @@
+{
+  "schema_version": "1.0",
+  "data_source_path": "/home/victor-milani/vwait-ia/vwait/Data/catalog/tester/smarthphone_integration/si__-_verifiy_listing_of_smartphone_integration_devices",
+  "recorded_initial_state": "/home/victor-milani/vwait-ia/vwait/Data/catalog/tester/smarthphone_integration/si__-_verifiy_listing_of_smartphone_integration_devices/recorded/initial_state.png",
+  "source_session_id": null,
+  "actions_path": "/home/victor-milani/vwait-ia/vwait/Data/catalog/tester/smarthphone_integration/si__-_verifiy_listing_of_smartphone_integration_devices/recorded/actions.json",
+  "expected_final_path": null,
+  "final_expected_exported": null
+}

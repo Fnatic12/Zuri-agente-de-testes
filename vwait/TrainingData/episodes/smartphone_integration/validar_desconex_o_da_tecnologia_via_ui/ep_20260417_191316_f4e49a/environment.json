@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "device_id": "0001220500000000",
+  "source": "scrcpy",
+  "os_version": "15",
+  "build_version": "iguana-userdebug 15 AAG5.250801.001 2669 test-keys",
+  "resolution": {
+    "width": 1920,
+    "height": 1080
+  },
+  "device_model": "malagueta",
+  "manufacturer": "SiEngine"
+}

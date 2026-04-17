@@ -20,14 +20,19 @@ from ...paths import DATA_ROOT
 from .theme import titulo_painel
 
 
-DEFAULT_OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
-DEFAULT_OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1:3b")
+DEFAULT_OLLAMA_URL = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
+DEFAULT_OLLAMA_MODEL = os.getenv("LOGS_OLLAMA_MODEL", os.getenv("OLLAMA_MODEL", "llama3.1:8b"))
 DEFAULT_OLLAMA_CLI = os.getenv("OLLAMA_CLI", "ollama")
-DEFAULT_OLLAMA_NUM_PREDICT = int(os.getenv("OLLAMA_NUM_PREDICT", "350"))
+DEFAULT_OLLAMA_NUM_PREDICT = int(os.getenv("LOGS_OLLAMA_NUM_PREDICT", os.getenv("OLLAMA_NUM_PREDICT", "700")))
 DEFAULT_OLLAMA_TEMPERATURE = float(os.getenv("OLLAMA_TEMPERATURE", "0.1"))
 DEFAULT_OLLAMA_TOP_P = float(os.getenv("OLLAMA_TOP_P", "0.9"))
 DEFAULT_OLLAMA_NUM_CTX = int(os.getenv("OLLAMA_NUM_CTX", "4096"))
 DEFAULT_OLLAMA_KEEP_ALIVE = os.getenv("OLLAMA_KEEP_ALIVE", "10m")
+DEFAULT_OLLAMA_TIMEOUT_S = int(os.getenv("LOGS_OLLAMA_TIMEOUT_S", os.getenv("OLLAMA_TIMEOUT_S", "120")))
+
+
+def _analysis_key(kind: str, value: str) -> str:
+    return f"ai_result::{kind}::{value}"
 
 
 def _render_metadata(capture: dict) -> None:
@@ -115,30 +120,51 @@ def _render_file_viewer(capture: dict) -> None:
     st.info("Arquivo binario ou nao legivel em texto. Abra a pasta local para inspecao externa.")
 
 
-def _run_ai_analysis(target_key: str, prompt: str) -> None:
-    with st.spinner("Analisando logs com Ollama..."):
-        response = ollama_generate(
-            prompt,
-            base_url=str(st.session_state.get("log_ollama_base_url", DEFAULT_OLLAMA_URL) or DEFAULT_OLLAMA_URL),
-            model=str(st.session_state.get("log_ollama_model", DEFAULT_OLLAMA_MODEL) or DEFAULT_OLLAMA_MODEL),
-            ollama_cli=DEFAULT_OLLAMA_CLI,
-            num_predict=DEFAULT_OLLAMA_NUM_PREDICT,
-            temperature=DEFAULT_OLLAMA_TEMPERATURE,
-            top_p=DEFAULT_OLLAMA_TOP_P,
-            num_ctx=DEFAULT_OLLAMA_NUM_CTX,
-            keep_alive=DEFAULT_OLLAMA_KEEP_ALIVE,
-        )
-    if not response:
-        st.session_state[f"ai_result::{target_key}"] = "Falha ao obter resposta do Ollama."
+def _run_ai_analysis(*, result_key: str, latest_key: str, title: str, prompt: str) -> None:
+    st.session_state["vwait_auto_refresh_paused"] = True
+    model = str(st.session_state.get("log_ollama_model", DEFAULT_OLLAMA_MODEL) or DEFAULT_OLLAMA_MODEL)
+    base_url = str(st.session_state.get("log_ollama_base_url", DEFAULT_OLLAMA_URL) or DEFAULT_OLLAMA_URL)
+    try:
+        with st.spinner(f"Analisando com Ollama {model}..."):
+            response = ollama_generate(
+                prompt,
+                base_url=base_url,
+                model=model,
+                ollama_cli=DEFAULT_OLLAMA_CLI,
+                timeout_s=DEFAULT_OLLAMA_TIMEOUT_S,
+                num_predict=DEFAULT_OLLAMA_NUM_PREDICT,
+                temperature=DEFAULT_OLLAMA_TEMPERATURE,
+                top_p=DEFAULT_OLLAMA_TOP_P,
+                num_ctx=DEFAULT_OLLAMA_NUM_CTX,
+                keep_alive=DEFAULT_OLLAMA_KEEP_ALIVE,
+            )
+    finally:
+        st.session_state["vwait_auto_refresh_paused"] = False
+
+    result_text = response or (
+        "Falha ao obter resposta do Ollama. "
+        f"Verifique se `{model}` esta disponivel em `{base_url}`."
+    )
+    st.session_state[result_key] = result_text
+    st.session_state[latest_key] = {
+        "title": title,
+        "content": result_text,
+        "model": model,
+        "base_url": base_url,
+    }
+    if response:
+        st.success("Analise concluida.")
     else:
-        st.session_state[f"ai_result::{target_key}"] = response
+        st.error("Ollama nao retornou resposta para esta analise.")
 
 
 def render_logs_panel_page() -> None:
     titulo_painel("Painel de Logs - GEI", "Exploracao local dos logs capturados e analise assistida por IA")
 
-    st.session_state.setdefault("log_ollama_base_url", DEFAULT_OLLAMA_URL)
-    st.session_state.setdefault("log_ollama_model", DEFAULT_OLLAMA_MODEL)
+    if not st.session_state.get("log_ollama_base_url"):
+        st.session_state["log_ollama_base_url"] = DEFAULT_OLLAMA_URL
+    if not st.session_state.get("log_ollama_model") or st.session_state.get("log_ollama_model") == "llama3.1:3b":
+        st.session_state["log_ollama_model"] = DEFAULT_OLLAMA_MODEL
 
     captures = load_log_captures(DATA_ROOT)
     if not captures:
@@ -204,23 +230,42 @@ def render_logs_panel_page() -> None:
         with col1:
             if st.button("Analisar arquivo", key=f"analyze_file::{selected_ai_file['path']}"):
                 prompt = analysis_prompt_for_file(capture, selected_ai_file, question)
-                _run_ai_analysis(f"file::{selected_ai_file['path']}", prompt)
+                _run_ai_analysis(
+                    result_key=_analysis_key("file", selected_ai_file["path"]),
+                    latest_key=_analysis_key("latest", capture["capture_dir"]),
+                    title=f"Resultado da analise do arquivo: {selected_ai_file['relpath']}",
+                    prompt=prompt,
+                )
         with col2:
             if st.button("Analisar captura", key=f"analyze_capture::{capture['capture_dir']}"):
                 prompt, used_files = analysis_prompt_for_capture(capture, question)
-                _run_ai_analysis(f"capture::{capture['capture_dir']}", prompt)
+                _run_ai_analysis(
+                    result_key=_analysis_key("capture", capture["capture_dir"]),
+                    latest_key=_analysis_key("latest", capture["capture_dir"]),
+                    title="Resultado da analise da captura",
+                    prompt=prompt,
+                )
                 st.session_state[f"ai_used_files::{capture['capture_dir']}"] = used_files
 
-        file_result = st.session_state.get(f"ai_result::file::{selected_ai_file['path']}")
-        if file_result:
-            st.markdown("###### Resultado da analise do arquivo")
-            st.markdown(file_result)
+        latest_result = st.session_state.get(_analysis_key("latest", capture["capture_dir"]))
+        if isinstance(latest_result, dict) and latest_result.get("content"):
+            st.markdown(f"###### {latest_result.get('title') or 'Ultima analise'}")
+            st.caption(
+                f"Modelo: {latest_result.get('model') or '-'} | "
+                f"Servidor: {latest_result.get('base_url') or '-'}"
+            )
+            st.markdown(str(latest_result["content"]))
 
-        capture_result = st.session_state.get(f"ai_result::capture::{capture['capture_dir']}")
+        file_result = st.session_state.get(_analysis_key("file", selected_ai_file["path"]))
+        if file_result:
+            with st.expander("Ver resultado salvo para o arquivo selecionado", expanded=False):
+                st.markdown(file_result)
+
+        capture_result = st.session_state.get(_analysis_key("capture", capture["capture_dir"]))
         if capture_result:
             used_files = st.session_state.get(f"ai_used_files::{capture['capture_dir']}", [])
-            st.markdown("###### Resultado da analise da captura")
-            if used_files:
-                st.caption("Arquivos usados: " + ", ".join(used_files))
-            st.markdown(capture_result)
+            with st.expander("Ver resultado salvo para a captura completa", expanded=False):
+                if used_files:
+                    st.caption("Arquivos usados: " + ", ".join(used_files))
+                st.markdown(capture_result)
         st.markdown("</div>", unsafe_allow_html=True)

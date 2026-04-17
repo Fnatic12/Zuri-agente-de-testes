@@ -6,12 +6,12 @@ from vwait.core.paths import project_root, root_path
 
 
 PAGINA_CHAT = "Chat"
-PAGINA_DASHBOARD = "Dashboard"
+PAGINA_DASHBOARD = "Resultados dos Testes"
 PAGINA_LOGS_RADIO = "Painel de Logs"
 PAGINA_CONTROLE_FALHAS = "Controle de Falhas"
 PAGINA_MENU_TESTER = "Menu Tester"
-PAGINA_VALIDACAO_HMI = "Validação HMI"
-PAGINA_MAPA_NEURAL_IA = "Mapa Neural IA"
+PAGINA_VALIDACAO_HMI = "HMI"
+PAGINA_MAPA_NEURAL_IA = "Arquitetura"
 NAV_RADIO_KEY = "pagina_navegacao"
 NAV_PENDING_KEY = "pagina_navegacao_pendente"
 DASHBOARD_PORT = 8504

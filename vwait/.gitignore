@@ -2,6 +2,7 @@
 .env.local
 .venv/
 tools/platform-tools/
+tools/ollama-local/
 workspace/
 .pytest_cache/
 __pycache__/

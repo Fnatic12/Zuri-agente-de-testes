@@ -24,7 +24,6 @@ from .helpers import (
     velocidade_live,
 )
 
-
 LoadExecucaoFn = Callable[[dict[str, Any]], list[dict[str, Any]]]
 LatestScreenshotFn = Callable[[dict[str, Any]], str | None]
 ResolveTestDirFn = Callable[[dict[str, Any]], str | None]
@@ -32,7 +31,6 @@ CountImagesFn = Callable[[str | None], int]
 ListAdbDevicesFn = Callable[[], set[str]]
 LoadStatusMapFn = Callable[[], dict[str, Any]]
 FilterRealBenchesFn = Callable[[dict[str, Any], set[str]], dict[str, Any]]
-
 
 def _catalog_test_ref_from_run_dir(base_dir: str) -> tuple[str, str] | None:
     normalized = str(base_dir).replace("\\", "/")
@@ -481,12 +479,12 @@ def render_timeline(execucao: list[dict[str, Any]]) -> None:
 
 
 def render_actions(execucao: list[dict[str, Any]], base_dir: str) -> None:
-    st.subheader("Detalhes das acoes")
+    st.subheader("Detalhes das ações")
     if not execucao:
-        st.info("Nenhuma acao encontrada.")
+        st.info("Nenhuma ação encontrada.")
         return
 
-    st.caption(f"{len(execucao)} acoes carregadas.")
+    st.caption(f"{len(execucao)} ações carregadas.")
     resumo = []
     for idx, acao in enumerate(execucao, start=1):
         resumo.append(

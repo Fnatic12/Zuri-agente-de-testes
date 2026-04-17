@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "step_intents": [
+    "Clicar na home",
+    "clicar no menu de aplicativos",
+    "encontrar o icone de configurações no menu de aplicativos",
+    "clicar em dispositivos conectados",
+    "verificar em dispositivos pareado se o celular foi conectado"
+  ],
+  "step_expected_results": [
+    "clicar na home",
+    "abrir menu de aplicativos",
+    "encontrar icone de configuração",
+    "clicar em dispositivos conectados",
+    "encontrar o celular pareado em Dispositivos Pareados"
+  ],
+  "raw_step_intents_text": "Clicar na home\nclicar no menu de aplicativos\nencontrar o icone de configurações no menu de aplicativos\nclicar em dispositivos conectados\nverificar em dispositivos pareado se o celular foi conectado ",
+  "raw_step_expected_text": "clicar na home\nabrir menu de aplicativos \nencontrar icone de configuração\nclicar em dispositivos conectados\nencontrar o celular pareado em Dispositivos Pareados"
+}

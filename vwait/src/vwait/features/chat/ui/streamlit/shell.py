@@ -272,6 +272,20 @@ def render_chat_shell(
             opacity: 0 !important;
             pointer-events: none !important;
         }
+        div[data-testid="stForm"] {
+            border: 0 !important;
+            outline: 0 !important;
+            box-shadow: none !important;
+            background: transparent !important;
+            padding: 0 !important;
+        }
+        div[data-testid="stForm"] > div {
+            border: 0 !important;
+            outline: 0 !important;
+            box-shadow: none !important;
+            background: transparent !important;
+            padding: 0 !important;
+        }
         div[data-testid="stTextInput"] > div {
             background:
                 linear-gradient(180deg, rgba(47, 52, 68, 0.96) 0%, rgba(34, 38, 52, 0.96) 100%) !important;
@@ -376,17 +390,18 @@ def render_chat_shell(
 
     st.session_state.setdefault("chat_inline_input_nonce", 0)
     chat_inline_text_key = f"chat_inline_text_{int(st.session_state.chat_inline_input_nonce)}"
-    input_col, submit_col = st.columns([14, 1])
-    with input_col:
-        user_input = st.text_input(
-            "Digite seu comando...",
-            key=chat_inline_text_key,
-            label_visibility="collapsed",
-            placeholder="Digite seu comando...",
-            autocomplete="off",
-        )
-    with submit_col:
-        submitted = st.button("ok", use_container_width=True, key="chat_inline_submit")
+    with st.form(key=f"chat_inline_form_{int(st.session_state.chat_inline_input_nonce)}"):
+        input_col, submit_col = st.columns([14, 1])
+        with input_col:
+            user_input = st.text_input(
+                "Digite seu comando...",
+                key=chat_inline_text_key,
+                label_visibility="collapsed",
+                placeholder="Digite seu comando...",
+                autocomplete="off",
+            )
+        with submit_col:
+            submitted = st.form_submit_button("ok", use_container_width=True)
 
     st.markdown(
         '<p class="chat-help-inline">Digite ajuda para ver os comandos disponiveis.</p>',

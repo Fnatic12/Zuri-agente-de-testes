@@ -89,7 +89,7 @@ def render_timeline(execution):
 
 
 def render_actions(execution, base_dir):
-    st.subheader("Detalhes das acoes")
+    st.subheader("Detalhes das ações")
     for action in execution:
         title = f"Acao {action.get('id')} - {str(action.get('acao', '')).upper()} | {action.get('status', '')}"
         with st.expander(title):

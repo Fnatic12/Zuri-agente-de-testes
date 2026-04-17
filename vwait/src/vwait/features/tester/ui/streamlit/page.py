@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import streamlit as st
 
+from vwait.core.config.auto_refresh import enable_global_auto_refresh
 from vwait.features.tester.ui.streamlit.context import build_tester_context
 from vwait.features.tester.ui.streamlit.sections import (
     render_collection_section,
@@ -22,6 +23,7 @@ def render_tester_page(*, embedded: bool = False) -> None:
 
     if not embedded:
         st.set_page_config(page_title="Menu Tester", page_icon="", layout="centered")
+        enable_global_auto_refresh(key="tester")
     apply_dark_background(hide_header=True)
     apply_panel_button_theme()
     apply_menu_tester_styles()
@@ -40,6 +42,7 @@ def render_tester_page(*, embedded: bool = False) -> None:
         salvar_resultado_parcial=context["salvar_resultado_parcial"],
         abrir_scrcpy_persistente=context["abrir_scrcpy_persistente"],
         criar_training_episode_draft=context["criar_training_episode_draft"],
+        completar_training_episodes_pendentes=context["completar_training_episodes_pendentes"],
         exportar_training_episode=context["exportar_training_episode"],
         resolver_teste_por_serial=context["resolver_teste_por_serial"],
         capturar_logs_radio=context["capturar_logs_radio"],

@@ -2,7 +2,7 @@
   "feature": "tester",
   "suite": "vehicle_settings",
   "test_id": "validar_menu_services",
-  "latest_run_id": null,
+  "latest_run_id": "2026-04-17T17-42-13Z",
   "input_source": "scrcpy",
   "recorded_at": "2026-04-16T18:22:18.292154",
   "initial_state": "recorded/initial_state.png",

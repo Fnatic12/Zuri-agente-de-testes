@@ -10,6 +10,7 @@ from datetime import datetime
 from vwait.core.paths import tester_expected_dir, tester_expected_final_path
 from vwait.platform.scrcpy_events import ensure_persistent_scrcpy_session
 from vwait.features.tester.application.training_export import create_training_episode_draft, export_training_episode
+from vwait.features.tester.application.training_export import complete_recording_training_episodes
 
 
 def subprocess_windowless_kwargs() -> dict:
@@ -229,12 +230,20 @@ def criar_training_episode_draft(
         return False, str(exc), None
 
 
+def completar_training_episodes_pendentes():
+    try:
+        return complete_recording_training_episodes()
+    except Exception as exc:
+        return [(False, str(exc))]
+
+
 __all__ = [
     "abrir_pasta_local",
     "abrir_scrcpy_persistente",
     "adb_cmd",
     "aguardar_porta_local",
     "capturar_logs_radio",
+    "completar_training_episodes_pendentes",
     "criar_training_episode_draft",
     "exportar_training_episode",
     "garantir_painel_streamlit",

@@ -1,0 +1,126 @@
+{
+  "categoria": "carplay",
+  "teste": "si__-_user_selects_smartphone_integration_technology",
+  "serial": "0001220500000000",
+  "motivo": "divergencia_visual",
+  "mode": "default_auto_capture",
+  "status": "sem_artefatos",
+  "started_at": "2026-04-17T15:09:23.370029",
+  "finished_at": "2026-04-17T15:09:24.093736",
+  "patterns": [
+    {
+      "pattern": "/data/tombstones/*",
+      "label": "tombstones",
+      "match_count": 0,
+      "status": "vazio",
+      "artifacts": [],
+      "error": null
+    },
+    {
+      "pattern": "/data/anr/*",
+      "label": "anr",
+      "match_count": 0,
+      "status": "vazio",
+      "artifacts": [],
+      "error": null
+    },
+    {
+      "pattern": "/data/log/*",
+      "label": "log",
+      "match_count": 0,
+      "status": "vazio",
+      "artifacts": [],
+      "error": null
+    },
+    {
+      "pattern": "/data/tcpdump/*",
+      "label": "tcpdump",
+      "match_count": 0,
+      "status": "vazio",
+      "artifacts": [],
+      "error": null
+    },
+    {
+      "pattern": "/data/capture/*",
+      "label": "capture",
+      "match_count": 0,
+      "status": "vazio",
+      "artifacts": [],
+      "error": null
+    },
+    {
+      "pattern": "/data/bugreport/*",
+      "label": "bugreport",
+      "match_count": 0,
+      "status": "vazio",
+      "artifacts": [],
+      "error": null
+    },
+    {
+      "pattern": "/data/dumpsys/*",
+      "label": "dumpsys",
+      "match_count": 0,
+      "status": "vazio",
+      "artifacts": [],
+      "error": null
+    },
+    {
+      "pattern": "/data/lshal/*",
+      "label": "lshal",
+      "match_count": 0,
+      "status": "vazio",
+      "artifacts": [],
+      "error": null
+    },
+    {
+      "pattern": "/data/McuLog/*",
+      "label": "McuLog",
+      "match_count": 0,
+      "status": "vazio",
+      "artifacts": [],
+      "error": null
+    },
+    {
+      "pattern": "/data/local/traces/*",
+      "label": "traces",
+      "match_count": 0,
+      "status": "vazio",
+      "artifacts": [],
+      "error": null
+    },
+    {
+      "pattern": "/ota_download/recovery_log/*",
+      "label": "recovery_log",
+      "match_count": 0,
+      "status": "vazio",
+      "artifacts": [],
+      "error": null
+    },
+    {
+      "pattern": "/data/misc/bluetooth*",
+      "label": "bluetooth",
+      "match_count": 0,
+      "status": "vazio",
+      "artifacts": [],
+      "error": null
+    },
+    {
+      "pattern": "/data/vendor/broadcastradio/log*",
+      "label": "log",
+      "match_count": 0,
+      "status": "vazio",
+      "artifacts": [],
+      "error": null
+    },
+    {
+      "pattern": "/data/vendor/extend_log_/dropbox/*",
+      "label": "dropbox",
+      "match_count": 0,
+      "status": "vazio",
+      "artifacts": [],
+      "error": null
+    }
+  ],
+  "total_artifacts": 0,
+  "final_screenshot": "estado_final.png"
+}

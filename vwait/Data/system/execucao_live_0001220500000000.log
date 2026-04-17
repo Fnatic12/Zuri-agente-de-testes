@@ -2,30 +2,30 @@
 [96mModo de execucao: scrcpy (janela gerenciada + eventos enviados via ADB).[0m
 [96mðŸ” Verificando dispositivos ADB conectados...[0m
 [96mðŸ§¹ Limpeza preventiva dos logs remotos concluida: 0/14 origem(ns).[0m
-[96mðŸ–¥ï¸ Reutilizando scrcpy persistente: VWAIT_DEVICE[0m
+[96mðŸ–¥ï¸ Scrcpy aberto para execucao: VWAIT_DEVICE[0m
 [96m
-ðŸ—‚ï¸ Dataset: /home/victor-milani/vwait-ia/vwait/Data/catalog/tester/radio/validar_fun_o_favorito/dataset.csv[0m
-[96mðŸ—‚ï¸ Frames:  /home/victor-milani/vwait-ia/vwait/Data/catalog/tester/radio/validar_fun_o_favorito/recorded/frames[0m
-[96mðŸ—‚ï¸ Result.: /home/victor-milani/vwait-ia/vwait/Data/runs/tester/radio/validar_fun_o_favorito/2026-04-16T21-08-00Z/artifacts/results
+ðŸ—‚ï¸ Dataset: /home/victor-milani/vwait-ia/vwait/Data/catalog/tester/smarthphone_integration/si__-_verifiy_listing_of_smartphone_integration_devices/dataset.csv[0m
+[96mðŸ—‚ï¸ Frames:  /home/victor-milani/vwait-ia/vwait/Data/catalog/tester/smarthphone_integration/si__-_verifiy_listing_of_smartphone_integration_devices/recorded/frames[0m
+[96mðŸ—‚ï¸ Result.: /home/victor-milani/vwait-ia/vwait/Data/runs/tester/smarthphone_integration/si__-_verifiy_listing_of_smartphone_integration_devices/2026-04-17T18-57-56Z/artifacts/results
 [0m
 [96m
 ðŸŽ¬ Executando 5 aÃ§Ãµes do dataset...
 [0m
 [0mâ–¶ï¸ AÃ§Ã£o 1/5 (tap)[0m
-[92mðŸ‘‰ TAP em (972,1018)[0m
-[96mðŸ”Ž Similaridade: 0.998 â†’ OK | â±ï¸ 2.92s[0m
+[92mðŸ‘‰ TAP em (965,1010)[0m
+[96mðŸ”Ž Similaridade: 0.998 â†’ OK | â±ï¸ 2.96s[0m
 [0mâ–¶ï¸ AÃ§Ã£o 2/5 (tap)[0m
-[92mðŸ‘‰ TAP em (1095,998)[0m
-[96mðŸ”Ž Similaridade: 1.000 â†’ OK | â±ï¸ 2.76s[0m
+[92mðŸ‘‰ TAP em (1082,996)[0m
+[96mðŸ”Ž Similaridade: 0.999 â†’ OK | â±ï¸ 2.83s[0m
 [0mâ–¶ï¸ AÃ§Ã£o 3/5 (tap)[0m
-[92mðŸ‘‰ TAP em (277,626)[0m
-[96mðŸ”Ž Similaridade: 1.000 â†’ OK | â±ï¸ 2.66s[0m
+[92mðŸ‘‰ TAP em (1392,362)[0m
+[96mðŸ”Ž Similaridade: 0.998 â†’ OK | â±ï¸ 2.99s[0m
 [0mâ–¶ï¸ AÃ§Ã£o 4/5 (tap)[0m
-[92mðŸ‘‰ TAP em (630,846)[0m
-[96mðŸ”Ž Similaridade: 1.000 â†’ OK | â±ï¸ 2.73s[0m
+[92mðŸ‘‰ TAP em (292,241)[0m
+[96mðŸ”Ž Similaridade: 0.999 â†’ OK | â±ï¸ 2.71s[0m
 [0mâ–¶ï¸ AÃ§Ã£o 5/5 (tap)[0m
-[92mðŸ‘‰ TAP em (630,846)[0m
-[96mðŸ”Ž Similaridade: 1.000 â†’ OK | â±ï¸ 2.72s[0m
+[92mðŸ‘‰ TAP em (1100,816)[0m
+[96mðŸ”Ž Similaridade: 0.999 â†’ OK | â±ï¸ 2.72s[0m
 [92m
-âœ… ExecuÃ§Ã£o finalizada. Log salvo em: /home/victor-milani/vwait-ia/vwait/Data/runs/tester/radio/validar_fun_o_favorito/2026-04-16T21-08-00Z/execucao_log.json[0m
-[96mStatus atualizado em: Data/runs/tester/radio/validar_função_favorito/<run>/status/0001220500000000.json[0m
+âœ… ExecuÃ§Ã£o finalizada. Log salvo em: /home/victor-milani/vwait-ia/vwait/Data/runs/tester/smarthphone_integration/si__-_verifiy_listing_of_smartphone_integration_devices/2026-04-17T18-57-56Z/execucao_log.json[0m
+[96mStatus atualizado em: Data/runs/tester/smarthphone_integration/si__-_verifiy_listing_of_smartphone_integration_devices/<run>/status/0001220500000000.json[0m

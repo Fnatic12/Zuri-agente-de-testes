@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "device_id": "0001220500000000",
+  "source": "scrcpy",
+  "os_version": null,
+  "build_version": null,
+  "resolution": {
+    "width": 1920,
+    "height": 1080
+  },
+  "device_model": null,
+  "manufacturer": null
+}

@@ -2,6 +2,8 @@ import threading
 
 import streamlit as st
 
+from vwait.core.config.auto_refresh import enable_global_auto_refresh
+
 
 def configure_page(*, apply_dark_background, apply_panel_button_theme) -> None:
     st.set_page_config(
@@ -10,6 +12,7 @@ def configure_page(*, apply_dark_background, apply_panel_button_theme) -> None:
         layout="wide",
         initial_sidebar_state="expanded",
     )
+    enable_global_auto_refresh(key="chat")
     apply_dark_background(hide_header=True)
     apply_panel_button_theme()
 

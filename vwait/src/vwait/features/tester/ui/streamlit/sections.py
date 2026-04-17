@@ -13,6 +13,7 @@ import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 
 from vwait.core.paths import (
+    iter_tester_categories,
     iter_tester_tests,
     tester_actions_path,
     tester_catalog_dir,
@@ -20,6 +21,34 @@ from vwait.core.paths import (
     tester_system_collection_log_path,
     tester_system_exec_log_path,
 )
+
+
+def _safe_index(options: list[str], value: str | None) -> int:
+    if value in options:
+        return options.index(value)
+    return 0
+
+
+def _selectbox_accept_new(label: str, *, options: list[str], key: str, help: str | None = None) -> str:
+    try:
+        return str(
+            st.selectbox(
+                label,
+                options=options,
+                index=_safe_index(options, st.session_state.get(key)),
+                key=key,
+                accept_new_options=True,
+                help=help,
+            )
+            or ""
+        )
+    except TypeError:
+        return st.text_input(
+            label,
+            key=key,
+            placeholder="Digite ou selecione uma opção disponível",
+            help=help,
+        )
 
 
 def _action_button(label: str, *, style: str, key: str | None = None, use_container_width: bool = True) -> bool:
@@ -79,6 +108,7 @@ def render_collection_section(
     salvar_resultado_parcial,
     abrir_scrcpy_persistente,
     criar_training_episode_draft,
+    completar_training_episodes_pendentes,
     exportar_training_episode,
     resolver_teste_por_serial,
     capturar_logs_radio,
@@ -86,6 +116,14 @@ def render_collection_section(
     abrir_pasta_local,
 ):
     st.subheader("Coletar Gestos")
+    pending_results = completar_training_episodes_pendentes()
+    completed_pending = [message for ok, message in pending_results if ok]
+    failed_pending = [message for ok, message in pending_results if not ok and "Aguardando actions.json" not in message]
+    if completed_pending:
+        st.success(f"TrainingData atualizado com steps em {len(completed_pending)} episódio(s).")
+    if failed_pending:
+        st.warning("Alguns episódios TrainingData ainda não foram completados: " + "; ".join(failed_pending[:2]))
+
     categoria = st.text_input("Categoria do Teste (ex: audio, video, bluetooth)", key="cat_coleta")
     nome_teste = st.text_input("Nome do Teste (ex: audio_1, bt_pareamento)", key="nome_coleta")
 
@@ -326,19 +364,16 @@ def render_collection_section(
                     st.session_state["coleta_expected_pending"] = None
                     st.rerun()
 
-    helper_col1, helper_col2 = st.columns([1, 3])
-    with helper_col1:
-        if _action_button("Abrir Scrcpy", style="open"):
-            if not serial_sel:
-                st.error("Selecione uma bancada/dispositivo ADB antes de abrir o scrcpy.")
+    if _action_button("Abrir Scrcpy", style="open", key="abrir_scrcpy_full_width"):
+        if not serial_sel:
+            st.error("Selecione uma bancada/dispositivo ADB antes de abrir o scrcpy.")
+        else:
+            ok_scrcpy, msg_scrcpy = abrir_scrcpy_persistente(serial_sel)
+            if ok_scrcpy:
+                st.success(msg_scrcpy)
             else:
-                ok_scrcpy, msg_scrcpy = abrir_scrcpy_persistente(serial_sel)
-                if ok_scrcpy:
-                    st.success(msg_scrcpy)
-                else:
-                    st.error(f"Falha ao abrir o scrcpy: {msg_scrcpy}")
-    with helper_col2:
-        st.caption("Use este botao para manter uma sessao persistente do scrcpy aberta e reutiliza-la nas gravacoes e execucoes.")
+                st.error(f"Falha ao abrir o scrcpy: {msg_scrcpy}")
+    st.caption("Use este botao para manter uma sessao persistente do scrcpy aberta e reutiliza-la nas gravacoes e execucoes.")
 
     col1, col2, col3, col4, col5 = st.columns(5)
 
@@ -641,8 +676,20 @@ def render_management_and_execution_sections(
 
     st.divider()
     st.subheader("Executar Testes")
-    categoria_exec = st.text_input("Categoria do Teste", key="cat_exec")
-    nome_teste_exec = st.text_input("Nome do Teste (deixe vazio para rodar todos)", key="nome_exec")
+    categorias_exec_options = [""] + iter_tester_categories()
+    categoria_exec = _selectbox_accept_new(
+        "Categoria do Teste",
+        options=categorias_exec_options,
+        key="cat_exec",
+        help="Categorias disponíveis em Data/catalog/tester.",
+    )
+    testes_exec_options = [""] + (iter_tester_tests(categoria_exec) if categoria_exec else [])
+    nome_teste_exec = _selectbox_accept_new(
+        "Nome do Teste (deixe vazio para rodar todos)",
+        options=testes_exec_options,
+        key="nome_exec",
+        help="Testes disponíveis dentro da categoria selecionada.",
+    )
     fonte_exec_label = st.selectbox(
         "Fonte de execucao",
         options=["Bancada (ADB)", "Scrcpy (ADB)"],
@@ -659,8 +706,19 @@ def render_management_and_execution_sections(
             with colunas_paralelas[(idx - 1) % 2]:
                 st.caption(f"Bancada {idx}")
                 st.caption(f"Serial: {serial_bancada}")
-                categoria_exec_b = st.text_input(f"Categoria Bancada {idx}", key=f"cat_exec_b{idx}")
-                nome_teste_exec_b = st.text_input(f"Teste Bancada {idx}", key=f"nome_exec_b{idx}")
+                cat_key = f"cat_exec_b{idx}"
+                test_key = f"nome_exec_b{idx}"
+                categoria_exec_b = _selectbox_accept_new(
+                    f"Categoria Bancada {idx}",
+                    options=categorias_exec_options,
+                    key=cat_key,
+                )
+                testes_b_options = [""] + (iter_tester_tests(categoria_exec_b) if categoria_exec_b else [])
+                nome_teste_exec_b = _selectbox_accept_new(
+                    f"Teste Bancada {idx}",
+                    options=testes_b_options,
+                    key=test_key,
+                )
                 if categoria_exec_b.strip() and nome_teste_exec_b.strip():
                     execucoes_paralelas_config.append(
                         {

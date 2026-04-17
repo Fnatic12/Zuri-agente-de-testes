@@ -1,0 +1,10 @@
+{
+  "feature": "tester",
+  "suite": "smartphone_integration",
+  "test_id": "[si]_-_verify_screen_transition_after_deactivation_of_tech_via_ui",
+  "latest_run_id": null,
+  "input_source": "scrcpy",
+  "recorded_at": "2026-04-17T16:13:54.988595",
+  "initial_state": "recorded/initial_state.png",
+  "expected_final": "expected/final.png"
+}

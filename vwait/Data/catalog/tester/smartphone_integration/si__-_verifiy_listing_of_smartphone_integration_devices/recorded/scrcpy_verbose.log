@@ -1,0 +1,29 @@
+scrcpy 3.3.4 <https://github.com/Genymobile/scrcpy>
+INFO: ADB device found:
+INFO:     -->   (usb)  0001220500000000                device  malagueta
+DEBUG: Device serial: 0001220500000000
+DEBUG: Using server: /usr/local/share/scrcpy/scrcpy-server
+/usr/local/share/scrcpy/scrcpy-server: 1 file pushed, 0 skipped. 106.5 MB/s (90980 bytes in 0.001s)
+[server] INFO: Device: [SiEngine] SiEngine malagueta (Android 15)
+DEBUG: Server connected
+DEBUG: Starting controller thread
+DEBUG: Starting receiver thread
+DEBUG: Using icon: /usr/local/share/icons/hicolor/256x256/apps/scrcpy.png
+[server] DEBUG: Using video encoder: 'c2.hantro.avc.encoder'
+[server] DEBUG: Display: using DisplayManager API
+[server] VERBOSE: DisplaySizeMonitor: onDisplayConfigurationChanged(11)
+INFO: Renderer: opengl
+INFO: OpenGL version: 4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.25.10.1
+INFO: Trilinear filtering enabled
+DEBUG: Demuxer 'video': starting thread
+INFO: Texture: 1920x1080
+VERBOSE: input: touch [id=mouse] down position=965,1010 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=965,1010 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1082,996 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1082,996 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1392,362 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1392,362 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=292,241 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=292,241 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1100,816 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1100,816 pressure=0.000000 action_button=000001 buttons=000000

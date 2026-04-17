@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "step_index": 1,
+  "intent": "Clicar na home",
+  "expected_result": "clicar na home",
+  "action_source": "recorded_touch",
+  "timestamp_start": "2026-04-17T15:56:43.410345",
+  "timestamp_end": "2026-04-17T15:56:44.906531",
+  "artifacts": {
+    "before": "before.png",
+    "after": "after.png"
+  },
+  "recorded_action": {
+    "type": "tap",
+    "gesture": "tap",
+    "coordinates": {
+      "x": 965,
+      "y": 1010
+    },
+    "duration_s": 0.1,
+    "duration_ms": null
+  },
+  "source_refs": {
+    "recorded_frame": "/home/victor-milani/vwait-ia/vwait/Data/catalog/tester/smarthphone_integration/si__-_verifiy_listing_of_smartphone_integration_devices/recorded/frames/frame_01.png",
+    "action_id": 1
+  }
+}

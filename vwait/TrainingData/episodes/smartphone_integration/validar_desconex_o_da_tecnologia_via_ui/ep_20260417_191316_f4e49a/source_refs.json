@@ -1,0 +1,9 @@
+{
+  "schema_version": "1.0",
+  "data_source_path": "/home/victor-milani/vwait-ia/vwait/Data/catalog/tester/smartphone_integration/si__-_verify_screen_transition_after_deactivation_of_tech_via_ui",
+  "recorded_initial_state": "/home/victor-milani/vwait-ia/vwait/Data/catalog/tester/smartphone_integration/si__-_verify_screen_transition_after_deactivation_of_tech_via_ui/recorded/initial_state.png",
+  "source_session_id": null,
+  "actions_path": "/home/victor-milani/vwait-ia/vwait/Data/catalog/tester/smartphone_integration/si__-_verify_screen_transition_after_deactivation_of_tech_via_ui/recorded/actions.json",
+  "expected_final_path": null,
+  "final_expected_exported": null
+}

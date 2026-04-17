@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "episode_id": "ep_20260417_191316_f4e49a",
+  "category": "smarthphone_integration",
+  "category_name": "Smarthphone_integration",
+  "flow": "validar_desconex_o_da_tecnologia_via_ui",
+  "flow_name": "validar_desconexão_da_tecnologia_via_ui",
+  "objective": "validar se a desconexão via UI está acontecendo ok",
+  "success_criteria_final": "o radio deve ver de primeira o logo do carplay ou android auto ativo e depois de acessar as configurações daquele aparelho e clicar em desconectar e ver se ele realmente aparece escrito desconectado",
+  "tester_id": null,
+  "created_at": "2026-04-17T19:13:21Z",
+  "step_count": 1,
+  "notes": "",
+  "status": "completed"
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "step_intents": [
+    "clicar na home",
+    "clicar no menu de aplicativos",
+    "encontrar o icone de configurações",
+    "clicar em dispostivo conectados",
+    "clicar no dispositivo",
+    "acessar o menu do dispositivo",
+    "clicar em desconectar",
+    "verificar se apareceu desconectado"
+  ],
+  "step_expected_results": [
+    "após clicar em desconectar verificar se a palavra \"desconectado\" apareceu em baixo do nome do dispositivo"
+  ],
+  "raw_step_intents_text": "clicar na home\nclicar no menu de aplicativos\nencontrar o icone de configurações\nclicar em dispostivo conectados\nclicar no dispositivo \nacessar o menu do dispositivo\nclicar em desconectar\nverificar se apareceu desconectado \n",
+  "raw_step_expected_text": "após clicar em desconectar verificar se a palavra \"desconectado\" apareceu em baixo do nome do dispositivo"
+}

@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "step_index": 1,
+  "intent": "clicar na home",
+  "expected_result": "após clicar em desconectar verificar se a palavra \"desconectado\" apareceu em baixo do nome do dispositivo",
+  "action_source": "recorded_touch",
+  "timestamp_start": "2026-04-17T16:13:20.117828",
+  "timestamp_end": "2026-04-17T16:13:21.682416",
+  "artifacts": {
+    "before": "before.png",
+    "after": "after.png"
+  },
+  "recorded_action": {
+    "type": "tap",
+    "gesture": "tap",
+    "coordinates": {
+      "x": 975,
+      "y": 1005
+    },
+    "duration_s": 0.05,
+    "duration_ms": null
+  },
+  "source_refs": {
+    "recorded_frame": "/home/victor-milani/vwait-ia/vwait/Data/catalog/tester/smartphone_integration/si__-_verify_screen_transition_after_deactivation_of_tech_via_ui/recorded/frames/frame_01.png",
+    "action_id": 1
+  }
+}

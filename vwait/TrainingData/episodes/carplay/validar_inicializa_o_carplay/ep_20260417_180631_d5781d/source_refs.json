@@ -1,0 +1,9 @@
+{
+  "schema_version": "1.0",
+  "data_source_path": "/home/victor-milani/vwait-ia/vwait/Data/catalog/tester/carplay/si__-_user_selects_smartphone_integration_technology",
+  "recorded_initial_state": "/home/victor-milani/vwait-ia/vwait/Data/catalog/tester/carplay/si__-_user_selects_smartphone_integration_technology/recorded/initial_state.png",
+  "source_session_id": "2026-04-17T18-09-09Z",
+  "actions_path": "/home/victor-milani/vwait-ia/vwait/Data/catalog/tester/carplay/si__-_user_selects_smartphone_integration_technology/recorded/actions.json",
+  "expected_final_path": "/home/victor-milani/vwait-ia/vwait/Data/catalog/tester/carplay/si__-_user_selects_smartphone_integration_technology/expected/final.png",
+  "final_expected_exported": "final_expected.png"
+}

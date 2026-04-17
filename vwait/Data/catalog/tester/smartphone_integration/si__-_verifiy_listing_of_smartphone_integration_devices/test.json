@@ -1,0 +1,10 @@
+{
+  "feature": "tester",
+  "suite": "smarthphone_integration",
+  "test_id": "si__-_verifiy_listing_of_smartphone_integration_devices",
+  "latest_run_id": "2026-04-17T18-57-56Z",
+  "input_source": "scrcpy",
+  "recorded_at": "2026-04-17T15:57:00.616438",
+  "initial_state": "recorded/initial_state.png",
+  "expected_final": "expected/final.png"
+}

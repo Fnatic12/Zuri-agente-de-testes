@@ -8226,3 +8226,1293 @@ VERBOSE: input: touch [id=mouse] down position=1099,619 pressure=1.000000 action
 VERBOSE: input: touch [id=mouse] up   position=1099,619 pressure=0.000000 action_button=000001 buttons=000000
 VERBOSE: input: touch [id=mouse] down position=1764,749 pressure=1.000000 action_button=000001 buttons=000001
 VERBOSE: input: touch [id=mouse] up   position=1764,749 pressure=0.000000 action_button=000001 buttons=000000
+DEBUG: User requested to quit
+DEBUG: quit...
+DEBUG: Controller stopped
+DEBUG: Demuxer 'video': end of frames
+DEBUG: Receiver stopped
+[server] DEBUG: Controller stopped
+[server] DEBUG: Device message sender stopped
+[server] DEBUG: Screen streaming stopped
+DEBUG: Server disconnected
+DEBUG: Server terminated
+scrcpy 3.3.4 <https://github.com/Genymobile/scrcpy>
+INFO: ADB device found:
+INFO:     -->   (usb)  0001220500000000                device  malagueta
+DEBUG: Device serial: 0001220500000000
+DEBUG: Using server: /usr/local/share/scrcpy/scrcpy-server
+/usr/local/share/scrcpy/scrcpy-server: 1 file pushed, 0 skipped. 96.1 MB/s (90980 bytes in 0.001s)
+[server] INFO: Device: [SiEngine] SiEngine malagueta (Android 15)
+DEBUG: Server connected
+DEBUG: Starting controller thread
+DEBUG: Starting receiver thread
+DEBUG: Using icon: /usr/local/share/icons/hicolor/256x256/apps/scrcpy.png
+[server] DEBUG: Using video encoder: 'c2.hantro.avc.encoder'
+[server] DEBUG: Display: using DisplayManager API
+[server] VERBOSE: DisplaySizeMonitor: onDisplayConfigurationChanged(4)
+INFO: Renderer: opengl
+INFO: OpenGL version: 4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.25.10.1
+INFO: Trilinear filtering enabled
+DEBUG: Demuxer 'video': starting thread
+INFO: Texture: 1920x1080
+VERBOSE: input: touch [id=mouse] down position=984,1036 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=982,1036 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=981,1035 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=981,1035 pressure=0.000000 action_button=000001 buttons=000000
+DEBUG: User requested to quit
+DEBUG: quit...
+DEBUG: Controller stopped
+DEBUG: Demuxer 'video': end of frames
+DEBUG: Receiver stopped
+[server] DEBUG: Controller stopped
+[server] DEBUG: Device message sender stopped
+[server] DEBUG: Screen streaming stopped
+DEBUG: Server disconnected
+DEBUG: Server terminated
+scrcpy 3.3.4 <https://github.com/Genymobile/scrcpy>
+INFO: ADB device found:
+INFO:     -->   (usb)  0001220500000000                device  malagueta
+DEBUG: Device serial: 0001220500000000
+DEBUG: Using server: /usr/local/share/scrcpy/scrcpy-server
+/usr/local/share/scrcpy/scrcpy-server: 1 file pushed, 0 skipped. 84.4 MB/s (90980 bytes in 0.001s)
+[server] INFO: Device: [SiEngine] SiEngine malagueta (Android 15)
+DEBUG: Server connected
+DEBUG: Starting controller thread
+DEBUG: Starting receiver thread
+DEBUG: Using icon: /usr/local/share/icons/hicolor/256x256/apps/scrcpy.png
+[server] DEBUG: Using video encoder: 'c2.hantro.avc.encoder'
+[server] DEBUG: Display: using DisplayManager API
+[server] VERBOSE: DisplaySizeMonitor: onDisplayConfigurationChanged(5)
+INFO: Renderer: opengl
+INFO: OpenGL version: 4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.25.10.1
+INFO: Trilinear filtering enabled
+DEBUG: Demuxer 'video': starting thread
+INFO: Texture: 1920x1080
+VERBOSE: input: touch [id=mouse] down position=1131,994 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1131,995 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1130,995 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1130,995 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1097,1011 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1096,1011 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1096,1011 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=579,379 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=579,379 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=774,639 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=773,639 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=772,639 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=772,639 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=922,514 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=922,514 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=890,441 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=890,440 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=890,440 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=117,162 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=117,162 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=117,162 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=117,162 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=117,162 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=117,162 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=117,162 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=117,162 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=551,394 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=551,394 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: key down code=47 repeat=0 meta=000000
+VERBOSE: input: key up   code=47 repeat=0 meta=000000
+VERBOSE: input: touch [id=mouse] down position=761,624 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=761,624 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: text "]"
+VERBOSE: input: text "-"
+VERBOSE: input: key down code=160 repeat=0 meta=000000
+VERBOSE: input: key down code=66 repeat=0 meta=000000
+VERBOSE: input: key down code=21 repeat=0 meta=000000
+VERBOSE: input: key up   code=66 repeat=0 meta=000000
+VERBOSE: input: key up   code=21 repeat=0 meta=000000
+VERBOSE: input: key up   code=160 repeat=0 meta=000000
+VERBOSE: input: text "0"
+VERBOSE: input: touch [id=mouse] down position=1686,498 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1686,498 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=60,853 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=60,853 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=60,853 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=60,853 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=86,881 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=85,881 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=85,881 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=72,878 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=70,878 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=70,878 pressure=0.000000 action_button=000001 buttons=000000
+DEBUG: User requested to quit
+DEBUG: quit...
+DEBUG: Controller stopped
+DEBUG: Demuxer 'video': end of frames
+DEBUG: Receiver stopped
+[server] DEBUG: Controller stopped
+[server] DEBUG: Device message sender stopped
+[server] DEBUG: Screen streaming stopped
+DEBUG: Server disconnected
+DEBUG: Server terminated
+scrcpy 3.3.4 <https://github.com/Genymobile/scrcpy>
+INFO: ADB device found:
+INFO:     -->   (usb)  0001220500000000                device  malagueta
+DEBUG: Device serial: 0001220500000000
+DEBUG: Using server: /usr/local/share/scrcpy/scrcpy-server
+/usr/local/share/scrcpy/scrcpy-server: 1 file pushed, 0 skipped. 89.7 MB/s (90980 bytes in 0.001s)
+[server] INFO: Device: [SiEngine] SiEngine malagueta (Android 15)
+DEBUG: Server connected
+DEBUG: Starting controller thread
+DEBUG: Starting receiver thread
+DEBUG: Using icon: /usr/local/share/icons/hicolor/256x256/apps/scrcpy.png
+[server] DEBUG: Using video encoder: 'c2.hantro.avc.encoder'
+[server] DEBUG: Display: using DisplayManager API
+[server] VERBOSE: DisplaySizeMonitor: onDisplayConfigurationChanged(6)
+INFO: Renderer: opengl
+INFO: OpenGL version: 4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.25.10.1
+INFO: Trilinear filtering enabled
+DEBUG: Demuxer 'video': starting thread
+INFO: Texture: 1920x1080
+VERBOSE: input: touch [id=mouse] down position=957,1008 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=957,1008 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1082,1019 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1081,1019 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1081,1019 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=554,366 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=554,366 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1311,104 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1311,104 pressure=0.000000 action_button=000001 buttons=000000
+DEBUG: User requested to quit
+DEBUG: quit...
+DEBUG: Controller stopped
+DEBUG: Receiver stopped
+DEBUG: Demuxer 'video': end of frames
+[server] DEBUG: Controller stopped
+[server] DEBUG: Device message sender stopped
+[server] DEBUG: Screen streaming stopped
+DEBUG: Server disconnected
+DEBUG: Server terminated
+scrcpy 3.3.4 <https://github.com/Genymobile/scrcpy>
+INFO: ADB device found:
+INFO:     -->   (usb)  0001220500000000                device  malagueta
+DEBUG: Device serial: 0001220500000000
+DEBUG: Using server: /usr/local/share/scrcpy/scrcpy-server
+/usr/local/share/scrcpy/scrcpy-server: 1 file pushed, 0 skipped. 132.9 MB/s (90980 bytes in 0.001s)
+[server] INFO: Device: [SiEngine] SiEngine malagueta (Android 15)
+DEBUG: Server connected
+DEBUG: Starting controller thread
+DEBUG: Starting receiver thread
+DEBUG: Using icon: /usr/local/share/icons/hicolor/256x256/apps/scrcpy.png
+[server] DEBUG: Using video encoder: 'c2.hantro.avc.encoder'
+[server] DEBUG: Display: using DisplayManager API
+[server] VERBOSE: DisplaySizeMonitor: onDisplayConfigurationChanged(7)
+INFO: Renderer: opengl
+INFO: OpenGL version: 4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.25.10.1
+INFO: Trilinear filtering enabled
+DEBUG: Demuxer 'video': starting thread
+INFO: Texture: 1920x1080
+VERBOSE: input: touch [id=mouse] down position=943,1011 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=943,1011 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1087,1001 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1087,1001 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=560,364 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=560,364 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1306,103 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1306,103 pressure=0.000000 action_button=000001 buttons=000000
+DEBUG: User requested to quit
+DEBUG: quit...
+DEBUG: Controller stopped
+DEBUG: Receiver stopped
+DEBUG: Demuxer 'video': end of frames
+[server] DEBUG: Controller stopped
+[server] DEBUG: Device message sender stopped
+[server] DEBUG: Screen streaming stopped
+DEBUG: Server disconnected
+DEBUG: Server terminated
+scrcpy 3.3.4 <https://github.com/Genymobile/scrcpy>
+INFO: ADB device found:
+INFO:     -->   (usb)  0001220500000000                device  malagueta
+DEBUG: Device serial: 0001220500000000
+DEBUG: Using server: /usr/local/share/scrcpy/scrcpy-server
+/usr/local/share/scrcpy/scrcpy-server: 1 file pushed, 0 skipped. 90.6 MB/s (90980 bytes in 0.001s)
+[server] INFO: Device: [SiEngine] SiEngine malagueta (Android 15)
+DEBUG: Server connected
+DEBUG: Starting controller thread
+DEBUG: Starting receiver thread
+DEBUG: Using icon: /usr/local/share/icons/hicolor/256x256/apps/scrcpy.png
+[server] DEBUG: Using video encoder: 'c2.hantro.avc.encoder'
+[server] DEBUG: Display: using DisplayManager API
+[server] VERBOSE: DisplaySizeMonitor: onDisplayConfigurationChanged(8)
+INFO: Renderer: opengl
+INFO: OpenGL version: 4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.25.10.1
+INFO: Trilinear filtering enabled
+DEBUG: Demuxer 'video': starting thread
+INFO: Texture: 1920x1080
+DEBUG: User requested to quit
+DEBUG: quit...
+DEBUG: Controller stopped
+DEBUG: Demuxer 'video': end of frames
+DEBUG: Receiver stopped
+[server] DEBUG: Controller stopped
+[server] DEBUG: Device message sender stopped
+[server] DEBUG: Screen streaming stopped
+DEBUG: Server disconnected
+DEBUG: Server terminated
+scrcpy 3.3.4 <https://github.com/Genymobile/scrcpy>
+INFO: ADB device found:
+INFO:     -->   (usb)  0001220500000000                device  malagueta
+DEBUG: Device serial: 0001220500000000
+DEBUG: Using server: /usr/local/share/scrcpy/scrcpy-server
+/usr/local/share/scrcpy/scrcpy-server: 1 file pushed, 0 skipped. 95.6 MB/s (90980 bytes in 0.001s)
+[server] INFO: Device: [SiEngine] SiEngine malagueta (Android 15)
+DEBUG: Server connected
+DEBUG: Starting controller thread
+DEBUG: Starting receiver thread
+DEBUG: Using icon: /usr/local/share/icons/hicolor/256x256/apps/scrcpy.png
+[server] DEBUG: Using video encoder: 'c2.hantro.avc.encoder'
+[server] DEBUG: Display: using DisplayManager API
+[server] VERBOSE: DisplaySizeMonitor: onDisplayConfigurationChanged(9)
+INFO: Renderer: opengl
+INFO: OpenGL version: 4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.25.10.1
+INFO: Trilinear filtering enabled
+DEBUG: Demuxer 'video': starting thread
+INFO: Texture: 1920x1080
+VERBOSE: input: touch [id=mouse] down position=1028,640 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1028,640 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=952,995 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=952,995 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1098,1001 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1098,1001 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1369,408 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1369,408 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: scroll position=361,466 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=360,468 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=358,473 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=356,478 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=385,718 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=383,719 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=371,711 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=371,711 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=369,710 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=361,707 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=358,705 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=354,707 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=277,713 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=277,713 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=277,713 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=277,713 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=277,713 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=277,713 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=277,713 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=270,728 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=335,546 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=335,540 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=334,537 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=334,536 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=326,500 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=488,137 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=488,137 pressure=0.000000 action_button=000001 buttons=000000
+[server] VERBOSE: Ignoring AbstractMethodError: abstract method "void android.view.IDisplayWindowListener.onKeepClearAreasChanged(int, java.util.List, java.util.List)"
+VERBOSE: input: key down code=31 repeat=0 meta=100000
+VERBOSE: input: key up   code=31 repeat=0 meta=100000
+VERBOSE: input: key down code=29 repeat=0 meta=000000
+VERBOSE: input: key up   code=29 repeat=0 meta=000000
+VERBOSE: input: key down code=46 repeat=0 meta=000000
+VERBOSE: input: key up   code=46 repeat=0 meta=000000
+VERBOSE: input: key down code=44 repeat=0 meta=000000
+VERBOSE: input: key up   code=44 repeat=0 meta=000000
+VERBOSE: input: key down code=40 repeat=0 meta=000000
+VERBOSE: input: key down code=29 repeat=0 meta=000000
+VERBOSE: input: key up   code=40 repeat=0 meta=000000
+VERBOSE: input: key up   code=29 repeat=0 meta=000000
+VERBOSE: input: key down code=53 repeat=0 meta=000000
+VERBOSE: input: key up   code=53 repeat=0 meta=000000
+VERBOSE: input: touch [id=mouse] down position=353,290 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=353,290 pressure=0.000000 action_button=000001 buttons=000000
+[server] VERBOSE: Ignoring AbstractMethodError: abstract method "void android.view.IDisplayWindowListener.onKeepClearAreasChanged(int, java.util.List, java.util.List)"
+VERBOSE: input: scroll position=238,547 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=238,554 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=238,594 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=242,647 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=242,649 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=242,649 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=242,649 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=242,649 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=242,649 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=242,649 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=242,649 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=396,238 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=396,238 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=956,1004 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=956,1004 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=963,1013 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=963,1013 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1065,1012 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1065,1012 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=727,585 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=730,587 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=751,589 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=781,589 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=819,589 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=860,587 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=899,584 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=943,580 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=989,576 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1039,573 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1096,573 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1164,573 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1238,578 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1314,582 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1395,589 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1470,593 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1529,597 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1577,600 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1609,600 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1631,602 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1638,602 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1639,602 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1639,602 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1326,367 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1326,367 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=261,239 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=261,239 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=940,1012 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=939,1012 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=939,1012 pressure=0.000000 action_button=000001 buttons=000000
+DEBUG: User requested to quit
+DEBUG: quit...
+DEBUG: Controller stopped
+DEBUG: Demuxer 'video': end of frames
+DEBUG: Receiver stopped
+[server] DEBUG: Controller stopped
+[server] DEBUG: Device message sender stopped
+[server] DEBUG: Screen streaming stopped
+DEBUG: Server disconnected
+DEBUG: Server terminated
+scrcpy 3.3.4 <https://github.com/Genymobile/scrcpy>
+INFO: ADB device found:
+INFO:     -->   (usb)  0001220500000000                device  malagueta
+DEBUG: Device serial: 0001220500000000
+DEBUG: Using server: /usr/local/share/scrcpy/scrcpy-server
+/usr/local/share/scrcpy/scrcpy-server: 1 file pushed, 0 skipped. 102.3 MB/s (90980 bytes in 0.001s)
+[server] INFO: Device: [SiEngine] SiEngine malagueta (Android 15)
+DEBUG: Server connected
+DEBUG: Starting controller thread
+DEBUG: Starting receiver thread
+DEBUG: Using icon: /usr/local/share/icons/hicolor/256x256/apps/scrcpy.png
+[server] DEBUG: Using video encoder: 'c2.hantro.avc.encoder'
+[server] DEBUG: Display: using DisplayManager API
+INFO: Renderer: opengl
+INFO: OpenGL version: 4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.25.10.1
+INFO: Trilinear filtering enabled
+DEBUG: Demuxer 'video': starting thread
+INFO: Texture: 1920x1080
+[server] VERBOSE: DisplaySizeMonitor: onDisplayConfigurationChanged(10)
+VERBOSE: input: touch [id=mouse] down position=982,1007 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=982,1007 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1060,1008 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1060,1008 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1376,330 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1376,329 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1376,329 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=918,980 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=918,980 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1032,995 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1032,995 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1099,1008 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1099,1008 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1376,348 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1378,348 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1379,348 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1382,347 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1385,346 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1385,346 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1363,375 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1363,375 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=967,1002 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=967,1002 pressure=0.000000 action_button=000001 buttons=000000
+DEBUG: User requested to quit
+DEBUG: quit...
+DEBUG: Controller stopped
+DEBUG: Receiver stopped
+DEBUG: Demuxer 'video': end of frames
+[server] DEBUG: Controller stopped
+[server] DEBUG: Device message sender stopped
+[server] DEBUG: Screen streaming stopped
+DEBUG: Server disconnected
+DEBUG: Server terminated
+scrcpy 3.3.4 <https://github.com/Genymobile/scrcpy>
+INFO: ADB device found:
+INFO:     -->   (usb)  0001220500000000                device  malagueta
+DEBUG: Device serial: 0001220500000000
+DEBUG: Using server: /usr/local/share/scrcpy/scrcpy-server
+/usr/local/share/scrcpy/scrcpy-server: 1 file pushed, 0 skipped. 106.5 MB/s (90980 bytes in 0.001s)
+[server] INFO: Device: [SiEngine] SiEngine malagueta (Android 15)
+DEBUG: Server connected
+DEBUG: Starting controller thread
+DEBUG: Starting receiver thread
+DEBUG: Using icon: /usr/local/share/icons/hicolor/256x256/apps/scrcpy.png
+[server] DEBUG: Using video encoder: 'c2.hantro.avc.encoder'
+[server] DEBUG: Display: using DisplayManager API
+[server] VERBOSE: DisplaySizeMonitor: onDisplayConfigurationChanged(11)
+INFO: Renderer: opengl
+INFO: OpenGL version: 4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.25.10.1
+INFO: Trilinear filtering enabled
+DEBUG: Demuxer 'video': starting thread
+INFO: Texture: 1920x1080
+VERBOSE: input: touch [id=mouse] down position=965,1010 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=965,1010 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1082,996 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1082,996 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1392,362 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1392,362 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=292,241 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=292,241 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1100,816 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1100,816 pressure=0.000000 action_button=000001 buttons=000000
+DEBUG: User requested to quit
+DEBUG: quit...
+DEBUG: Controller stopped
+DEBUG: Demuxer 'video': end of frames
+DEBUG: Receiver stopped
+[server] DEBUG: Controller stopped
+[server] DEBUG: Device message sender stopped
+[server] DEBUG: Screen streaming stopped
+DEBUG: Server disconnected
+DEBUG: Server terminated
+scrcpy 3.3.4 <https://github.com/Genymobile/scrcpy>
+INFO: ADB device found:
+INFO:     -->   (usb)  0001220500000000                device  malagueta
+DEBUG: Device serial: 0001220500000000
+DEBUG: Using server: /usr/local/share/scrcpy/scrcpy-server
+/usr/local/share/scrcpy/scrcpy-server: 1 file pushed, 0 skipped. 169.0 MB/s (90980 bytes in 0.001s)
+[server] INFO: Device: [SiEngine] SiEngine malagueta (Android 15)
+DEBUG: Server connected
+DEBUG: Starting controller thread
+DEBUG: Starting receiver thread
+DEBUG: Using icon: /usr/local/share/icons/hicolor/256x256/apps/scrcpy.png
+[server] DEBUG: Using video encoder: 'c2.hantro.avc.encoder'
+[server] DEBUG: Display: using DisplayManager API
+[server] VERBOSE: DisplaySizeMonitor: onDisplayConfigurationChanged(12)
+INFO: Renderer: opengl
+INFO: OpenGL version: 4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.25.10.1
+INFO: Trilinear filtering enabled
+DEBUG: Demuxer 'video': starting thread
+INFO: Texture: 1920x1080
+DEBUG: User requested to quit
+DEBUG: quit...
+DEBUG: Controller stopped
+DEBUG: Demuxer 'video': end of frames
+DEBUG: Receiver stopped
+[server] DEBUG: Controller stopped
+[server] DEBUG: Device message sender stopped
+[server] DEBUG: Screen streaming stopped
+DEBUG: Server disconnected
+DEBUG: Server terminated
+scrcpy 3.3.4 <https://github.com/Genymobile/scrcpy>
+INFO: ADB device found:
+INFO:     -->   (usb)  0001220500000000                device  malagueta
+DEBUG: Device serial: 0001220500000000
+DEBUG: Using server: /usr/local/share/scrcpy/scrcpy-server
+/usr/local/share/scrcpy/scrcpy-server: 1 file pushed, 0 skipped. 114.8 MB/s (90980 bytes in 0.001s)
+[server] INFO: Device: [SiEngine] SiEngine malagueta (Android 15)
+DEBUG: Server connected
+DEBUG: Starting controller thread
+DEBUG: Starting receiver thread
+DEBUG: Using icon: /usr/local/share/icons/hicolor/256x256/apps/scrcpy.png
+[server] DEBUG: Using video encoder: 'c2.hantro.avc.encoder'
+[server] DEBUG: Display: using DisplayManager API
+[server] VERBOSE: DisplaySizeMonitor: onDisplayConfigurationChanged(13)
+INFO: Renderer: opengl
+INFO: OpenGL version: 4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.25.10.1
+INFO: Trilinear filtering enabled
+DEBUG: Demuxer 'video': starting thread
+INFO: Texture: 1920x1080
+VERBOSE: input: touch [id=mouse] down position=969,991 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=968,993 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=968,994 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=968,996 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=969,996 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=969,998 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=970,998 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=970,998 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=972,998 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=972,998 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=972,996 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=972,996 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1073,1000 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1073,1000 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1398,377 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1398,377 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1164,506 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1164,506 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=887,432 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=887,432 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=114,126 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=114,126 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1699,492 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1699,492 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=913,636 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=913,636 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1714,501 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1714,501 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=887,622 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=887,622 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1725,485 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1725,485 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=958,1001 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=958,1001 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1092,1005 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1092,1005 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1445,1008 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1445,1008 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1052,1010 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1053,1011 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1053,1011 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1398,347 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1398,347 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1043,500 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1043,500 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=882,434 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=882,434 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=85,115 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=85,115 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1145,855 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1145,855 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=963,507 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=963,507 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1395,491 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1395,491 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1176,602 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1176,602 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=945,487 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=945,487 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: scroll position=952,623 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=946,622 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=943,622 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=916,537 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=916,537 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=916,542 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=917,549 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=920,558 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=933,991 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=932,991 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=931,991 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=931,991 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1125,1012 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1125,1012 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1106,1016 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1104,1016 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1106,1015 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1106,1015 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1398,340 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1397,340 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1395,340 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1395,340 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=89,137 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=88,137 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=88,137 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1689,498 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1689,498 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1707,484 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1706,484 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1706,484 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1685,492 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1685,492 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1560,498 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1560,498 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1813,490 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1813,491 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1813,491 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1757,369 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1757,369 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1139,499 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1139,499 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=794,397 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=794,398 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=789,404 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=789,405 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=788,406 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=788,406 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=849,405 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=849,404 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=849,404 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: scroll position=929,719 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=929,719 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=929,713 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=934,697 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=934,697 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=934,694 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=1714,667 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=1714,667 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=1714,667 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=1714,667 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=1711,667 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=1011,560 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=1011,560 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=95,126 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=95,126 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1059,622 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1059,622 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=68,128 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=69,128 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=69,127 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=69,127 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1034,799 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1034,799 pressure=0.000000 action_button=000001 buttons=000000
+DEBUG: User requested to quit
+DEBUG: quit...
+DEBUG: Controller stopped
+DEBUG: Receiver stopped
+DEBUG: Demuxer 'video': end of frames
+[server] DEBUG: Controller stopped
+[server] DEBUG: Device message sender stopped
+[server] DEBUG: Screen streaming stopped
+DEBUG: Server disconnected
+DEBUG: Server terminated
+scrcpy 3.3.4 <https://github.com/Genymobile/scrcpy>
+INFO: ADB device found:
+INFO:     -->   (usb)  0001220500000000                device  malagueta
+DEBUG: Device serial: 0001220500000000
+DEBUG: Using server: /usr/local/share/scrcpy/scrcpy-server
+/usr/local/share/scrcpy/scrcpy-server: 1 file pushed, 0 skipped. 108.0 MB/s (90980 bytes in 0.001s)
+[server] INFO: Device: [SiEngine] SiEngine malagueta (Android 15)
+DEBUG: Server connected
+DEBUG: Starting controller thread
+DEBUG: Starting receiver thread
+DEBUG: Using icon: /usr/local/share/icons/hicolor/256x256/apps/scrcpy.png
+[server] DEBUG: Using video encoder: 'c2.hantro.avc.encoder'
+[server] DEBUG: Display: using DisplayManager API
+[server] VERBOSE: DisplaySizeMonitor: onDisplayConfigurationChanged(14)
+INFO: Renderer: opengl
+INFO: OpenGL version: 4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.25.10.1
+INFO: Trilinear filtering enabled
+DEBUG: Demuxer 'video': starting thread
+INFO: Texture: 1920x1080
+VERBOSE: input: touch [id=mouse] down position=978,992 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=977,992 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=977,992 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=969,988 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=969,988 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1072,1041 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1072,1041 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=579,365 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=579,365 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=975,1006 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=974,1006 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=974,1006 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1084,1007 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1084,1007 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1390,390 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1390,389 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1390,389 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1695,495 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1695,495 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1802,509 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1802,509 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1804,485 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1804,485 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=954,449 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=955,450 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=955,450 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=941,485 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=941,485 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=836,608 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=836,608 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=825,855 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=827,855 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=830,855 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=830,855 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=826,785 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=826,785 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=822,859 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=822,859 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=986,995 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=986,995 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1076,1022 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1076,1022 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1404,364 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1404,362 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1403,362 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1402,362 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1402,362 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: scroll position=1049,762 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=1049,762 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=954,508 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=954,508 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1686,515 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1686,515 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1150,511 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1150,511 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=942,485 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=941,485 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=940,486 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=940,486 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: scroll position=719,685 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=738,705 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=738,705 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=738,703 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=738,701 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=739,687 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=740,685 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=673,737 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=673,737 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=659,742 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=659,742 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=792,601 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=792,601 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: scroll position=1305,619 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=1305,619 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=1305,619 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=1174,579 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=859,366 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=852,390 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=847,424 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=830,472 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=810,508 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=90,138 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=90,139 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=90,139 pressure=0.000000 action_button=000001 buttons=000000
+DEBUG: User requested to quit
+DEBUG: quit...
+DEBUG: Controller stopped
+DEBUG: Receiver stopped
+DEBUG: Demuxer 'video': end of frames
+[server] DEBUG: Controller stopped
+[server] DEBUG: Device message sender stopped
+[server] DEBUG: Screen streaming stopped
+DEBUG: Server disconnected
+DEBUG: Server terminated
+scrcpy 3.3.4 <https://github.com/Genymobile/scrcpy>
+INFO: ADB device found:
+INFO:     -->   (usb)  0001220500000000                device  malagueta
+DEBUG: Device serial: 0001220500000000
+DEBUG: Using server: /usr/local/share/scrcpy/scrcpy-server
+/usr/local/share/scrcpy/scrcpy-server: 1 file pushed, 0 skipped. 164.4 MB/s (90980 bytes in 0.001s)
+[server] INFO: Device: [SiEngine] SiEngine malagueta (Android 15)
+DEBUG: Server connected
+DEBUG: Starting controller thread
+DEBUG: Starting receiver thread
+DEBUG: Using icon: /usr/local/share/icons/hicolor/256x256/apps/scrcpy.png
+[server] DEBUG: Using video encoder: 'c2.hantro.avc.encoder'
+[server] DEBUG: Display: using DisplayManager API
+[server] VERBOSE: DisplaySizeMonitor: onDisplayConfigurationChanged(15)
+INFO: Renderer: opengl
+INFO: OpenGL version: 4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.25.10.1
+INFO: Trilinear filtering enabled
+DEBUG: Demuxer 'video': starting thread
+INFO: Texture: 1920x1080
+VERBOSE: input: touch [id=mouse] down position=975,1005 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=975,1005 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1082,1011 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1082,1012 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1082,1013 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1083,1015 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1083,1016 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1083,1016 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1357,353 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1354,353 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1352,353 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1350,353 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1349,353 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1349,353 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=344,233 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=344,233 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=946,511 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=946,511 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=891,428 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=891,428 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1554,197 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1555,196 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1555,196 pressure=0.000000 action_button=000001 buttons=000000
+[server] VERBOSE: Ignoring AbstractMethodError: abstract method "void android.view.IDisplayWindowListener.onKeepClearAreasChanged(int, java.util.List, java.util.List)"
+VERBOSE: input: touch [id=mouse] down position=1133,502 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1133,502 pressure=0.000000 action_button=000001 buttons=000000
+[server] VERBOSE: Ignoring AbstractMethodError: abstract method "void android.view.IDisplayWindowListener.onKeepClearAreasChanged(int, java.util.List, java.util.List)"
+VERBOSE: input: touch [id=mouse] down position=1408,32 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1407,32 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1407,32 pressure=0.000000 action_button=000001 buttons=000000
+DEBUG: User requested to quit
+DEBUG: quit...
+DEBUG: Controller stopped
+DEBUG: Receiver stopped
+DEBUG: Demuxer 'video': end of frames
+[server] DEBUG: Controller stopped
+[server] DEBUG: Device message sender stopped
+[server] DEBUG: Screen streaming stopped
+DEBUG: Server disconnected
+DEBUG: Server terminated
+scrcpy 3.3.4 <https://github.com/Genymobile/scrcpy>
+INFO: ADB device found:
+INFO:     -->   (usb)  0001220500000000                device  malagueta
+DEBUG: Device serial: 0001220500000000
+DEBUG: Using server: /usr/local/share/scrcpy/scrcpy-server
+/usr/local/share/scrcpy/scrcpy-server: 1 file pushed, 0 skipped. 109.9 MB/s (90980 bytes in 0.001s)
+[server] INFO: Device: [SiEngine] SiEngine malagueta (Android 15)
+DEBUG: Server connected
+DEBUG: Starting controller thread
+DEBUG: Starting receiver thread
+DEBUG: Using icon: /usr/local/share/icons/hicolor/256x256/apps/scrcpy.png
+[server] DEBUG: Using video encoder: 'c2.hantro.avc.encoder'
+[server] DEBUG: Display: using DisplayManager API
+[server] VERBOSE: DisplaySizeMonitor: onDisplayConfigurationChanged(16)
+INFO: Renderer: opengl
+INFO: OpenGL version: 4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.25.10.1
+INFO: Trilinear filtering enabled
+DEBUG: Demuxer 'video': starting thread
+INFO: Texture: 1920x1080
+VERBOSE: input: touch [id=mouse] down position=922,995 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=921,995 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=921,995 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=921,995 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=920,995 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=920,995 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=943,993 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=943,993 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1089,1023 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1089,1025 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1088,1026 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1088,1026 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=908,1008 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=908,1008 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=980,1023 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=979,1023 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=978,1023 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=978,1023 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1075,1022 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1075,1022 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1355,358 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1356,358 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1356,358 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=247,369 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=247,369 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=104,456 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=104,456 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: key down code=113 repeat=0 meta=203000
+VERBOSE: input: key up   code=113 repeat=0 meta=200000
+VERBOSE: input: touch [id=mouse] down position=88,125 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=88,125 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: scroll position=460,319 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=435,307 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=434,307 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=442,305 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=443,296 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=450,292 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=464,286 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=472,282 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=476,257 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=492,135 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=492,135 pressure=0.000000 action_button=000001 buttons=000000
+[server] VERBOSE: Ignoring AbstractMethodError: abstract method "void android.view.IDisplayWindowListener.onKeepClearAreasChanged(int, java.util.List, java.util.List)"
+VERBOSE: input: touch [id=mouse] down position=90,123 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=89,123 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=88,123 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=88,123 pressure=0.000000 action_button=000001 buttons=000000
+[server] VERBOSE: Ignoring AbstractMethodError: abstract method "void android.view.IDisplayWindowListener.onKeepClearAreasChanged(int, java.util.List, java.util.List)"
+VERBOSE: input: touch [id=mouse] down position=516,147 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=516,146 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=516,146 pressure=0.000000 action_button=000001 buttons=000000
+[server] VERBOSE: Ignoring AbstractMethodError: abstract method "void android.view.IDisplayWindowListener.onKeepClearAreasChanged(int, java.util.List, java.util.List)"
+VERBOSE: input: touch [id=mouse] down position=72,143 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=72,143 pressure=0.000000 action_button=000001 buttons=000000
+[server] VERBOSE: Ignoring AbstractMethodError: abstract method "void android.view.IDisplayWindowListener.onKeepClearAreasChanged(int, java.util.List, java.util.List)"
+VERBOSE: input: scroll position=340,355 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=337,358 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=339,360 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=102,438 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=77,438 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=68,438 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=68,440 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=81,448 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=142,464 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=268,394 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=267,394 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=257,403 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=252,370 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=252,370 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1804,278 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1802,279 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1800,280 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1792,285 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1779,292 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1759,298 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1732,304 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1697,310 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1651,314 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1600,314 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1537,318 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1465,320 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1392,323 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1320,323 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1252,325 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1183,327 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1123,327 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1065,327 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1013,331 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=970,331 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=931,331 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=899,331 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=881,331 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=866,331 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=861,331 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=860,331 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=859,332 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=857,332 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=856,332 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=855,333 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=852,333 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=848,333 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=844,334 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=839,335 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=835,335 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=830,336 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=826,336 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=823,337 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=818,337 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=815,337 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=812,337 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=811,337 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=810,336 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=806,332 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=803,328 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=799,326 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=798,325 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=797,323 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=795,322 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=794,319 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=792,316 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=791,311 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=789,308 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=788,305 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=787,303 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=786,301 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=784,298 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=782,295 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=781,293 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=780,290 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=779,288 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=778,286 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=778,285 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=777,283 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=777,281 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=777,280 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=777,279 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=777,279 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=775,278 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=775,278 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=775,278 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=775,278 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1208,283 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1239,285 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1281,289 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1334,294 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1394,298 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1452,302 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1515,304 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1575,304 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1635,304 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1691,304 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1738,300 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1738,300 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1734,283 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1739,285 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1750,287 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1763,289 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1778,289 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1793,292 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1810,292 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1827,292 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1839,289 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1846,289 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1851,289 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1857,288 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1864,288 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1868,288 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1870,288 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1871,288 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1871,288 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: scroll position=285,281 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: scroll position=287,288 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=288,292 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=289,293 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=289,294 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=292,301 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=296,316 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=296,366 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=298,415 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=310,476 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=310,476 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=344,348 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=344,351 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=344,355 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=345,358 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=346,362 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=346,362 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: scroll position=346,362 hscroll=0.000000 vscroll=1.000000 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=369,225 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=369,225 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1083,816 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1083,816 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1821,46 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1821,46 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=60,110 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=61,110 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=61,110 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=956,1011 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=955,1011 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=955,1011 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1875,1017 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1875,1017 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1768,995 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1768,996 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1768,999 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1769,1000 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1769,1000 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=954,4 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=954,7 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=953,13 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=953,17 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=953,22 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=952,28 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=951,33 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=951,37 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=951,42 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=951,47 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=951,50 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=950,52 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=950,56 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=950,59 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=950,61 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=950,62 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=951,64 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=951,66 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=951,70 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=952,73 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=952,76 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=952,81 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=952,82 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=952,83 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=952,84 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=952,85 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=952,86 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=952,88 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=952,89 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=952,90 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=953,92 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=953,93 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=953,94 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=953,95 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=953,97 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=953,98 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=953,99 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=953,100 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=953,101 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=953,103 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=952,105 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=952,107 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=952,109 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=952,110 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=951,111 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=951,112 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=951,114 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=951,118 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=951,121 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=951,125 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=951,131 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=951,134 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=951,140 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=951,147 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=951,155 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=952,162 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=952,168 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=952,173 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=952,181 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=952,189 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=952,207 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=952,224 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=954,241 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=956,255 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=957,274 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=957,294 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=957,318 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=957,339 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=960,368 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=962,399 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=966,430 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=968,457 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=976,484 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=982,501 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=991,520 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=998,531 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1002,539 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1002,539 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=971,1042 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=971,1041 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=970,1040 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=969,1036 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=969,1025 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=969,1008 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=967,984 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=967,951 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=963,903 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=956,837 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=950,761 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=940,674 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=929,582 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=917,495 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=907,406 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=894,328 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=880,261 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=871,201 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=869,154 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=869,117 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=871,83 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=876,54 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=882,30 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=890,11 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=890,11 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1802,1029 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1801,1029 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1801,1029 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1800,976 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1799,976 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1799,976 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1706,367 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1706,367 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1816,1005 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1815,1005 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1815,1006 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1815,1006 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1544,536 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1544,536 pressure=0.000000 action_button=000001 buttons=000000
+DEBUG: User requested to quit
+DEBUG: quit...
+DEBUG: Controller stopped
+DEBUG: Receiver stopped
+DEBUG: Demuxer 'video': end of frames
+[server] DEBUG: Controller stopped
+[server] DEBUG: Device message sender stopped
+[server] DEBUG: Screen streaming stopped
+DEBUG: Server disconnected
+DEBUG: Server terminated
+scrcpy 3.3.4 <https://github.com/Genymobile/scrcpy>
+INFO: ADB device found:
+INFO:     -->   (usb)  0001220500000000                device  malagueta
+DEBUG: Device serial: 0001220500000000
+DEBUG: Using server: /usr/local/share/scrcpy/scrcpy-server
+/usr/local/share/scrcpy/scrcpy-server: 1 file pushed, 0 skipped. 94.7 MB/s (90980 bytes in 0.001s)
+[server] INFO: Device: [SiEngine] SiEngine malagueta (Android 15)
+DEBUG: Server connected
+DEBUG: Starting controller thread
+DEBUG: Starting receiver thread
+DEBUG: Using icon: /usr/local/share/icons/hicolor/256x256/apps/scrcpy.png
+[server] DEBUG: Using video encoder: 'c2.hantro.avc.encoder'
+[server] DEBUG: Display: using DisplayManager API
+[server] VERBOSE: DisplaySizeMonitor: onDisplayConfigurationChanged(17)
+INFO: Renderer: opengl
+INFO: OpenGL version: 4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.25.10.1
+INFO: Trilinear filtering enabled
+DEBUG: Demuxer 'video': starting thread
+INFO: Texture: 1920x1080
+VERBOSE: input: touch [id=mouse] down position=1049,1008 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1050,1008 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1050,1008 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1360,382 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1360,382 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: scroll position=291,652 hscroll=0.000000 vscroll=-1.000000 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=974,1039 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=974,1039 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1089,1017 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1088,1017 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1088,1017 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1632,653 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1631,652 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1626,651 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1620,650 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1608,650 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1591,648 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1561,646 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1522,643 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1480,639 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1430,639 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1371,639 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1310,639 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1247,643 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1186,643 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1129,646 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1081,648 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1035,650 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1000,652 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=978,652 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=962,654 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=954,655 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=949,656 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=945,656 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=943,656 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=939,659 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=932,659 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=929,659 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=921,659 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=907,662 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=885,662 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=859,662 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=828,662 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=798,662 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=765,664 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=730,664 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=693,664 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=656,664 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=617,664 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=573,664 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=534,664 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=492,664 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=451,664 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=411,666 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=374,666 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=337,671 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=306,673 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=278,673 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=247,675 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=221,677 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=199,679 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=181,683 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=172,685 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=170,685 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=167,686 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=164,687 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=161,688 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=159,688 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=158,688 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=157,689 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=156,689 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=155,690 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=152,690 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=149,691 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=143,691 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=136,691 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=131,691 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=131,691 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=640,661 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=648,658 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=668,650 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=690,643 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=725,639 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=779,639 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=854,641 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=934,646 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1011,650 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1081,654 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1138,659 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1194,663 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1236,667 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1269,672 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1269,672 pressure=0.000000 action_button=000001 buttons=000000
+VERBOSE: input: touch [id=mouse] down position=1372,546 pressure=1.000000 action_button=000001 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1372,545 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1365,546 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1349,546 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1321,546 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1288,546 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1251,544 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1212,542 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1164,540 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1113,535 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] move position=1059,531 pressure=1.000000 action_button=000000 buttons=000001
+VERBOSE: input: touch [id=mouse] up   position=1059,531 pressure=0.000000 action_button=000001 buttons=000000

@@ -10,6 +10,8 @@ from pathlib import Path
 from typing import Any
 
 from vwait.core.paths import (
+    TESTER_CATALOG_ROOT,
+    TRAINING_EPISODES_ROOT,
     ensure_data_roots,
     normalize_segment,
     tester_actions_path,
@@ -368,6 +370,77 @@ def create_training_episode_draft(
     return True, str(episode_dir), episode_id
 
 
+def _category_test_from_source_refs(source_refs: dict[str, Any]) -> tuple[str | None, str | None]:
+    raw_path = source_refs.get("data_source_path")
+    if not raw_path:
+        raw_actions = source_refs.get("actions_path")
+        if raw_actions:
+            raw_path = str(Path(str(raw_actions)).parent.parent)
+    if not raw_path:
+        return None, None
+    try:
+        relative = Path(str(raw_path)).resolve().relative_to(TESTER_CATALOG_ROOT.resolve())
+    except Exception:
+        return None, None
+    parts = relative.parts
+    if len(parts) < 2:
+        return None, None
+    return parts[0], parts[1]
+
+
+def complete_training_episode_draft(episode_dir: str | Path) -> tuple[bool, str]:
+    episode_path = Path(episode_dir)
+    episode_payload = _load_json(episode_path / "episode.json")
+    if not episode_payload:
+        return False, "episode.json nao encontrado."
+    if str(episode_payload.get("status") or "") == "completed" and int(episode_payload.get("step_count") or 0) > 0:
+        return True, str(episode_path)
+
+    source_refs = _load_json(episode_path / "source_refs.json")
+    category, test_name = _category_test_from_source_refs(source_refs)
+    if not category or not test_name:
+        return False, "Nao consegui resolver a origem em Data/catalog/tester."
+
+    actions_path = Path(str(source_refs.get("actions_path") or tester_actions_path(category, test_name)))
+    actions_payload = _load_json(actions_path)
+    actions = actions_payload.get("acoes")
+    if not isinstance(actions, list) or not actions:
+        return False, "Aguardando actions.json com acoes."
+
+    annotations = _load_json(episode_path / "manual_annotations.json")
+    ok, exported_path = export_training_episode(
+        category=category,
+        test_name=test_name,
+        training_category=str(episode_payload.get("category_name") or episode_payload.get("category") or ""),
+        flow=str(episode_payload.get("flow_name") or episode_payload.get("flow") or ""),
+        objective=str(episode_payload.get("objective") or ""),
+        success_criteria_final=str(episode_payload.get("success_criteria_final") or ""),
+        tester_id=episode_payload.get("tester_id"),
+        notes=str(episode_payload.get("notes") or ""),
+        serial=(_load_json(episode_path / "environment.json").get("device_id") or None),
+        input_source=(_load_json(episode_path / "environment.json").get("source") or actions_payload.get("fonte")),
+        step_intents_text=str(annotations.get("raw_step_intents_text") or "\n".join(annotations.get("step_intents") or [])),
+        step_expected_text=str(annotations.get("raw_step_expected_text") or "\n".join(annotations.get("step_expected_results") or [])),
+        episode_id=str(episode_payload.get("episode_id") or episode_path.name),
+    )
+    if not ok:
+        return False, exported_path
+    return True, exported_path
+
+
+def complete_recording_training_episodes() -> list[tuple[bool, str]]:
+    ensure_data_roots()
+    results: list[tuple[bool, str]] = []
+    if not TRAINING_EPISODES_ROOT.is_dir():
+        return results
+    for episode_file in TRAINING_EPISODES_ROOT.glob("*/*/*/episode.json"):
+        payload = _load_json(episode_file)
+        if str(payload.get("status") or "") != "recording":
+            continue
+        results.append(complete_training_episode_draft(episode_file.parent))
+    return results
+
+
 def export_training_episode(
     *,
     category: str,
@@ -555,4 +628,9 @@ def export_training_episode(
     return True, str(episode_dir)
 
 
-__all__ = ["create_training_episode_draft", "export_training_episode"]
+__all__ = [
+    "complete_recording_training_episodes",
+    "complete_training_episode_draft",
+    "create_training_episode_draft",
+    "export_training_episode",
+]

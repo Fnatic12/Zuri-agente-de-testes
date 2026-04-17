@@ -1,0 +1,227 @@
+[
+  {
+    "timestamp": "2026-04-17T16:13:20.067177",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 975,
+    "y": 1005,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-17T16:13:20.117828",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 975,
+    "y": 1005,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-17T16:13:23.886878",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 1082,
+    "y": 1011,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-17T16:13:23.887210",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1082,
+    "y": 1012,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-17T16:13:23.895704",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1082,
+    "y": 1013,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-17T16:13:23.896037",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1083,
+    "y": 1015,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-17T16:13:23.946580",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1083,
+    "y": 1016,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-17T16:13:23.947029",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 1083,
+    "y": 1016,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-17T16:13:27.309927",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 1357,
+    "y": 353,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-17T16:13:27.310382",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1354,
+    "y": 353,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-17T16:13:27.319279",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1352,
+    "y": 353,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-17T16:13:27.369965",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1350,
+    "y": 353,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-17T16:13:27.370248",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1349,
+    "y": 353,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-17T16:13:27.370432",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 1349,
+    "y": 353,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-17T16:13:31.585081",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 344,
+    "y": 233,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-17T16:13:31.635899",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 344,
+    "y": 233,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-17T16:13:35.049031",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 946,
+    "y": 511,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-17T16:13:35.150125",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 946,
+    "y": 511,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-17T16:13:39.317652",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 891,
+    "y": 428,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-17T16:13:39.368346",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 891,
+    "y": 428,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-17T16:13:50.060206",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 1554,
+    "y": 197,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-17T16:13:50.110721",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "move",
+    "x": 1555,
+    "y": 196,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-17T16:13:50.161299",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 1555,
+    "y": 196,
+    "pressure": 0.0
+  },
+  {
+    "timestamp": "2026-04-17T16:13:51.417020",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "down",
+    "x": 1133,
+    "y": 502,
+    "pressure": 1.0
+  },
+  {
+    "timestamp": "2026-04-17T16:13:51.467785",
+    "source": "scrcpy",
+    "input_id": "mouse",
+    "event_type": "up",
+    "x": 1133,
+    "y": 502,
+    "pressure": 0.0
+  }
+]

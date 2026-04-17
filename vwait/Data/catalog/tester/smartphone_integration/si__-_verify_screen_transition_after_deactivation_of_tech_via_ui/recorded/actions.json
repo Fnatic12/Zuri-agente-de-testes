@@ -1,0 +1,161 @@
+{
+    "teste": "[si]_-_verify_screen_transition_after_deactivation_of_tech_via_ui",
+    "categoria": "smartphone_integration",
+    "fonte": "scrcpy",
+    "acoes": [
+        {
+            "id": 1,
+            "timestamp": "2026-04-17T16:13:20.117828",
+            "action_timestamp": "2026-04-17T16:13:20.117828",
+            "screenshot_timestamp": "2026-04-17T16:13:21.682416",
+            "imagem": "frame_01.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 975,
+                "y": 1005,
+                "duracao_s": 0.05,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 2,
+            "timestamp": "2026-04-17T16:13:23.947029",
+            "action_timestamp": "2026-04-17T16:13:23.947029",
+            "screenshot_timestamp": "2026-04-17T16:13:25.452786",
+            "imagem": "frame_02.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 1082,
+                "y": 1011,
+                "duracao_s": 0.06,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 3,
+            "timestamp": "2026-04-17T16:13:27.370432",
+            "action_timestamp": "2026-04-17T16:13:27.370432",
+            "screenshot_timestamp": "2026-04-17T16:13:28.811706",
+            "imagem": "frame_03.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 1357,
+                "y": 353,
+                "duracao_s": 0.06,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 4,
+            "timestamp": "2026-04-17T16:13:31.635899",
+            "action_timestamp": "2026-04-17T16:13:31.635899",
+            "screenshot_timestamp": "2026-04-17T16:13:33.087384",
+            "imagem": "frame_04.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 344,
+                "y": 233,
+                "duracao_s": 0.05,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 5,
+            "timestamp": "2026-04-17T16:13:35.150125",
+            "action_timestamp": "2026-04-17T16:13:35.150125",
+            "screenshot_timestamp": "2026-04-17T16:13:36.605673",
+            "imagem": "frame_05.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 946,
+                "y": 511,
+                "duracao_s": 0.1,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 6,
+            "timestamp": "2026-04-17T16:13:39.368346",
+            "action_timestamp": "2026-04-17T16:13:39.368346",
+            "screenshot_timestamp": "2026-04-17T16:13:40.811275",
+            "imagem": "frame_06.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 891,
+                "y": 428,
+                "duracao_s": 0.05,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 7,
+            "timestamp": "2026-04-17T16:13:50.161299",
+            "action_timestamp": "2026-04-17T16:13:50.161299",
+            "screenshot_timestamp": "2026-04-17T16:13:51.670474",
+            "imagem": "frame_07.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 1554,
+                "y": 197,
+                "duracao_s": 0.1,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        },
+        {
+            "id": 8,
+            "timestamp": "2026-04-17T16:13:51.467785",
+            "action_timestamp": "2026-04-17T16:13:51.467785",
+            "screenshot_timestamp": "2026-04-17T16:13:52.936020",
+            "imagem": "frame_08.png",
+            "acao": {
+                "tipo": "tap",
+                "gesture": "tap",
+                "x": 1133,
+                "y": 502,
+                "duracao_s": 0.05,
+                "resolucao": {
+                    "largura": 1920,
+                    "altura": 1080
+                }
+            },
+            "source": "scrcpy"
+        }
+    ],
+    "resultado_esperado": "expected/final.png",
+    "scrcpy_events": "recorded/scrcpy_events.json"
+}

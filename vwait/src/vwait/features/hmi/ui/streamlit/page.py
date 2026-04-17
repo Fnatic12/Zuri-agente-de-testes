@@ -13,9 +13,10 @@ import cv2
 import numpy as np
 import streamlit as st
 from PIL import Image, ImageChops
+from vwait.core.config.auto_refresh import enable_global_auto_refresh
+from vwait.core.config.ui_theme import apply_dark_background
 from vwait.core.paths import TESTER_RUNS_ROOT, hmi_cache_dir, resolve_tester_run_dir
 from vwait.platform.adb import resolve_adb_path
-from vwait.core.config.ui_theme import apply_dark_background
 
 DEFAULT_HMI_LIBRARY_DIR = "/home/victor-milani/GEI - IMGs"
 PROJECT_ROOT = Path(__file__).resolve().parents[6]
@@ -2792,6 +2793,7 @@ def main() -> None:
     base_dir = str(PROJECT_ROOT)
     data_root = str(PROJECT_ROOT / "Data")
     st.set_page_config(page_title="Validacao HMI", page_icon="", layout="wide")
+    enable_global_auto_refresh(key="hmi_page")
     apply_dark_background(hide_header=True)
     render_hmi_validation_page(base_dir, data_root)
 

@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "step_index": 3,
+  "intent": "encontrar o icone do carplay no menu de aplicativos",
+  "expected_result": "tela inicial do carplay aberta",
+  "action_source": "recorded_touch",
+  "timestamp_start": "2026-04-17T15:06:39.799456",
+  "timestamp_end": "2026-04-17T15:06:41.461328",
+  "artifacts": {
+    "before": "before.png",
+    "after": "after.png"
+  },
+  "recorded_action": {
+    "type": "tap",
+    "gesture": "tap",
+    "coordinates": {
+      "x": 560,
+      "y": 364
+    },
+    "duration_s": 0.05,
+    "duration_ms": null
+  },
+  "source_refs": {
+    "recorded_frame": "/home/victor-milani/vwait-ia/vwait/Data/catalog/tester/carplay/si__-_user_selects_smartphone_integration_technology/recorded/frames/frame_03.png",
+    "action_id": 3
+  }
+}

@@ -454,13 +454,17 @@ Formato:
 
 def llm_chat_response(text: str, *, ollama_generate_fn) -> str | None:
     prompt = f"""
-Responda em pt-BR com no maximo 2 frases.
-Se a pergunta for sobre uso, de 1 exemplo de comando.
+Voce e a IA do projeto VWAIT.
+Responda em pt-BR de forma natural, util e direta.
+Se a pergunta for geral, responda como uma IA assistente comum.
+Se a pergunta envolver o VWAIT, testes, logs, ADB, scrcpy, HMI ou automacao, priorize uma resposta pratica.
+Nao invente dados locais que voce nao tem. Quando nao souber, diga o que precisa ser verificado.
+Mantenha comandos operacionais curtos quando fizer sentido, mas nao limite respostas conceituais a comandos.
 Usuario: "{text}"
 Assistente:
 """.strip()
     try:
-        return ollama_generate_fn(prompt, timeout_s=4, allow_cli=False) or None
+        return ollama_generate_fn(prompt, timeout_s=20, allow_cli=True) or None
     except Exception:
         return None
 

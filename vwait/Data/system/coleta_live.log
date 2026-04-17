@@ -1,20 +1,45 @@
 Fonte de coleta: scrcpy
 ESTADO INICIAL: OK (initial_state.png)
-Reutilizando scrcpy persistente: VWAIT_DEVICE
-Log verbose bruto: /home/victor-milani/vwait-ia/vwait/Data/catalog/tester/kleber/kleber1/recorded/scrcpy_verbose.log
-EVENT DOWN: (964,999) pressure=1.00
-EVENT UP: (964,999) pressure=0.00
-TAP 1: (964,999)
+Scrcpy gerenciado iniciado. Use a janela com titulo: VWAIT_DEVICE
+Log verbose bruto: /home/victor-milani/vwait-ia/vwait/Data/catalog/tester/smartphone_integration/si__-_verify_screen_transition_after_deactivation_of_tech_via_ui/recorded/scrcpy_verbose.log
+EVENT DOWN: (975,1005) pressure=1.00
+EVENT UP: (975,1005) pressure=0.00
+TAP 1: (975,1005)
 IMG 1: OK (frame_01.png)
-EVENT DOWN: (1061,996) pressure=1.00
-EVENT UP: (1061,996) pressure=0.00
-TAP 2: (1061,996)
+EVENT DOWN: (1082,1011) pressure=1.00
+EVENT MOVE: (1082,1012) pressure=1.00
+EVENT MOVE: (1082,1013) pressure=1.00
+EVENT MOVE: (1083,1015) pressure=1.00
+EVENT MOVE: (1083,1016) pressure=1.00
+EVENT UP: (1083,1016) pressure=0.00
+TAP 2: (1082,1011)
 IMG 2: OK (frame_02.png)
-EVENT DOWN: (1099,619) pressure=1.00
-EVENT UP: (1099,619) pressure=0.00
-TAP 3: (1099,619)
+EVENT DOWN: (1357,353) pressure=1.00
+EVENT MOVE: (1354,353) pressure=1.00
+EVENT MOVE: (1352,353) pressure=1.00
+EVENT MOVE: (1350,353) pressure=1.00
+EVENT MOVE: (1349,353) pressure=1.00
+EVENT UP: (1349,353) pressure=0.00
+TAP 3: (1357,353)
 IMG 3: OK (frame_03.png)
-EVENT DOWN: (1764,749) pressure=1.00
-EVENT UP: (1764,749) pressure=0.00
-TAP 4: (1764,749)
+EVENT DOWN: (344,233) pressure=1.00
+EVENT UP: (344,233) pressure=0.00
+TAP 4: (344,233)
 IMG 4: OK (frame_04.png)
+EVENT DOWN: (946,511) pressure=1.00
+EVENT UP: (946,511) pressure=0.00
+TAP 5: (946,511)
+IMG 5: OK (frame_05.png)
+EVENT DOWN: (891,428) pressure=1.00
+EVENT UP: (891,428) pressure=0.00
+TAP 6: (891,428)
+IMG 6: OK (frame_06.png)
+EVENT DOWN: (1554,197) pressure=1.00
+EVENT MOVE: (1555,196) pressure=1.00
+EVENT UP: (1555,196) pressure=0.00
+EVENT DOWN: (1133,502) pressure=1.00
+EVENT UP: (1133,502) pressure=0.00
+TAP 7: (1554,197)
+IMG 7: OK (frame_07.png)
+TAP 8: (1133,502)
+IMG 8: OK (frame_08.png)

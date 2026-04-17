@@ -7,6 +7,8 @@ import subprocess
 from pathlib import Path
 from shutil import which
 
+from vwait.core.paths import PROJECT_ROOT
+
 try:
     import requests
 except Exception:  # pragma: no cover
@@ -186,6 +188,9 @@ def resolve_ollama_cli(ollama_cli: str) -> str:
     path = which(ollama_cli)
     if path:
         return path
+    local_binary = PROJECT_ROOT / "tools" / "ollama-local" / "bin" / "ollama"
+    if local_binary.exists():
+        return str(local_binary)
     local_app = os.getenv("LOCALAPPDATA", "")
     candidate = os.path.join(local_app, "Programs", "Ollama", "ollama.exe")
     if candidate and os.path.exists(candidate):
@@ -235,6 +240,15 @@ def ollama_generate(
             except Exception:
                 continue
 
+    local_home = PROJECT_ROOT / "workspace" / "ollama-home"
+    local_models = PROJECT_ROOT / "workspace" / "ollama-models"
+    env = os.environ.copy()
+    env.setdefault("OLLAMA_HOST", normalized_base_url.replace("http://", "").replace("https://", ""))
+    if local_home.exists():
+        env.setdefault("HOME", str(local_home))
+    if local_models.exists():
+        env.setdefault("OLLAMA_MODELS", str(local_models))
+
     try:
         result = subprocess.run(
             [resolve_ollama_cli(ollama_cli), "run", str(model)],
@@ -242,6 +256,7 @@ def ollama_generate(
             capture_output=True,
             text=True,
             timeout=timeout_s,
+            env=env,
             **subprocess_windowless_kwargs(),
         )
         if result.returncode == 0 and str(result.stdout or "").strip():

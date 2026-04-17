@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "timestamp": "2026-04-17T15:09:12.680059",
+    "acao": "tap",
+    "coordenadas": {
+      "x": 943,
+      "y": 1011,
+      "tipo": "tap",
+      "timestamp": "2026-04-17T15:06:33.926726",
+      "resolucao_largura": 1920,
+      "resolucao_altura": 1080,
+      "x_norm": 0.4911458333333333,
+      "y_norm": 0.9361111111111112
+    },
+    "screenshot": "artifacts/results/resultado_01.png",
+    "frame_esperado": "../../../../../catalog/tester/carplay/si__-_user_selects_smartphone_integration_technology/recorded/frames/frame_01.png",
+    "similaridade": 0.9950767495239012,
+    "status": "OK",
+    "duracao": 2.87
+  },
+  {
+    "id": 2,
+    "timestamp": "2026-04-17T15:09:17.217409",
+    "acao": "tap",
+    "coordenadas": {
+      "x": 1087,
+      "y": 1001,
+      "tipo": "tap",
+      "timestamp": "2026-04-17T15:06:36.888986",
+      "resolucao_largura": 1920,
+      "resolucao_altura": 1080,
+      "x_norm": 0.5661458333333333,
+      "y_norm": 0.9268518518518518
+    },
+    "screenshot": "artifacts/results/resultado_02.png",
+    "frame_esperado": "../../../../../catalog/tester/carplay/si__-_user_selects_smartphone_integration_technology/recorded/frames/frame_02.png",
+    "similaridade": 0.9949775883478489,
+    "status": "OK",
+    "duracao": 2.84
+  },
+  {
+    "id": 3,
+    "timestamp": "2026-04-17T15:09:21.656379",
+    "acao": "tap",
+    "coordenadas": {
+      "x": 560,
+      "y": 364,
+      "tipo": "tap",
+      "timestamp": "2026-04-17T15:06:39.799456",
+      "resolucao_largura": 1920,
+      "resolucao_altura": 1080,
+      "x_norm": 0.2916666666666667,
+      "y_norm": 0.337037037037037
+    },
+    "screenshot": "artifacts/results/resultado_03.png",
+    "frame_esperado": "../../../../../catalog/tester/carplay/si__-_user_selects_smartphone_integration_technology/recorded/frames/frame_03.png",
+    "similaridade": 0.4490728867206203,
+    "status": "Divergente",
+    "duracao": 2.74
+  }
+]

@@ -1,0 +1,102 @@
+[
+  {
+    "id": 1,
+    "timestamp": "2026-04-17T15:57:59.093293",
+    "acao": "tap",
+    "coordenadas": {
+      "x": 965,
+      "y": 1010,
+      "tipo": "tap",
+      "timestamp": "2026-04-17T15:56:43.410345",
+      "resolucao_largura": 1920,
+      "resolucao_altura": 1080,
+      "x_norm": 0.5026041666666666,
+      "y_norm": 0.9351851851851852
+    },
+    "screenshot": "artifacts/results/resultado_01.png",
+    "frame_esperado": "../../../../../catalog/tester/smarthphone_integration/si__-_verifiy_listing_of_smartphone_integration_devices/recorded/frames/frame_01.png",
+    "similaridade": 0.9977842875775024,
+    "status": "OK",
+    "duracao": 2.96
+  },
+  {
+    "id": 2,
+    "timestamp": "2026-04-17T15:58:03.624125",
+    "acao": "tap",
+    "coordenadas": {
+      "x": 1082,
+      "y": 996,
+      "tipo": "tap",
+      "timestamp": "2026-04-17T15:56:47.175518",
+      "resolucao_largura": 1920,
+      "resolucao_altura": 1080,
+      "x_norm": 0.5635416666666667,
+      "y_norm": 0.9222222222222224
+    },
+    "screenshot": "artifacts/results/resultado_02.png",
+    "frame_esperado": "../../../../../catalog/tester/smarthphone_integration/si__-_verifiy_listing_of_smartphone_integration_devices/recorded/frames/frame_02.png",
+    "similaridade": 0.9993105832657303,
+    "status": "OK",
+    "duracao": 2.83
+  },
+  {
+    "id": 3,
+    "timestamp": "2026-04-17T15:58:08.318634",
+    "acao": "tap",
+    "coordenadas": {
+      "x": 1392,
+      "y": 362,
+      "tipo": "tap",
+      "timestamp": "2026-04-17T15:56:50.790183",
+      "resolucao_largura": 1920,
+      "resolucao_altura": 1080,
+      "x_norm": 0.725,
+      "y_norm": 0.3351851851851852
+    },
+    "screenshot": "artifacts/results/resultado_03.png",
+    "frame_esperado": "../../../../../catalog/tester/smarthphone_integration/si__-_verifiy_listing_of_smartphone_integration_devices/recorded/frames/frame_03.png",
+    "similaridade": 0.9975841662409253,
+    "status": "OK",
+    "duracao": 2.99
+  },
+  {
+    "id": 4,
+    "timestamp": "2026-04-17T15:58:12.731102",
+    "acao": "tap",
+    "coordenadas": {
+      "x": 292,
+      "y": 241,
+      "tipo": "tap",
+      "timestamp": "2026-04-17T15:56:53.551784",
+      "resolucao_largura": 1920,
+      "resolucao_altura": 1080,
+      "x_norm": 0.1520833333333333,
+      "y_norm": 0.2231481481481481
+    },
+    "screenshot": "artifacts/results/resultado_04.png",
+    "frame_esperado": "../../../../../catalog/tester/smarthphone_integration/si__-_verifiy_listing_of_smartphone_integration_devices/recorded/frames/frame_04.png",
+    "similaridade": 0.9993105832657303,
+    "status": "OK",
+    "duracao": 2.71
+  },
+  {
+    "id": 5,
+    "timestamp": "2026-04-17T15:58:17.156447",
+    "acao": "tap",
+    "coordenadas": {
+      "x": 1100,
+      "y": 816,
+      "tipo": "tap",
+      "timestamp": "2026-04-17T15:56:58.821243",
+      "resolucao_largura": 1920,
+      "resolucao_altura": 1080,
+      "x_norm": 0.5729166666666666,
+      "y_norm": 0.7555555555555555
+    },
+    "screenshot": "artifacts/results/resultado_05.png",
+    "frame_esperado": "../../../../../catalog/tester/smarthphone_integration/si__-_verifiy_listing_of_smartphone_integration_devices/recorded/frames/frame_05.png",
+    "similaridade": 0.9993105832657303,
+    "status": "OK",
+    "duracao": 2.72
+  }
+]

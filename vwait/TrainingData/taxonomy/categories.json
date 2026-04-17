@@ -1,4 +1,20 @@
 {
   "schema_version": "1.0",
-  "categories": []
+  "categories": [
+    {
+      "slug": "carplay",
+      "name": "Carplay",
+      "updated_at": "2026-04-17T18:16:44Z"
+    },
+    {
+      "slug": "smarthphone_integration",
+      "name": "Smarthphone_integration",
+      "updated_at": "2026-04-17T19:13:22Z"
+    },
+    {
+      "slug": "smartphone_integration",
+      "name": "Smartphone_Integration",
+      "updated_at": "2026-04-17T18:56:45Z"
+    }
+  ]
 }

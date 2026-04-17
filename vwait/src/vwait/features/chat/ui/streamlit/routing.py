@@ -166,6 +166,18 @@ def interpret_command(
     ):
         return format_benches(list_benches())
 
+    if text_norm in {"testes", "teste", "listar testes", "mostrar testes", "ver testes"}:
+        categories = list_categories()
+        if not categories:
+            return "Nenhum teste encontrado em `Data/catalog/tester/`."
+        lines = ["**Testes disponíveis em Data/catalog/tester**"]
+        for category in categories:
+            tests = list_tests(category)
+            if tests:
+                lines.append(f"\n**{category}**")
+                lines.extend(f"- `{test_name}`" for test_name in tests)
+        return "\n".join(lines)
+
     if any(
         token in text_norm
         for token in [
@@ -246,6 +258,17 @@ def interpret_command(
             if tests:
                 return f"Testes em **{category}**:\n- " + "\n- ".join(tests)
             return f"A categoria **{category}** nao possui testes."
+        if "teste" in text_norm:
+            categories = list_categories()
+            if not categories:
+                return "Nenhum teste encontrado em `Data/catalog/tester/`."
+            lines = ["**Testes disponíveis em Data/catalog/tester**"]
+            for category_name in categories:
+                tests = list_tests(category_name)
+                if tests:
+                    lines.append(f"\n**{category_name}**")
+                    lines.extend(f"- `{test_name}`" for test_name in tests)
+            return "\n".join(lines)
         categories = list_categories()
         if categories:
             return "Categorias disponiveis:\n- " + "\n- ".join(categories)
@@ -432,12 +455,41 @@ def respond_conversational(
         session_state.chat_history.append({"role": "assistant", "content": random.choice(help_phrases)})
         return resolve_command("ajuda")
 
+    if any(
+        token in command_norm
+        for token in [
+            "o que voce pode fazer",
+            "o que você pode fazer",
+            "voce pode fazer",
+            "você pode fazer",
+            "quais coisas voce faz",
+            "quais coisas você faz",
+        ]
+    ):
+        session_state.chat_history.append(
+            {
+                "role": "assistant",
+                "content": (
+                    "Posso conversar como IA geral usando o Ollama, responder dúvidas técnicas, ajudar com o VWAIT "
+                    "e também executar comandos do projeto, como listar testes, abrir painéis, gravar coletas, "
+                    "executar testes, capturar logs e consultar bancadas."
+                ),
+            }
+        )
+        return ""
+
     llm_response = llm_respond(command) if conversation_mode else None
     if llm_response:
         session_state.chat_history.append({"role": "assistant", "content": llm_response})
         return ""
 
     session_state.chat_history.append(
-        {"role": "assistant", "content": "Posso ajudar com comandos de testes. Ex.: `executar audio_1 na bancada 1`"}
+        {
+            "role": "assistant",
+            "content": (
+                "Tentei responder com o Ollama, mas ele não respondeu agora. Verifique se o serviço Ollama está aberto "
+                "em `http://localhost:11434` e se o modelo `llama3.1:8b` foi baixado."
+            ),
+        }
     )
     return ""

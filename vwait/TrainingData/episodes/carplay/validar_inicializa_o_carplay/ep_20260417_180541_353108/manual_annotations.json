@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "step_intents": [
+    "clicar na home",
+    "clicar no menu de aplicativos",
+    "encontrar o icone do carplay no menu de aplicativos",
+    "clicar no icone de carplay"
+  ],
+  "step_expected_results": [
+    "menu de aplicativos aberto",
+    "icone de carplay encontrado",
+    "tela inicial do carplay aberta"
+  ],
+  "raw_step_intents_text": "clicar na home\nclicar no menu de aplicativos\nencontrar o icone do carplay no menu de aplicativos\nclicar no icone de carplay",
+  "raw_step_expected_text": "menu de aplicativos aberto\nicone de carplay encontrado\ntela inicial do carplay aberta"
+}
